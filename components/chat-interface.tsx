@@ -11,17 +11,54 @@ import type { ModelProvider } from "@/types/models";
 import { Send, Mic, Paperclip, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 
+const defaultProviders: ModelProvider[] = [
+  {
+    id: "openai",
+    name: "OpenAI",
+    models: [
+      { id: "gpt-4", name: "GPT-4", icon: "🤖" },
+      { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", icon: "⚡" },
+    ],
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic",
+    models: [
+      { id: "claude-3", name: "Claude 3", icon: "🧠" },
+      { id: "claude-2", name: "Claude 2", icon: "💭" },
+    ],
+  },
+  {
+    id: "google",
+    name: "Google",
+    models: [
+      { id: "gemini-pro", name: "Gemini Pro", icon: "💎" },
+      { id: "palm-2", name: "PaLM 2", icon: "🌴" },
+    ],
+  },
+  {
+    id: "deepseek",
+    name: "DeepSeek",
+    models: [
+      { id: "deepseek-chat", name: "DeepSeek Chat", icon: "🔍" },
+      { id: "deepseek-coder", name: "DeepSeek Coder", icon: "💻" },
+    ],
+  },
+];
+
 interface ChatInterfaceProps {
   providers: ModelProvider[];
   selectedModels: string[];
   setSelectedModels: (models: string[]) => void;
 }
 
-export function ChatInterface({
-  providers,
-  selectedModels,
-  setSelectedModels,
-}: ChatInterfaceProps) {
+export function ChatInterface() {
+  const [selectedModels, setSelectedModels] = useState<string[]>([
+    "gpt-4",
+    "claude-3",
+    "gemini-pro",
+    "gpt-3.5-turbo33",
+  ]);
   const [message, setMessage] = useState("");
   const [showModelSelector, setShowModelSelector] = useState(false);
   const { t } = useLanguage();
@@ -45,7 +82,7 @@ export function ChatInterface({
     <div className="flex-1 flex flex-col h-full">
       <div className="flex-1 relative h-full" style={{ minHeight: 0 }}>
         <ModelColumns
-          providers={providers}
+          providers={defaultProviders}
           selectedModels={selectedModels}
           setSelectedModels={setSelectedModels}
         />
@@ -57,7 +94,7 @@ export function ChatInterface({
           {showModelSelector && (
             <div className="mb-4">
               <ModelSelector
-                providers={providers}
+                providers={defaultProviders}
                 selectedModels={selectedModels}
                 setSelectedModels={setSelectedModels}
               />

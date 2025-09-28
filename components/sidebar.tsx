@@ -11,22 +11,25 @@ import {
 } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
+import { useState } from "react";
 
 interface SidebarProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
 
-export function Sidebar({
-  isCollapsed = false,
-  onToggleCollapse,
-}: SidebarProps) {
+export function Sidebar({}) {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
   const { t } = useLanguage();
 
   return (
     <div
       className={`${
-        isCollapsed ? "w-18" : "w-80"
+        isSidebarCollapsed ? "w-18" : "w-80"
       } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300`}
     >
       {/* Header */}
@@ -34,7 +37,7 @@ export function Sidebar({
         <div className="flex items-center justify-between mb-4">
           <div
             className={`flex items-center gap-2 ${
-              isCollapsed ? "justify-center" : ""
+              isSidebarCollapsed ? "justify-center" : ""
             }`}
           >
             <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
@@ -42,7 +45,7 @@ export function Sidebar({
                 <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
               </div>
             </div>
-            {!isCollapsed && (
+            {!isSidebarCollapsed && (
               <span className="font-semibold text-sidebar-foreground">
                 AI MESH
               </span>
@@ -52,9 +55,9 @@ export function Sidebar({
             variant="ghost"
             size="icon"
             className="w-6 h-6 text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={onToggleCollapse}
+            onClick={handleToggleSidebar}
           >
-            {isCollapsed ? (
+            {isSidebarCollapsed ? (
               <ChevronRight className="w-4 h-4" />
             ) : (
               <ChevronLeft className="w-4 h-4" />
@@ -62,14 +65,14 @@ export function Sidebar({
           </Button>
         </div>
 
-        {!isCollapsed && (
+        {!isSidebarCollapsed && (
           <Button className="w-full justify-start gap-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
             <Plus className="w-4 h-4" />
             {t.nav.newChat}
           </Button>
         )}
 
-        {isCollapsed && (
+        {isSidebarCollapsed && (
           <Button className="w-full justify-center bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
             <Plus className="w-4 h-4" />
           </Button>
@@ -79,7 +82,7 @@ export function Sidebar({
           variant="ghost"
           size="icon"
           className={`${
-            isCollapsed ? "w-full" : "mt-2"
+            isSidebarCollapsed ? "w-full" : "mt-2"
           } text-sidebar-foreground hover:bg-sidebar-accent`}
         >
           <Search className="w-4 h-4" />
@@ -87,7 +90,7 @@ export function Sidebar({
       </div>
 
       {/* Projects Section */}
-      {!isCollapsed && (
+      {!isSidebarCollapsed && (
         <div className="flex-1 p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
@@ -106,7 +109,7 @@ export function Sidebar({
       )}
 
       {/* History Section */}
-      {!isCollapsed && (
+      {!isSidebarCollapsed && (
         <div className="flex-1 p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
@@ -133,7 +136,7 @@ export function Sidebar({
 
       {/* Bottom Section */}
       <div className="p-4 border-t border-sidebar-border space-y-4">
-        {!isCollapsed && (
+        {!isSidebarCollapsed && (
           <div className="flex justify-center">
             <LanguageSelector />
           </div>
@@ -143,11 +146,13 @@ export function Sidebar({
         <Button
           variant="ghost"
           className={`${
-            isCollapsed ? "w-full justify-center" : "w-full justify-start gap-2"
+            isSidebarCollapsed
+              ? "w-full justify-center"
+              : "w-full justify-start gap-2"
           } text-sidebar-foreground hover:bg-sidebar-accent`}
         >
           <Settings className="w-4 h-4" />
-          {!isCollapsed && t.nav.settings}
+          {!isSidebarCollapsed && t.nav.settings}
         </Button>
       </div>
     </div>
