@@ -48,7 +48,23 @@ export function streamChat(
     if (!res.ok || !res.body) throw new Error(await res.text());
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let buf = "";
+    while (reader) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const data = decoder.decode(value);
+      if (data.trim() === "") continue;
+
+      let eventName = "message";
+      eventName = data.split("\n").at(0) ?? "";
+      if (eventName.startsWith("event:")) eventName = eventName.slice(6).trim();
+      // Get data line (second line)
+      let dataLine = data.split("\n").at(1) ?? "";
+      if (dataLine.startsWith("data:")) dataLine = dataLine.slice(5).trim();
+      // console.log("SSE frame", { eventName, dataLine });
+
+      onEvent({ event: eventName, data: JSON.parse(dataLine) });
+    }
+    /* let buf = "";
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -66,10 +82,10 @@ export function streamChat(
         }
         if (data) {
           try {
-            onEvent({ event, data: JSON.parse(data) });
+            onEvent({ event: event, data: JSON.parse(data) });
           } catch {}
         }
       }
-    }
+    } */
   });
 }

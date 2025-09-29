@@ -10,6 +10,7 @@ import { ModelSelector } from "@/components/model-selector";
 import type { ModelProvider } from "@/types/models";
 import { Send, Mic, Paperclip, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
+import { RouteSel, streamChat } from "@/lib/chatApi";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -63,9 +64,44 @@ export function ChatInterface() {
   const [showModelSelector, setShowModelSelector] = useState(false);
   const { t } = useLanguage();
 
+  // ---- Send / Stream ----
+  const onSend = async () => {
+    let bodyRoutes: RouteSel[] = [];
+    bodyRoutes.push({ provider: "openai", model: "gpt-5-nano" });
+    bodyRoutes.push({ provider: "deepseek", model: "deepseek-chat" });
+
+    const ac = new AbortController();
+
+    const body = {
+      mode: "multi",
+      routes: bodyRoutes.length > 0 ? bodyRoutes : null,
+      messages: [
+        {
+          role: "user",
+          content: "Overview of Bangladesh in 5 words",
+        },
+      ],
+      stream: true,
+      provider_response: false,
+    };
+
+    await streamChat(
+      body,
+      (evt) => {
+        const e = evt.event;
+        const d = evt.data || {};
+        console.log(e, d);
+      },
+      ac.signal
+    ).catch((err) => {
+      console.error("SSE error", err);
+    });
+  };
+
   const handleSendMessage = () => {
     if (message.trim()) {
       // Handle message sending logic here
+      onSend();
       console.log("Sending message:", message, "to models:", selectedModels);
       setMessage("");
     }
