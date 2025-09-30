@@ -4,11 +4,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card } from "@/components/ui/card"
 import type { ModelProvider } from "@/types/models"
 import { useLanguage } from "@/contexts/language-context"
+import { RouteSel } from "@/lib/chatApi"
 
 interface ModelSelectorProps {
   providers: ModelProvider[]
-  selectedModels: string[]
-  setSelectedModels: (models: string[]) => void
+  selectedModels: RouteSel[];
+  setSelectedModels: (models: RouteSel[]) => void;
 }
 
 export function ModelSelector({ providers, selectedModels, setSelectedModels }: ModelSelectorProps) {
@@ -16,11 +17,24 @@ export function ModelSelector({ providers, selectedModels, setSelectedModels }: 
 
   const handleModelToggle = (modelId: string, checked: boolean) => {
     if (checked) {
-      setSelectedModels([...selectedModels, modelId])
+      const providerName = getProviderNameByModelId(modelId);
+      if (providerName) {
+        setSelectedModels([...selectedModels, { provider: providerName, model: modelId }]);
+      }
     } else {
-      setSelectedModels(selectedModels.filter((id) => id !== modelId))
+      setSelectedModels(selectedModels.filter((routeSel) => routeSel.model !== modelId))
     }
   }
+
+  // Function to find provider name from a model id
+function getProviderNameByModelId(modelId: string): string | undefined {
+  for (const provider of providers) {
+    if (provider.models.some(model => model.id === modelId)) {
+      return provider.name;
+    }
+  }
+  return undefined; // if not found
+}
 
   const getProviderIcon = (providerId: string) => {
     const icons: Record<string, string> = {
@@ -47,7 +61,7 @@ export function ModelSelector({ providers, selectedModels, setSelectedModels }: 
                 <div key={model.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={model.id}
-                    checked={selectedModels.includes(model.id)}
+                    checked={selectedModels.some(routeSel => routeSel.model === model.id)}
                     onCheckedChange={(checked) => handleModelToggle(model.id, checked as boolean)}
                   />
                   <label

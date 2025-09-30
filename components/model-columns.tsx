@@ -5,17 +5,20 @@ import { Switch } from "@/components/ui/switch";
 import { X, ExternalLink } from "lucide-react";
 import type { ModelProvider } from "@/types/models";
 import { ChatArea } from "@/components/chat-area";
+import { RouteSel } from "@/lib/chatApi";
 
 interface ModelColumnsProps {
   providers: ModelProvider[];
-  selectedModels: string[];
-  setSelectedModels: (models: string[]) => void;
+  selectedModels: RouteSel[];
+  setSelectedModels: (models: RouteSel[]) => void;
+  messages: Record<string, any>;
 }
 
 export function ModelColumns({
   providers,
   selectedModels,
   setSelectedModels,
+  messages
 }: ModelColumnsProps) {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
@@ -27,11 +30,11 @@ export function ModelColumns({
   };
 
   const activeModels = selectedModels
-    .map((id) => getModelDetails(id))
-    .filter(Boolean);
+    .map((routeSel) => getModelDetails(routeSel.model))
+    .filter((item): item is { model: any; provider: ModelProvider } => item !== null);
 
   const handleRemoveModel = (modelId: string) => {
-    setSelectedModels(selectedModels.filter((id) => id !== modelId));
+    setSelectedModels(selectedModels.filter((sel) => sel.model !== modelId));
   };
 
   const handleToggleModel = (modelId: string, enabled: boolean) => {
@@ -115,7 +118,7 @@ export function ModelColumns({
             <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
 
             <div className="flex-1 min-h-0">
-              <ChatArea activeModel={model.id} />
+              <ChatArea activeModel={model.id} messages={messages} />
             </div>
           </div>
         ))}
