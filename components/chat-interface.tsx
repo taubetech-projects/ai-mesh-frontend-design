@@ -17,7 +17,7 @@ const defaultProviders: ModelProvider[] = [
     id: "openai",
     name: "OpenAI",
     models: [
-      { id: "gpt-4", name: "GPT-4", icon: "🤖" },
+      { id: "gpt-5-nano", name: "Gpt-5 Nano", icon: "🤖" },
       { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", icon: "⚡" },
     ],
   },
@@ -25,16 +25,17 @@ const defaultProviders: ModelProvider[] = [
     id: "anthropic",
     name: "Anthropic",
     models: [
-      { id: "claude-3", name: "Claude 3", icon: "🧠" },
-      { id: "claude-2", name: "Claude 2", icon: "💭" },
+      { id: "claude-3-5-haiku-latest", name: "Claude 3.5 haiku", icon: "🧠" },
+      { id: "claude-3-7-sonnet-latest", name: "Claude Sonnet 3.7", icon: "💭" },
     ],
   },
   {
     id: "google",
     name: "Google",
     models: [
-      { id: "gemini-pro", name: "Gemini Pro", icon: "💎" },
-      { id: "palm-2", name: "PaLM 2", icon: "🌴" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", icon: "💎" },
+      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", icon: "💎" }
+
     ],
   },
   {
@@ -42,7 +43,21 @@ const defaultProviders: ModelProvider[] = [
     name: "DeepSeek",
     models: [
       { id: "deepseek-chat", name: "DeepSeek Chat", icon: "🔍" },
-      { id: "deepseek-coder", name: "DeepSeek Coder", icon: "💻" },
+      { id: "deepseek-reasoner", name: "DeepSeek Reasoner", icon: "💻" },
+    ],
+  },
+  {
+    id: "perplexity",
+    name: "Perplexity",
+    models: [
+      { id: "sonar", name: "Perplexity-Sonar", icon: "🔍" },
+    ],
+  },
+  {
+    id: "grok",
+    name: "Grok",
+    models: [
+      { id: "grok-3-mini", name: "Grok-3 Mini", icon: "🔍" },
     ],
   },
 ];
@@ -53,23 +68,54 @@ interface ChatInterfaceProps {
   setSelectedModels: (models: string[]) => void;
 }
 
+type AssistantMsg = {
+  role: "assistant";
+  content: string;
+  meta?: {
+    provider: string;
+    model: string;
+    label?: string;
+    latency_ms?: number;
+  };
+};
+
 export function ChatInterface() {
-  const [selectedModels, setSelectedModels] = useState<string[]>([
-    "gpt-4",
-    "claude-3",
-    "gemini-pro",
-    "gpt-3.5-turbo33",
+  const [selectedModels, setSelectedModels] = useState<RouteSel[]>([
+    { provider: "Google", model: "gemini-2.5-flash-lite" },
+    { provider: "DeepSeek", model: "deepseek-chat" },
   ]);
   const [message, setMessage] = useState("");
   const [showModelSelector, setShowModelSelector] = useState(false);
+
+  type UserMsg = { role: "user"; content: string };
+  type Message = UserMsg | AssistantMsg;
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+
   const { t } = useLanguage();
 
   // ---- Send / Stream ----
-  const onSend = async () => {
-    let bodyRoutes: RouteSel[] = [];
-    bodyRoutes.push({ provider: "openai", model: "gpt-5-nano" });
-    bodyRoutes.push({ provider: "deepseek", model: "deepseek-chat" });
+  const onSend = async (userMessage: string) => {
 
+    setMessages(prevMessages => {
+      const newMessages = { ...prevMessages };
+      for (const selectedModel of selectedModels) {
+        const modelId = selectedModel.model;
+        const existingMessages = newMessages[modelId] || [];
+        newMessages[modelId] = [...existingMessages, { role: "user", content: userMessage }, {
+          role: "assistant",
+          content: "",
+          meta: { provider: selectedModel.provider, model: selectedModel.model },
+        },];
+      }
+      return newMessages;
+    });
+    console.log("Messages", messages);
+    // return ;
+    const bodyRoutes = selectedModels.map((model) => ({
+      provider: model.provider,
+      model: model.model,
+    }));
+    console.log(bodyRoutes);
     const ac = new AbortController();
 
     const body = {
@@ -78,7 +124,7 @@ export function ChatInterface() {
       messages: [
         {
           role: "user",
-          content: "Overview of Bangladesh in 5 words",
+          content: userMessage,
         },
       ],
       stream: true,
@@ -90,7 +136,28 @@ export function ChatInterface() {
       (evt) => {
         const e = evt.event;
         const d = evt.data || {};
-        console.log(e, d);
+        // console.log(e, d); // You can uncomment this for debugging
+        if (e === "chat.response.delta") {
+          const modelId = d.model;
+          const contentChunk = d.delta.text || "";
+
+          if (!modelId || !contentChunk) return;
+
+          setMessages((prevMessages) => {
+            const modelMessages = prevMessages[modelId] || [];
+            if (modelMessages.length === 0) return prevMessages; // Should not happen
+
+            const updatedMessages = [...modelMessages];
+            const lastMessage = updatedMessages[updatedMessages.length - 1];
+
+            // Append the new content chunk to the last message
+            lastMessage.content += contentChunk;
+            console.log("lastMessage", lastMessage.content,contentChunk);
+
+            return { ...prevMessages, [modelId]: updatedMessages };
+          });
+        }
+        console.log("Messages",messages);
       },
       ac.signal
     ).catch((err) => {
@@ -101,7 +168,7 @@ export function ChatInterface() {
   const handleSendMessage = () => {
     if (message.trim()) {
       // Handle message sending logic here
-      onSend();
+      onSend(message);
       console.log("Sending message:", message, "to models:", selectedModels);
       setMessage("");
     }
@@ -121,6 +188,7 @@ export function ChatInterface() {
           providers={defaultProviders}
           selectedModels={selectedModels}
           setSelectedModels={setSelectedModels}
+          messages={messages}
         />
       </div>
 
