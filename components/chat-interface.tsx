@@ -34,8 +34,11 @@ const defaultProviders: ModelProvider[] = [
     name: "Google",
     models: [
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", icon: "💎" },
-      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", icon: "💎" }
-
+      {
+        id: "gemini-2.5-flash-lite",
+        name: "Gemini 2.5 Flash Lite",
+        icon: "💎",
+      },
     ],
   },
   {
@@ -49,16 +52,12 @@ const defaultProviders: ModelProvider[] = [
   {
     id: "perplexity",
     name: "Perplexity",
-    models: [
-      { id: "sonar", name: "Perplexity-Sonar", icon: "🔍" },
-    ],
+    models: [{ id: "sonar", name: "Perplexity-Sonar", icon: "🔍" }],
   },
   {
     id: "grok",
     name: "Grok",
-    models: [
-      { id: "grok-3-mini", name: "Grok-3 Mini", icon: "🔍" },
-    ],
+    models: [{ id: "grok-3-mini", name: "Grok-3 Mini", icon: "🔍" }],
   },
 ];
 
@@ -95,27 +94,32 @@ export function ChatInterface() {
 
   // ---- Send / Stream ----
   const onSend = async (userMessage: string) => {
-
-    setMessages(prevMessages => {
+    setMessages((prevMessages) => {
       const newMessages = { ...prevMessages };
       for (const selectedModel of selectedModels) {
         const modelId = selectedModel.model;
         const existingMessages = newMessages[modelId] || [];
-        newMessages[modelId] = [...existingMessages, { role: "user", content: userMessage }, {
-          role: "assistant",
-          content: "",
-          meta: { provider: selectedModel.provider, model: selectedModel.model },
-        },];
+        newMessages[modelId] = [
+          ...existingMessages,
+          { role: "user", content: userMessage },
+          {
+            role: "assistant",
+            content: "",
+            meta: {
+              provider: selectedModel.provider,
+              model: selectedModel.model,
+            },
+          },
+        ];
       }
       return newMessages;
     });
-    console.log("Messages", messages);
-    // return ;
+    // console.log("Messages", messages);
     const bodyRoutes = selectedModels.map((model) => ({
       provider: model.provider,
       model: model.model,
     }));
-    console.log(bodyRoutes);
+    // console.log(bodyRoutes);
     const ac = new AbortController();
 
     const body = {
@@ -152,12 +156,12 @@ export function ChatInterface() {
 
             // Append the new content chunk to the last message
             lastMessage.content += contentChunk;
-            console.log("lastMessage", lastMessage.content,contentChunk);
+            // console.log("lastMessage", lastMessage.content, contentChunk);
 
             return { ...prevMessages, [modelId]: updatedMessages };
           });
         }
-        console.log("Messages",messages);
+        // console.log("Messages", messages);
       },
       ac.signal
     ).catch((err) => {

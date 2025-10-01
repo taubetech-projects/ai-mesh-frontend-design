@@ -21,8 +21,6 @@ type AssistantMsg = {
 type UserMsg = { role: "user"; content: string };
 type Message = UserMsg | AssistantMsg;
 
-
-
 interface Message2 {
   type: "question" | "answer";
   content: string;
@@ -33,7 +31,7 @@ interface MessageType {
   content: string;
 }
 
-export function ChatArea({ activeModel , messages}: ChatAreaProps) {
+export function ChatArea({ activeModel, messages }: ChatAreaProps) {
   const { t } = useLanguage();
 
   const getModelDisplayName = (modelId: string) => {
@@ -110,12 +108,12 @@ export function ChatArea({ activeModel , messages}: ChatAreaProps) {
   };
 
   // const messages = getModelMessages(activeModel);
-  console.log("Active Models",activeModel);
+  // console.log("Active Models",activeModel);
   const modelMessages = messages[activeModel];
   // console.log(modelMessages);
   const modelDisplayName = getModelDisplayName(activeModel);
-  console.log("Model Messages",modelMessages);
-  if(modelMessages === undefined) return null;
+  // console.log("Model Messages",modelMessages);
+  if (modelMessages === undefined) return null;
 
   return (
     <div className="flex flex-col h-full">
@@ -145,9 +143,7 @@ export function ChatArea({ activeModel , messages}: ChatAreaProps) {
           >
             <div
               className={`text-xs font-medium mb-1 ${
-                message.role === "user"
-                  ? "text-blue-300"
-                  : "text-emerald-300"
+                message.role === "user" ? "text-blue-300" : "text-emerald-300"
               }`}
             >
               {message.role === "user" ? "Question" : "Answer"}
