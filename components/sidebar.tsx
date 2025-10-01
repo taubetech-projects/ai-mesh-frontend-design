@@ -11,25 +11,16 @@ import {
 } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
-import { useState } from "react";
+import { useSidebarReducer } from "@/reducer/sidebar-reducer"; 
 
-interface SidebarProps {
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
-}
-
-export function Sidebar({}) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  const handleToggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
+export function Sidebar() {
+  const [{ isCollapsed }, dispatch] = useSidebarReducer();
   const { t } = useLanguage();
 
   return (
     <div
       className={`${
-        isSidebarCollapsed ? "w-18" : "w-80"
+        isCollapsed ? "w-18" : "w-80"
       } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300`}
     >
       {/* Header */}
@@ -37,7 +28,7 @@ export function Sidebar({}) {
         <div className="flex items-center justify-between mb-4">
           <div
             className={`flex items-center gap-2 ${
-              isSidebarCollapsed ? "justify-center" : ""
+              isCollapsed ? "justify-center" : ""
             }`}
           >
             <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
@@ -45,7 +36,7 @@ export function Sidebar({}) {
                 <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
               </div>
             </div>
-            {!isSidebarCollapsed && (
+            {!isCollapsed && (
               <span className="font-semibold text-sidebar-foreground">
                 AI MESH
               </span>
@@ -55,9 +46,9 @@ export function Sidebar({}) {
             variant="ghost"
             size="icon"
             className="w-6 h-6 text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={handleToggleSidebar}
+            onClick={() => dispatch({ type: "TOGGLE" })}
           >
-            {isSidebarCollapsed ? (
+            {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />
             ) : (
               <ChevronLeft className="w-4 h-4" />
@@ -65,14 +56,14 @@ export function Sidebar({}) {
           </Button>
         </div>
 
-        {!isSidebarCollapsed && (
+        {!isCollapsed && (
           <Button className="w-full justify-start gap-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
             <Plus className="w-4 h-4" />
             {t.nav.newChat}
           </Button>
         )}
 
-        {isSidebarCollapsed && (
+        {isCollapsed && (
           <Button className="w-full justify-center bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
             <Plus className="w-4 h-4" />
           </Button>
@@ -82,7 +73,7 @@ export function Sidebar({}) {
           variant="ghost"
           size="icon"
           className={`${
-            isSidebarCollapsed ? "w-full" : "mt-2"
+            isCollapsed ? "w-full" : "mt-2"
           } text-sidebar-foreground hover:bg-sidebar-accent`}
         >
           <Search className="w-4 h-4" />
@@ -90,7 +81,7 @@ export function Sidebar({}) {
       </div>
 
       {/* Projects Section */}
-      {!isSidebarCollapsed && (
+      {!isCollapsed && (
         <div className="flex-1 p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
@@ -109,7 +100,7 @@ export function Sidebar({}) {
       )}
 
       {/* History Section */}
-      {!isSidebarCollapsed && (
+      {!isCollapsed && (
         <div className="flex-1 p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
@@ -136,7 +127,7 @@ export function Sidebar({}) {
 
       {/* Bottom Section */}
       <div className="p-4 border-t border-sidebar-border space-y-4">
-        {!isSidebarCollapsed && (
+        {!isCollapsed && (
           <div className="flex justify-center">
             <LanguageSelector />
           </div>
@@ -146,13 +137,13 @@ export function Sidebar({}) {
         <Button
           variant="ghost"
           className={`${
-            isSidebarCollapsed
+            isCollapsed
               ? "w-full justify-center"
               : "w-full justify-start gap-2"
           } text-sidebar-foreground hover:bg-sidebar-accent`}
         >
           <Settings className="w-4 h-4" />
-          {!isSidebarCollapsed && t.nav.settings}
+          {!isCollapsed && t.nav.settings}
         </Button>
       </div>
     </div>
