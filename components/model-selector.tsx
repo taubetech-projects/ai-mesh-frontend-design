@@ -29,16 +29,9 @@ export function ModelSelector({
           type: ADD_MODEL,
           payload: { provider: providerName, model: modelId },
         });
-        // setSelectedModels([
-        //   ...selectedModels,
-        //   { provider: providerName, model: modelId },
-        // ]);
       }
     } else {
       dispatch({ type: REMOVE_MODEL, payload: { modelId: modelId } });
-      // setSelectedModels(
-      //   selectedModels.filter((routeSel) => routeSel.model !== modelId)
-      // );
     }
   };
 

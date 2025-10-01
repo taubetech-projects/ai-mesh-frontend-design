@@ -115,7 +115,7 @@ export function ChatInterface() {
     // Initialize messages state for each selected model if not already present
     dispatch({
       type: ADD_MESSAGES,
-      payload: { inpputMessage: userMessage },
+      payload: { inputMessage: userMessage },
     });
     // console.log("Messages", messages);
     const bodyRoutes = selectedModels.map((model: RouteSel) => ({

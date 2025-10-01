@@ -36,14 +36,14 @@ export function chatInterfaceReducer(state: any, action: any) {
       return { ...state, inputMessage: inputMessage };
     }
     case ADD_MESSAGES: {
-      const { inpputMessage } = action.payload;
+      const { inputMessage } = action.payload;
       const newMessages = { ...state.messages };
       for (const selectedModel of state.selectedModels) {
         const modelId = selectedModel.model;
         const existingMessages = newMessages[modelId] || [];
         newMessages[modelId] = [
           ...existingMessages,
-          { role: "user", content: inpputMessage },
+          { role: "user", content: inputMessage },
           {
             role: "assistant",
             content: "",
