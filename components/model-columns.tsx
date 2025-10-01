@@ -6,19 +6,21 @@ import { X, ExternalLink } from "lucide-react";
 import type { ModelProvider } from "@/types/models";
 import { ChatArea } from "@/components/chat-area";
 import { RouteSel } from "@/lib/chatApi";
+import { REMOVE_MODEL } from "@/reducer/constants";
 
 interface ModelColumnsProps {
   providers: ModelProvider[];
   selectedModels: RouteSel[];
-  setSelectedModels: (models: RouteSel[]) => void;
+  // setSelectedModels: (models: RouteSel[]) => void;
+  dispatch: React.Dispatch<any>;
   messages: Record<string, any>;
 }
 
 export function ModelColumns({
   providers,
   selectedModels,
-  setSelectedModels,
-  messages
+  dispatch,
+  messages,
 }: ModelColumnsProps) {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
@@ -31,10 +33,13 @@ export function ModelColumns({
 
   const activeModels = selectedModels
     .map((routeSel) => getModelDetails(routeSel.model))
-    .filter((item): item is { model: any; provider: ModelProvider } => item !== null);
+    .filter(
+      (item): item is { model: any; provider: ModelProvider } => item !== null
+    );
 
   const handleRemoveModel = (modelId: string) => {
-    setSelectedModels(selectedModels.filter((sel) => sel.model !== modelId));
+    dispatch({ type: REMOVE_MODEL, payload: { modelId: modelId } });
+    // setSelectedModels(selectedModels.filter((sel) => sel.model !== modelId));
   };
 
   const handleToggleModel = (modelId: string, enabled: boolean) => {
