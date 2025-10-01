@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useReducer } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns";
@@ -11,6 +11,13 @@ import type { ModelProvider } from "@/types/models";
 import { Send, Mic, Paperclip, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { RouteSel, streamChat } from "@/lib/chatApi";
+import { chatInterfaceReducer } from "@/reducer/chat-interface-reducer";
+import {
+  ADD_MESSAGES,
+  CONCAT_DELTA,
+  TOGGLE_MODEL_SELECTOR,
+  UPDATE_INPUT,
+} from "@/reducer/constants";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -78,44 +85,40 @@ type AssistantMsg = {
   };
 };
 
-export function ChatInterface() {
-  const [selectedModels, setSelectedModels] = useState<RouteSel[]>([
-    { provider: "Google", model: "gemini-2.5-flash-lite" },
-    { provider: "DeepSeek", model: "deepseek-chat" },
-  ]);
-  const [message, setMessage] = useState("");
-  const [showModelSelector, setShowModelSelector] = useState(false);
+type UserMsg = { role: "user"; content: string };
+type Message = UserMsg | AssistantMsg;
 
-  type UserMsg = { role: "user"; content: string };
-  type Message = UserMsg | AssistantMsg;
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+const initialSelectedModels: RouteSel[] = [
+  { provider: "Google", model: "gemini-2.5-flash-lite" },
+  { provider: "DeepSeek", model: "deepseek-chat" },
+];
+const initialState: {
+  showModelSelector: boolean;
+  selectedModels: RouteSel[];
+  inputMessage: string;
+  messages: Record<string, Message[]>;
+} = {
+  showModelSelector: false,
+  selectedModels: initialSelectedModels,
+  inputMessage: "",
+  messages: {},
+};
+export function ChatInterface() {
+  const [state, dispatch] = useReducer(chatInterfaceReducer, initialState);
+  const { showModelSelector, selectedModels, inputMessage, messages } = state;
 
   const { t } = useLanguage();
 
   // ---- Send / Stream ----
   const onSend = async (userMessage: string) => {
-    setMessages((prevMessages) => {
-      const newMessages = { ...prevMessages };
-      for (const selectedModel of selectedModels) {
-        const modelId = selectedModel.model;
-        const existingMessages = newMessages[modelId] || [];
-        newMessages[modelId] = [
-          ...existingMessages,
-          { role: "user", content: userMessage },
-          {
-            role: "assistant",
-            content: "",
-            meta: {
-              provider: selectedModel.provider,
-              model: selectedModel.model,
-            },
-          },
-        ];
-      }
-      return newMessages;
+    if (selectedModels.length === 0) return;
+    // Initialize messages state for each selected model if not already present
+    dispatch({
+      type: ADD_MESSAGES,
+      payload: { inputMessage: userMessage },
     });
     // console.log("Messages", messages);
-    const bodyRoutes = selectedModels.map((model) => ({
+    const bodyRoutes = selectedModels.map((model: RouteSel) => ({
       provider: model.provider,
       model: model.model,
     }));
@@ -146,19 +149,9 @@ export function ChatInterface() {
           const contentChunk = d.delta.text || "";
 
           if (!modelId || !contentChunk) return;
-
-          setMessages((prevMessages) => {
-            const modelMessages = prevMessages[modelId] || [];
-            if (modelMessages.length === 0) return prevMessages; // Should not happen
-
-            const updatedMessages = [...modelMessages];
-            const lastMessage = updatedMessages[updatedMessages.length - 1];
-
-            // Append the new content chunk to the last message
-            lastMessage.content += contentChunk;
-            // console.log("lastMessage", lastMessage.content, contentChunk);
-
-            return { ...prevMessages, [modelId]: updatedMessages };
+          dispatch({
+            type: CONCAT_DELTA,
+            payload: { modelId: modelId, content: contentChunk },
           });
         }
         // console.log("Messages", messages);
@@ -170,11 +163,17 @@ export function ChatInterface() {
   };
 
   const handleSendMessage = () => {
-    if (message.trim()) {
+    if (inputMessage.trim()) {
       // Handle message sending logic here
-      onSend(message);
-      console.log("Sending message:", message, "to models:", selectedModels);
-      setMessage("");
+      onSend(inputMessage);
+      console.log(
+        "Sending message:",
+        inputMessage,
+        "to models:",
+        selectedModels
+      );
+      // setInputMessage("");
+      dispatch({ type: UPDATE_INPUT, payload: { inputMessage: "" } });
     }
   };
 
@@ -191,7 +190,7 @@ export function ChatInterface() {
         <ModelColumns
           providers={defaultProviders}
           selectedModels={selectedModels}
-          setSelectedModels={setSelectedModels}
+          dispatch={dispatch}
           messages={messages}
         />
       </div>
@@ -204,7 +203,7 @@ export function ChatInterface() {
               <ModelSelector
                 providers={defaultProviders}
                 selectedModels={selectedModels}
-                setSelectedModels={setSelectedModels}
+                dispatch={dispatch}
               />
             </div>
           )}
@@ -212,8 +211,14 @@ export function ChatInterface() {
           {/* Input Field */}
           <div className="relative">
             <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              value={inputMessage}
+              // onChange={(e) => setInputMessage(e.target.value)}
+              onChange={(e) =>
+                dispatch({
+                  type: UPDATE_INPUT,
+                  payload: { inputMessage: e.target.value },
+                })
+              }
               onKeyPress={handleKeyPress}
               placeholder={t.chat.askAnything}
               className="pr-32 py-3 text-base bg-muted border-border text-white placeholder:text-muted-foreground"
@@ -223,7 +228,7 @@ export function ChatInterface() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowModelSelector(!showModelSelector)}
+                onClick={() => dispatch({ type: TOGGLE_MODEL_SELECTOR })}
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <Settings className="w-4 h-4" />
@@ -246,7 +251,7 @@ export function ChatInterface() {
                 onClick={handleSendMessage}
                 size="icon"
                 className="h-8 w-8 bg-teal-500 hover:bg-teal-600 text-white"
-                disabled={!message.trim()}
+                disabled={!inputMessage.trim()}
               >
                 <Send className="w-4 h-4" />
               </Button>

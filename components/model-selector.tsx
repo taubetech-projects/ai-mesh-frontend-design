@@ -1,40 +1,49 @@
-"use client"
+"use client";
 
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card } from "@/components/ui/card"
-import type { ModelProvider } from "@/types/models"
-import { useLanguage } from "@/contexts/language-context"
-import { RouteSel } from "@/lib/chatApi"
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
+import type { ModelProvider } from "@/types/models";
+import { useLanguage } from "@/contexts/language-context";
+import { RouteSel } from "@/lib/chatApi";
+import { ADD_MODEL, REMOVE_MODEL } from "@/reducer/constants";
 
 interface ModelSelectorProps {
-  providers: ModelProvider[]
+  providers: ModelProvider[];
   selectedModels: RouteSel[];
-  setSelectedModels: (models: RouteSel[]) => void;
+  // setSelectedModels: (models: RouteSel[]) => void;
+  dispatch: React.Dispatch<any>;
 }
 
-export function ModelSelector({ providers, selectedModels, setSelectedModels }: ModelSelectorProps) {
-  const { t } = useLanguage()
+export function ModelSelector({
+  providers,
+  selectedModels,
+  dispatch,
+}: ModelSelectorProps) {
+  const { t } = useLanguage();
 
   const handleModelToggle = (modelId: string, checked: boolean) => {
     if (checked) {
       const providerName = getProviderNameByModelId(modelId);
       if (providerName) {
-        setSelectedModels([...selectedModels, { provider: providerName, model: modelId }]);
+        dispatch({
+          type: ADD_MODEL,
+          payload: { provider: providerName, model: modelId },
+        });
       }
     } else {
-      setSelectedModels(selectedModels.filter((routeSel) => routeSel.model !== modelId))
+      dispatch({ type: REMOVE_MODEL, payload: { modelId: modelId } });
     }
-  }
+  };
 
   // Function to find provider name from a model id
-function getProviderNameByModelId(modelId: string): string | undefined {
-  for (const provider of providers) {
-    if (provider.models.some(model => model.id === modelId)) {
-      return provider.name;
+  function getProviderNameByModelId(modelId: string): string | undefined {
+    for (const provider of providers) {
+      if (provider.models.some((model) => model.id === modelId)) {
+        return provider.name;
+      }
     }
+    return undefined; // if not found
   }
-  return undefined; // if not found
-}
 
   const getProviderIcon = (providerId: string) => {
     const icons: Record<string, string> = {
@@ -42,9 +51,9 @@ function getProviderNameByModelId(modelId: string): string | undefined {
       anthropic: "🧠",
       google: "🔍",
       deepseek: "🔬",
-    }
-    return icons[providerId] || "🤖"
-  }
+    };
+    return icons[providerId] || "🤖";
+  };
 
   return (
     <Card className="p-4 bg-muted/50">
@@ -61,8 +70,12 @@ function getProviderNameByModelId(modelId: string): string | undefined {
                 <div key={model.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={model.id}
-                    checked={selectedModels.some(routeSel => routeSel.model === model.id)}
-                    onCheckedChange={(checked) => handleModelToggle(model.id, checked as boolean)}
+                    checked={selectedModels.some(
+                      (routeSel) => routeSel.model === model.id
+                    )}
+                    onCheckedChange={(checked) =>
+                      handleModelToggle(model.id, checked as boolean)
+                    }
                   />
                   <label
                     htmlFor={model.id}
@@ -78,5 +91,5 @@ function getProviderNameByModelId(modelId: string): string | undefined {
         ))}
       </div>
     </Card>
-  )
+  );
 }
