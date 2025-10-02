@@ -7,7 +7,7 @@ export type RouteSel = { provider: string; model: string };
 
 export default function HomePage() {
   return (
-    <div className="flex h-screen bg-background dark">
+    <div className="flex h-screen bg-background">
       <Sidebar />
       <ChatInterface />
     </div>
