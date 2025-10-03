@@ -10,7 +10,8 @@ import {
 export function chatInterfaceReducer(state: any, action: any) {
   switch (action.type) {
     case TOGGLE_MODEL_SELECTOR:
-      return { ...state, showModelSelector: !state.showModelSelector };
+      const {showModelSelector} = action.payload;
+      return { ...state, showModelSelector: showModelSelector };
     case ADD_MODEL: {
       const { provider, model } = action.payload;
       // Prevent duplicates based on model id
@@ -72,6 +73,14 @@ export function chatInterfaceReducer(state: any, action: any) {
       if (lastMessage.role !== "assistant") return state; // No change if last message is not from assistant
       newMessages[modelId] = updatedMessages;
       return { ...state, messages: newMessages };
+    }
+    case "START_STREAM": {
+      const{isStreaming} = action.payload;
+      return { ...state, isStreaming: isStreaming };;
+    }
+    case "END_STREAM": {
+      const{isStreaming} = action.payload;
+      return { ...state, isStreaming: isStreaming };;
     }
     default:
       return state;
