@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
-import { useSidebarReducer } from "@/reducer/sidebar-reducer"; 
+import { useSidebarReducer } from "@/reducer/sidebar-reducer";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Sidebar() {
   const [{ isCollapsed }, dispatch] = useSidebarReducer();
@@ -134,17 +135,25 @@ export function Sidebar() {
         )}
 
         {/* Settings */}
-        <Button
-          variant="ghost"
-          className={`${
-            isCollapsed
-              ? "w-full justify-center"
-              : "w-full justify-start gap-2"
-          } text-sidebar-foreground hover:bg-sidebar-accent`}
+        <div
+          className={`flex ${
+            isCollapsed ? "flex-col gap-2" : "items-center justify-between"
+          }`}
         >
-          <Settings className="w-4 h-4" />
-          {!isCollapsed && t.nav.settings}
-        </Button>
+          <ThemeToggle />
+
+          <Button
+            variant="ghost"
+            className={`${
+              isCollapsed
+                ? "w-full justify-center"
+                : "flex-1 justify-start gap-2 ml-2"
+            } text-sidebar-foreground hover:bg-sidebar-accent`}
+          >
+            <Settings className="w-4 h-4" />
+            {!isCollapsed && t.nav.settings}
+          </Button>
+        </div>
       </div>
     </div>
   );
