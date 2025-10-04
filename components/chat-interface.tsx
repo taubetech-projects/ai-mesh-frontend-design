@@ -285,7 +285,7 @@ export function ChatInterface() {
               }
               onKeyPress={handleKeyPress}
               placeholder={t.chat.askAnything}
-              className="pr-32 py-3 text-base bg-muted border-border text-white placeholder:text-muted-foreground"
+              className="pr-32 py-3 text-base bg-muted border-border text-primary placeholder:text-muted-foreground"
             />
 
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
