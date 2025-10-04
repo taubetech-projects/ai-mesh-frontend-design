@@ -22,7 +22,7 @@ export function Sidebar() {
     <div
       className={`${
         isCollapsed ? "w-18" : "w-80"
-      } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300`}
+      } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 flex-shrink-0`}
     >
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
