@@ -20,14 +20,19 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 );
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("de");
+  const [language, setLanguage] = useState<Language>("de"); // Default fallback
 
   // Load saved language from localStorage on mount
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language") as Language;
-    console.log("Saved language:", savedLanguage);
     if (savedLanguage && ["en", "de", "bn"].includes(savedLanguage)) {
       setLanguage(savedLanguage);
+    } else {
+      // If no language in localStorage, check browser preference
+      const browserLang = navigator.language.split("-")[0] as Language;
+      if (["en", "de", "bn"].includes(browserLang)) {
+        setLanguage(browserLang);
+      }
     }
   }, []);
 
