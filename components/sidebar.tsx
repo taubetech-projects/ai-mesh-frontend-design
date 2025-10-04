@@ -12,6 +12,7 @@ import {
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
 import { useSidebarReducer } from "@/reducer/sidebar-reducer";
+import { TOGGLE_SIDEBAR } from "@/reducer/constants";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Sidebar() {
@@ -22,7 +23,7 @@ export function Sidebar() {
     <div
       className={`${
         isCollapsed ? "w-18" : "w-80"
-      } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300`}
+      } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 flex-shrink-0`}
     >
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
@@ -47,7 +48,7 @@ export function Sidebar() {
             variant="ghost"
             size="icon"
             className="w-6 h-6 text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={() => dispatch({ type: "TOGGLE" })}
+            onClick={() => dispatch({ type: TOGGLE_SIDEBAR })}
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />

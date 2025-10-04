@@ -18,14 +18,21 @@ import {
   TOGGLE_MODEL_SELECTOR,
   UPDATE_INPUT,
 } from "@/reducer/constants";
+import { Route } from "next";
 
 const defaultProviders: ModelProvider[] = [
   {
     id: "openai",
     name: "OpenAI",
     models: [
+      { id: "gpt-5", name: "Gpt-5", icon: "🤖" },
       { id: "gpt-5-nano", name: "Gpt-5 Nano", icon: "🤖" },
+      { id: "gpt-5-mini", name: "Gpt-5 Mini", icon: "🤖" },
+      { id: "gpt-4.1", name: "GPT-4.1", icon: "⚡" },
+      { id: "gpt-4.1-mini", name: "GPT-4.1 mini", icon: "⚡" },
+      { id: "gpt-4.1-nano", name: "GPT-4.1 Nano", icon: "⚡" },
       { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", icon: "⚡" },
+
     ],
   },
   {
@@ -34,6 +41,9 @@ const defaultProviders: ModelProvider[] = [
     models: [
       { id: "claude-3-5-haiku-latest", name: "Claude 3.5 haiku", icon: "🧠" },
       { id: "claude-3-7-sonnet-latest", name: "Claude Sonnet 3.7", icon: "💭" },
+      { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", icon: "💭" },
+      { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5", icon: "💭" },
+
     ],
   },
   {
@@ -46,6 +56,9 @@ const defaultProviders: ModelProvider[] = [
         name: "Gemini 2.5 Flash Lite",
         icon: "💎",
       },
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", icon: "💎" },
+      { id: "consensus", name: "Consensus", icon: "💎" },
+
     ],
   },
   {
@@ -59,14 +72,26 @@ const defaultProviders: ModelProvider[] = [
   {
     id: "perplexity",
     name: "Perplexity",
-    models: [{ id: "sonar", name: "Perplexity-Sonar", icon: "🔍" }],
+    models: [{ id: "sonar", name: "Sonar", icon: "🔍" },
+    { id: "sonar-pro", name: "Sonar Pro", icon: "🔍" },
+    { id: "sonar-reasoning", name: "Sonar Reasoning", icon: "🔍" },
+    { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro", icon: "🔍" },
+
+
+    ],
   },
   {
     id: "grok",
     name: "Grok",
-    models: [{ id: "grok-3-mini", name: "Grok-3 Mini", icon: "🔍" }],
+    models: [{ id: "grok-3-mini", name: "Grok-3 Mini", icon: "🔍" },
+    { id: "grok-code-fast-1", name: "Grok-Code Fast", icon: "🔍" },
+    { id: "grok-4-fast-reasoning", name: "Grok-4 Fast Reasoning", icon: "🔍" },
+    { id: "grok-4-fast-non-reasoning", name: "Grok-4 Fast Non Reasoning", icon: "🔍" },
+    ],
   },
 ];
+
+var count = 0;
 
 interface ChatInterfaceProps {
   providers: ModelProvider[];
@@ -97,17 +122,24 @@ const initialState: {
   selectedModels: RouteSel[];
   inputMessage: string;
   messages: Record<string, Message[]>;
+  isStreaming: boolean;
 } = {
   showModelSelector: false,
   selectedModels: initialSelectedModels,
   inputMessage: "",
   messages: {},
+  isStreaming: false,
 };
 export function ChatInterface() {
   const [state, dispatch] = useReducer(chatInterfaceReducer, initialState);
-  const { showModelSelector, selectedModels, inputMessage, messages } = state;
+  const { showModelSelector, selectedModels, inputMessage, messages, isStreaming } = state;
 
   const { t } = useLanguage();
+
+  function modeSelection(){
+    const model = selectedModels.find((model: RouteSel) => model.model === "consensus");
+    return model? "consensus":"multi";
+  }
 
   // ---- Send / Stream ----
   const onSend = async (userMessage: string) => {
@@ -118,15 +150,15 @@ export function ChatInterface() {
       payload: { inputMessage: userMessage },
     });
     // console.log("Messages", messages);
-    const bodyRoutes = selectedModels.map((model: RouteSel) => ({
-      provider: model.provider,
-      model: model.model,
-    }));
-    // console.log(bodyRoutes);
+    const bodyRoutes = selectedModels
+      .filter((model: RouteSel) => model.model !== "consensus")
+      .map((model:RouteSel) => ({ provider: model.provider, model: model.model }));
+    console.log("Body Routes: ",bodyRoutes);
     const ac = new AbortController();
+    console.log("Selected mode: ",modeSelection());
 
     const body = {
-      mode: "multi",
+      mode: modeSelection(),
       routes: bodyRoutes.length > 0 ? bodyRoutes : null,
       messages: [
         {
@@ -143,6 +175,12 @@ export function ChatInterface() {
       (evt) => {
         const e = evt.event;
         const d = evt.data || {};
+        if (e === "chat.response.created") {
+          dispatch({
+            type: "START_STREAM",
+            payload: { isStreaming: true },
+          });
+        }
         // console.log(e, d); // You can uncomment this for debugging
         if (e === "chat.response.delta") {
           const modelId = d.model;
@@ -153,6 +191,31 @@ export function ChatInterface() {
             type: CONCAT_DELTA,
             payload: { modelId: modelId, content: contentChunk },
           });
+        }
+        if (e === "chat.response.completed") {
+          count++;
+          if (count === bodyRoutes.length) {
+            dispatch({
+              type: "END_STREAM",
+              payload: { isStreaming: false },
+            });
+          }
+
+        }
+        if (e === "consensus") {
+          console.log("This is a consensus event", d.delta.text);
+          const modelId = "consensus";
+          const contentChunk = d.delta.text || "";
+
+          if (!modelId || !contentChunk) return;
+          dispatch({
+            type: CONCAT_DELTA,
+            payload: { modelId: modelId, content: contentChunk },
+          });
+          dispatch({
+            type: "END_STREAM",
+            payload: { isStreaming: false },
+          })
         }
         // console.log("Messages", messages);
       },
@@ -174,6 +237,7 @@ export function ChatInterface() {
       );
       // setInputMessage("");
       dispatch({ type: UPDATE_INPUT, payload: { inputMessage: "" } });
+      dispatch({ type: TOGGLE_MODEL_SELECTOR, payload: {showModelSelector: false}}); 
     }
   };
 
@@ -185,7 +249,7 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full bg-background">
       <div className="flex-1 relative h-full" style={{ minHeight: 0 }}>
         <ModelColumns
           providers={defaultProviders}
@@ -228,7 +292,7 @@ export function ChatInterface() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => dispatch({ type: TOGGLE_MODEL_SELECTOR })}
+                onClick={() => dispatch({ type: TOGGLE_MODEL_SELECTOR, payload: {showModelSelector: !showModelSelector}})}
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <Settings className="w-4 h-4" />
@@ -251,7 +315,7 @@ export function ChatInterface() {
                 onClick={handleSendMessage}
                 size="icon"
                 className="h-8 w-8 bg-teal-500 hover:bg-teal-600 text-white"
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || isStreaming}
               >
                 <Send className="w-4 h-4" />
               </Button>

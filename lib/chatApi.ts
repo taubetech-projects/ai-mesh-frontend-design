@@ -48,27 +48,48 @@ export function streamChat(
     if (!res.ok || !res.body) throw new Error(await res.text());
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    while (reader) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const data = decoder.decode(value);
-      if (data.trim() === "") continue;
+    // while (reader) {
+    //   const { value, done } = await reader.read();
+    //   if (done) break;
+    //   const data = decoder.decode(value);
+    //   if (data.trim() === "") continue;
 
-      let eventName = "message";
-      eventName = data.split("\n").at(0) ?? "";
-      if (eventName.startsWith("event:")) eventName = eventName.slice(6).trim();
-      // Get data line (second line)
-      let dataLine = data.split("\n").at(1) ?? "";
-      if (dataLine.startsWith("data:")) dataLine = dataLine.slice(5).trim();
-      // console.log("SSE frame", { eventName, dataLine });
+    //   let eventName = "message";
+    //   eventName = data.split("\n").at(0) ?? "";
+    //   if (eventName.startsWith("event:")) eventName = eventName.slice(6).trim();
+    //   // Get data line (second line)
+    //   let dataLine = data.split("\n").at(1) ?? "";
+    //   if (dataLine.startsWith("data:")) dataLine = dataLine.slice(5).trim();
+    //   // console.log("SSE frame", { eventName, dataLine });
 
-      onEvent({ event: eventName, data: JSON.parse(dataLine) });
-    }
-    /* let buf = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
+    //   onEvent({ event: eventName, data: JSON.parse(dataLine) });
+    // }
+    // let buf = "";
+    // while (true) {
+    //   const { value, done } = await reader.read();
+    //   if (done) break;
+    //   buf += decoder.decode(value, { stream: true });
+    //   let idx: number;
+    //   while ((idx = buf.indexOf("\n\n")) !== -1) {
+    //     const frame = buf.slice(0, idx);
+    //     buf = buf.slice(idx + 2);
+    //     let event = "message";
+    //     let data = "";
+    //     for (const line of frame.split("\n")) {
+    //       if (!line) continue;
+    //       if (line.startsWith("event:")) event = line.slice(6).trim();
+    //       else if (line.startsWith("data:")) data += line.slice(5).trim();
+    //     }
+    //     if (data) {
+    //       try {
+    //         onEvent({ event: event, data: JSON.parse(data) });
+    //       } catch {}
+    //     }
+    //   }
+    // }
+
+    let buf = "";
+    const processBuffer = (isFinal: boolean = false) => {
       let idx: number;
       while ((idx = buf.indexOf("\n\n")) !== -1) {
         const frame = buf.slice(0, idx);
@@ -86,6 +107,33 @@ export function streamChat(
           } catch {}
         }
       }
-    } */
+      // Process final incomplete frame if stream is done
+      if (isFinal && buf) {
+        let event = "message";
+        let data = "";
+        for (const line of buf.split("\n")) {
+          if (!line) continue;
+          if (line.startsWith("event:")) event = line.slice(6).trim();
+          else if (line.startsWith("data:")) data += line.slice(5).trim();
+        }
+        if (data) {
+          try {
+            onEvent({ event: event, data: JSON.parse(data) });
+          } catch {}
+        }
+        buf = ""; // Clear buffer
+      }
+    };
+ 
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        processBuffer(true); // Process any remaining buffer content
+        break;
+      }
+      buf += decoder.decode(value, { stream: true });
+      console.log("Buffer", buf);
+      processBuffer();
+    }
   });
 }

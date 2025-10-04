@@ -1,11 +1,13 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { ModelProvider } from "@/types/models";
 import { useLanguage } from "@/contexts/language-context";
 import { RouteSel } from "@/lib/chatApi";
-import { ADD_MODEL, REMOVE_MODEL } from "@/reducer/constants";
+import { ADD_MODEL, REMOVE_MODEL, TOGGLE_MODEL_SELECTOR } from "@/reducer/constants";
+import { X } from "lucide-react";
 
 interface ModelSelectorProps {
   providers: ModelProvider[];
@@ -56,8 +58,19 @@ export function ModelSelector({
   };
 
   return (
-    <Card className="p-4 bg-muted/50">
-      <h3 className="text-sm font-medium mb-3">{t.models.selectModels}</h3>
+    <Card className="p-4 bg-muted/50 relative">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-sm font-medium">{t.models.selectModels}</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-muted-foreground hover:bg-muted-foreground/20 hover:text-foreground"
+          onClick={() => dispatch({ type: TOGGLE_MODEL_SELECTOR , payload: {showModelSelector: false}})}
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close model selector</span>
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {providers.map((provider) => (
           <div key={provider.id} className="space-y-2">

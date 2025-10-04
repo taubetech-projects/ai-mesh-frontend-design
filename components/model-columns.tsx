@@ -51,15 +51,15 @@ export function ModelColumns({
 
   const getColumnStyles = () => {
     const count = activeModels.length;
-    if (count === 1) return { width: "100%", minWidth: "100%", flexShrink: 0 };
-    if (count === 2) return { width: "50%", minWidth: "50%", flexShrink: 0 };
-    // For 3+ models, always use 33.333% width with fixed minimum width for horizontal scrolling
-    return { width: "33.333%", minWidth: "33.333%", flexShrink: 0 };
+    if (count === 1) return { width: "80%", minWidth: "80%", flexShrink: 0};
+    // if (count === 2) return { width: "50%", minWidth: "50%", flexShrink: 0 };
+    // For 2+ models, always use 33.333% width with fixed minimum width for horizontal scrolling
+    return { width: "50%", minWidth: "50%", flexShrink: 0 };
   };
 
   const getContainerClass = () => {
     const count = activeModels.length;
-    if (count >= 4) {
+    if (count >= 3) {
       return "overflow-x-auto scrollbar-hide";
     }
     return "";
