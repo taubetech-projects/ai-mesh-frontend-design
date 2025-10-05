@@ -20,7 +20,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 );
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("de"); // Default fallback
+  const [language, setLanguage] = useState<Language>("en"); // Default fallback
 
   // Load saved language from localStorage on mount
   useEffect(() => {

@@ -51,7 +51,7 @@ export function ModelColumns({
 
   const getColumnStyles = () => {
     const count = activeModels.length;
-    if (count === 1) return { width: "80%", minWidth: "80%", flexShrink: 0};
+    if (count === 1) return { width: "80%", minWidth: "80%", flexShrink: 0 };
     // if (count === 2) return { width: "50%", minWidth: "50%", flexShrink: 0 };
     // For 2+ models, always use 33.333% width with fixed minimum width for horizontal scrolling
     return { width: "50%", minWidth: "50%", flexShrink: 0 };
@@ -88,7 +88,12 @@ export function ModelColumns({
             {/* Column Header */}
             <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30 flex-shrink-0">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm text-foreground">{model.icon}</span>
+                {/*<span className="text-sm text-foreground">{model.icon}</span> */}
+                <img
+                  src={model.icon}
+                  alt={`${provider.name} icon`}
+                  className="w-5 h-5"
+                />
                 <span className="text-sm font-medium truncate text-foreground">
                   {model.name}
                 </span>

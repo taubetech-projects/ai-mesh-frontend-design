@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns";
 import { ModelSelector } from "@/components/model-selector";
 import type { ModelProvider } from "@/types/models";
-import { Send, Mic, Paperclip, Settings } from "lucide-react";
+import { Send, Mic, Paperclip, Settings, icons } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { RouteSel, streamChat } from "@/lib/chatApi";
 import { chatInterfaceReducer } from "@/reducer/chat-interface-reducer";
@@ -25,68 +25,133 @@ const defaultProviders: ModelProvider[] = [
     id: "openai",
     name: "OpenAI",
     models: [
-      { id: "gpt-5", name: "Gpt-5", icon: "🤖" },
-      { id: "gpt-5-nano", name: "Gpt-5 Nano", icon: "🤖" },
-      { id: "gpt-5-mini", name: "Gpt-5 Mini", icon: "🤖" },
-      { id: "gpt-4.1", name: "GPT-4.1", icon: "⚡" },
-      { id: "gpt-4.1-mini", name: "GPT-4.1 mini", icon: "⚡" },
-      { id: "gpt-4.1-nano", name: "GPT-4.1 Nano", icon: "⚡" },
-      { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", icon: "⚡" },
-
+      { id: "gpt-5", name: "Gpt-5", icon: "icons/openai-64x64.png" },
+      { id: "gpt-5-nano", name: "Gpt-5 Nano", icon: "icons/openai-64x64.png" },
+      { id: "gpt-5-mini", name: "Gpt-5 Mini", icon: "icons/openai-64x64.png" },
+      { id: "gpt-4.1", name: "GPT-4.1", icon: "icons/openai-64x64.png" },
+      {
+        id: "gpt-4.1-mini",
+        name: "GPT-4.1 mini",
+        icon: "icons/openai-64x64.png",
+      },
+      {
+        id: "gpt-4.1-nano",
+        name: "GPT-4.1 Nano",
+        icon: "icons/openai-64x64.png",
+      },
+      {
+        id: "gpt-3.5-turbo",
+        name: "GPT-3.5 Turbo",
+        icon: "icons/openai-64x64.png",
+      },
     ],
   },
   {
     id: "anthropic",
     name: "Anthropic",
     models: [
-      { id: "claude-3-5-haiku-latest", name: "Claude 3.5 haiku", icon: "🧠" },
-      { id: "claude-3-7-sonnet-latest", name: "Claude Sonnet 3.7", icon: "💭" },
-      { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", icon: "💭" },
-      { id: "claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5", icon: "💭" },
-
+      {
+        id: "claude-3-5-haiku-latest",
+        name: "Claude 3.5 Haiku",
+        icon: "icons/anthropic-64x64.png",
+      },
+      {
+        id: "claude-3-7-sonnet-latest",
+        name: "Claude Sonnet 3.7",
+        icon: "icons/anthropic-64x64.png",
+      },
+      {
+        id: "claude-sonnet-4-20250514",
+        name: "Claude Sonnet 4",
+        icon: "icons/anthropic-64x64.png",
+      },
+      {
+        id: "claude-sonnet-4-5-20250929",
+        name: "Claude Sonnet 4.5",
+        icon: "icons/anthropic-64x64.png",
+      },
     ],
   },
   {
     id: "google",
     name: "Google",
     models: [
-      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", icon: "💎" },
+      {
+        id: "gemini-2.5-flash",
+        name: "Gemini 2.5 Flash",
+        icon: "icons/gemini-64x64.png",
+      },
       {
         id: "gemini-2.5-flash-lite",
         name: "Gemini 2.5 Flash Lite",
-        icon: "💎",
+        icon: "icons/gemini-64x64.png",
       },
-      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", icon: "💎" },
-      { id: "consensus", name: "Consensus", icon: "💎" },
-
+      {
+        id: "gemini-2.5-pro",
+        name: "Gemini 2.5 Pro",
+        icon: "icons/gemini-64x64.png",
+      },
+      { id: "consensus", name: "Consensus", icon: "icons/consensus-64x64.png" },
     ],
   },
   {
     id: "deepseek",
     name: "DeepSeek",
     models: [
-      { id: "deepseek-chat", name: "DeepSeek Chat", icon: "🔍" },
-      { id: "deepseek-reasoner", name: "DeepSeek Reasoner", icon: "💻" },
+      {
+        id: "deepseek-chat",
+        name: "DeepSeek Chat",
+        icon: "icons/deepseek-64x64.png",
+      },
+      {
+        id: "deepseek-reasoner",
+        name: "DeepSeek Reasoner",
+        icon: "icons/deepseek-64x64.png",
+      },
     ],
   },
   {
     id: "perplexity",
     name: "Perplexity",
-    models: [{ id: "sonar", name: "Sonar", icon: "🔍" },
-    { id: "sonar-pro", name: "Sonar Pro", icon: "🔍" },
-    { id: "sonar-reasoning", name: "Sonar Reasoning", icon: "🔍" },
-    { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro", icon: "🔍" },
-
-
+    models: [
+      { id: "sonar", name: "Sonar", icon: "icons/perplexity-64x64.png" },
+      {
+        id: "sonar-pro",
+        name: "Sonar Pro",
+        icon: "icons/perplexity-64x64.png",
+      },
+      {
+        id: "sonar-reasoning",
+        name: "Sonar Reasoning",
+        icon: "icons/perplexity-64x64.png",
+      },
+      {
+        id: "sonar-reasoning-pro",
+        name: "Sonar Reasoning Pro",
+        icon: "icons/perplexity-64x64.png",
+      },
     ],
   },
   {
     id: "grok",
     name: "Grok",
-    models: [{ id: "grok-3-mini", name: "Grok-3 Mini", icon: "🔍" },
-    { id: "grok-code-fast-1", name: "Grok-Code Fast", icon: "🔍" },
-    { id: "grok-4-fast-reasoning", name: "Grok-4 Fast Reasoning", icon: "🔍" },
-    { id: "grok-4-fast-non-reasoning", name: "Grok-4 Fast Non Reasoning", icon: "🔍" },
+    models: [
+      { id: "grok-3-mini", name: "Grok-3 Mini", icon: "icons/grok-64x64.png" },
+      {
+        id: "grok-code-fast-1",
+        name: "Grok-Code Fast",
+        icon: "icons/grok-64x64.png",
+      },
+      {
+        id: "grok-4-fast-reasoning",
+        name: "Grok-4 Fast Reasoning",
+        icon: "icons/grok-64x64.png",
+      },
+      {
+        id: "grok-4-fast-non-reasoning",
+        name: "Grok-4 Fast Non Reasoning",
+        icon: "icons/grok-64x64.png",
+      },
     ],
   },
 ];
@@ -132,13 +197,21 @@ const initialState: {
 };
 export function ChatInterface() {
   const [state, dispatch] = useReducer(chatInterfaceReducer, initialState);
-  const { showModelSelector, selectedModels, inputMessage, messages, isStreaming } = state;
+  const {
+    showModelSelector,
+    selectedModels,
+    inputMessage,
+    messages,
+    isStreaming,
+  } = state;
 
   const { t } = useLanguage();
 
-  function modeSelection(){
-    const model = selectedModels.find((model: RouteSel) => model.model === "consensus");
-    return model? "consensus":"multi";
+  function modeSelection() {
+    const model = selectedModels.find(
+      (model: RouteSel) => model.model === "consensus"
+    );
+    return model ? "consensus" : "multi";
   }
 
   // ---- Send / Stream ----
@@ -152,10 +225,13 @@ export function ChatInterface() {
     // console.log("Messages", messages);
     const bodyRoutes = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
-      .map((model:RouteSel) => ({ provider: model.provider, model: model.model }));
-    console.log("Body Routes: ",bodyRoutes);
+      .map((model: RouteSel) => ({
+        provider: model.provider,
+        model: model.model,
+      }));
+    console.log("Body Routes: ", bodyRoutes);
     const ac = new AbortController();
-    console.log("Selected mode: ",modeSelection());
+    console.log("Selected mode: ", modeSelection());
 
     const body = {
       mode: modeSelection(),
@@ -200,7 +276,6 @@ export function ChatInterface() {
               payload: { isStreaming: false },
             });
           }
-
         }
         if (e === "consensus") {
           console.log("This is a consensus event", d.delta.text);
@@ -215,7 +290,7 @@ export function ChatInterface() {
           dispatch({
             type: "END_STREAM",
             payload: { isStreaming: false },
-          })
+          });
         }
         // console.log("Messages", messages);
       },
@@ -237,7 +312,10 @@ export function ChatInterface() {
       );
       // setInputMessage("");
       dispatch({ type: UPDATE_INPUT, payload: { inputMessage: "" } });
-      dispatch({ type: TOGGLE_MODEL_SELECTOR, payload: {showModelSelector: false}}); 
+      dispatch({
+        type: TOGGLE_MODEL_SELECTOR,
+        payload: { showModelSelector: false },
+      });
     }
   };
 
@@ -292,7 +370,12 @@ export function ChatInterface() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => dispatch({ type: TOGGLE_MODEL_SELECTOR, payload: {showModelSelector: !showModelSelector}})}
+                onClick={() =>
+                  dispatch({
+                    type: TOGGLE_MODEL_SELECTOR,
+                    payload: { showModelSelector: !showModelSelector },
+                  })
+                }
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <Settings className="w-4 h-4" />
