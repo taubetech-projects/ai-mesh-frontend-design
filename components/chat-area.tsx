@@ -82,7 +82,10 @@ export function formatLLMContent(provider: string, content: string): string {
   switch (provider.toLowerCase()) {
     case "claude":
       // Convert triple single quotes to code fences
-      formatted = formatted.replace(/'''(\w+)?\n([\s\S]*?)'''/g, "```$1\n$2```");
+      formatted = formatted.replace(
+        /'''(\w+)?\n([\s\S]*?)'''/g,
+        "```$1\n$2```"
+      );
       break;
 
     case "gemini":
@@ -101,14 +104,13 @@ export function formatLLMContent(provider: string, content: string): string {
         try {
           const obj = JSON.parse(formatted);
           formatted = "```json\n" + JSON.stringify(obj, null, 2) + "\n```";
-        } catch (_) { }
+        } catch (_) {}
       }
       break;
   }
 
   return formatted.trim();
 }
-
 
 export function ChatArea({ activeModel, messages }: ChatAreaProps) {
   const { t } = useLanguage();
@@ -146,7 +148,7 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
 
   return (
     <div className="flex flex-col h-full ">
-      {/* Header */}
+      {/* Header 
       <div className="flex flex-col items-center justify-center py-8 text-center flex-shrink-0">
         {getModelIcon(activeModel)}
         <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -157,6 +159,7 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
         </p>
         <p className="text-sm text-muted-foreground">{t.chat.sendMessage}</p>
       </div>
+      */}
 
       {/* Messages */}
       <div
@@ -172,17 +175,17 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
           return (
             <div
               key={index}
-              className={`p-3 rounded-lg border ${message.role === "user"
-                ? "bg-blue-950/50 border-blue-800/50"
-                : "bg-emerald-950/50 border-emerald-800/50"
-                }`}
+              className={`p-3 ${
+                message.role === "user" ? "bg-muted rounded-lg border" : ""
+              }`}
             >
               {/* Label (Question / Answer) */}
               <div
-                className={`text-xs font-medium mb-1 ${message.role === "user" ? "text-blue-300" : "text-emerald-300"
-                  }`}
+                className={`text-xs font-medium mb-1 ${
+                  message.role === "user" ? "text-blue-300" : "text-emerald-300"
+                }`}
               >
-                {message.role === "user" ? "Question" : "Answer"}
+                {message.role === "user" ? "Question" : ""}
               </div>
 
               {/* Markdown Rendering */}
@@ -191,26 +194,42 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
                   remarkPlugins={[remarkGfm, remarkMath]}
                   rehypePlugins={[rehypeRaw, rehypeKatex]}
                   components={{
-                    ul: ({ children }) => <ul className="list-disc pl-5 my-2">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal pl-5 my-2">{children}</ol>,
+                    ul: ({ children }) => (
+                      <ul className="list-disc pl-5 my-2">{children}</ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal pl-5 my-2">{children}</ol>
+                    ),
                     li: ({ children }) => <li className="mb-1">{children}</li>,
                     h1: ({ children }) => (
-                      <h1 className="text-2xl font-bold text-white mt-4 mb-2">{children}</h1>
+                      <h1 className="text-2xl font-bold text-white mt-4 mb-2">
+                        {children}
+                      </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-xl font-semibold text-white mt-3 mb-2">{children}</h2>
+                      <h2 className="text-xl font-semibold text-white mt-3 mb-2">
+                        {children}
+                      </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-lg font-semibold text-white mt-3 mb-1">{children}</h3>
+                      <h3 className="text-lg font-semibold text-white mt-3 mb-1">
+                        {children}
+                      </h3>
                     ),
                     h4: ({ children }) => (
-                      <h4 className="text-base font-semibold text-white mt-2 mb-1">{children}</h4>
+                      <h4 className="text-base font-semibold text-white mt-2 mb-1">
+                        {children}
+                      </h4>
                     ),
                     h5: ({ children }) => (
-                      <h5 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h5>
+                      <h5 className="text-sm font-semibold text-white mt-2 mb-1">
+                        {children}
+                      </h5>
                     ),
                     h6: ({ children }) => (
-                      <h6 className="text-xs font-semibold text-gray-300 mt-2 mb-1 uppercase">{children}</h6>
+                      <h6 className="text-xs font-semibold text-gray-300 mt-2 mb-1 uppercase">
+                        {children}
+                      </h6>
                     ),
                     table: ({ children }) => (
                       <div className="overflow-x-auto my-2">
@@ -225,19 +244,20 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
                       </th>
                     ),
                     td: ({ children }) => (
-                      <td className="border border-gray-600 px-2 py-1">{children}</td>
+                      <td className="border border-gray-600 px-2 py-1">
+                        {children}
+                      </td>
                     ),
-                    code({
-                      inline,
-                      className,
-                      children,
-                      ...props
-                    }) {
+                    code({ inline, className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || "");
                       return !inline && match ? (
                         <div style={{ position: "relative" }}>
-                          <span className="absolute top-2 left-3 text-xs text-white/50 select-none">{match[1]}</span>
-                          <CopyButton code={String(children).replace(/\n$/, "")} />
+                          <span className="absolute top-2 left-3 text-xs text-white/50 select-none">
+                            {match[1]}
+                          </span>
+                          <CopyButton
+                            code={String(children).replace(/\n$/, "")}
+                          />
                           <SyntaxHighlighter
                             style={tomorrow}
                             language={match[1]}

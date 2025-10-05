@@ -65,7 +65,7 @@ export function ModelSelector({
   };
 
   return (
-    <Card className="p-4 bg-muted/50 relative">
+    <Card className="p-4 bg-muted relative">
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-sm font-medium">{t.models.selectModels}</h3>
         <Button
