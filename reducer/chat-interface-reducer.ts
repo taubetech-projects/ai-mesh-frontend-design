@@ -10,7 +10,7 @@ import {
 export function chatInterfaceReducer(state: any, action: any) {
   switch (action.type) {
     case TOGGLE_MODEL_SELECTOR:
-      const {showModelSelector} = action.payload;
+      const { showModelSelector } = action.payload;
       return { ...state, showModelSelector: showModelSelector };
     case ADD_MODEL: {
       const { provider, model } = action.payload;
@@ -75,12 +75,12 @@ export function chatInterfaceReducer(state: any, action: any) {
       return { ...state, messages: newMessages };
     }
     case "START_STREAM": {
-      const{isStreaming} = action.payload;
-      return { ...state, isStreaming: isStreaming };;
+      const { isStreaming } = action.payload;
+      return { ...state, isStreaming: isStreaming };
     }
     case "END_STREAM": {
-      const{isStreaming} = action.payload;
-      return { ...state, isStreaming: isStreaming };;
+      const { isStreaming } = action.payload;
+      return { ...state, isStreaming: isStreaming };
     }
     default:
       return state;

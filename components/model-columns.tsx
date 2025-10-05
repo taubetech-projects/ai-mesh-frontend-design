@@ -49,12 +49,16 @@ export function ModelColumns({
     }
   };
 
+  // Replace your getColumnStyles with this:
   const getColumnStyles = () => {
     const count = activeModels.length;
-    if (count === 1) return { width: "80%", minWidth: "80%", flexShrink: 0 };
-    // if (count === 2) return { width: "50%", minWidth: "50%", flexShrink: 0 };
-    // For 2+ models, always use 33.333% width with fixed minimum width for horizontal scrolling
-    return { width: "50%", minWidth: "50%", flexShrink: 0 };
+    const pct = count === 1 ? "80%" : "50%"; // your rule in percentages
+    return {
+      flex: `0 0 ${pct}`, // no grow, no shrink, fixed basis in %
+      width: pct,
+      maxWidth: pct, // never exceed the % width
+      minWidth: 0, // allow column to be narrower than its content
+    } as const;
   };
 
   const getContainerClass = () => {
@@ -76,14 +80,19 @@ export function ModelColumns({
   return (
     <div className="flex-1 flex flex-col h-full">
       <div
-        className={`flex-1 flex ${getContainerClass()}`}
-        style={{ minHeight: 0 }}
+        // was: className={`flex-1 flex ${getContainerClass()}`} ...
+        className={`flex-1 grid overflow-x-auto ${getContainerClass()}`}
+        style={{
+          minHeight: 0,
+          gridAutoFlow: "column",
+          gridAutoColumns: activeModels.length === 1 ? "80%" : "50%", // fixed %
+        }}
       >
-        {activeModels.map(({ model, provider }, index) => (
+        {activeModels.map(({ model, provider }) => (
           <div
             key={model.id}
-            className="flex flex-col border-r border-border last:border-r-0"
-            style={getColumnStyles()}
+            // fixed-size flex item + allow shrinking + clip overflow at column level
+            className="flex flex-col flex-none min-w-0 overflow-hidden border-r border-border last:border-r-0"
           >
             {/* Column Header */}
             <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30 flex-shrink-0">
@@ -127,7 +136,11 @@ export function ModelColumns({
 
             <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
 
-            <div className="flex-1 min-h-0">
+            {/* content: scroll inside the column horizontally & vertically */}
+            <div
+              id="div123"
+              className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-auto"
+            >
               <ChatArea activeModel={model.id} messages={messages} />
             </div>
           </div>

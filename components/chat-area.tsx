@@ -142,7 +142,7 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
 
   const modelMessages = messages[activeModel];
   const modelDisplayName = getModelDisplayName(activeModel);
-  console.log("Model Messages: ", modelMessages);
+  // console.log("Model Messages: ", modelMessages);
 
   if (modelMessages === undefined) return null;
 
@@ -163,8 +163,8 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
 
       {/* Messages */}
       <div
-        className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-auto scrollbar-hide"
-        style={{ minHeight: 0 }}
+        className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-auto gpt-scrollbar"
+        style={{ minHeight: 0, minWidth: 0 }} // important
       >
         {modelMessages.map((message: Message, index: number) => {
           const contentToRender =
@@ -189,7 +189,7 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
               </div>
 
               {/* Markdown Rendering */}
-              <div className="prose prose-invert max-w-none text-sm leading-relaxed text-white/90 prose-ul:list-disc prose-ul:pl-5 prose-li:marker:text-blue-400 break-words">
+              <div className="prose prose-invert max-w-none text-sm leading-relaxed text-primary prose-ul:list-disc prose-ul:pl-5 prose-li:marker:text-blue-400 break-words">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
                   rehypePlugins={[rehypeRaw, rehypeKatex]}
@@ -202,27 +202,27 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
                     ),
                     li: ({ children }) => <li className="mb-1">{children}</li>,
                     h1: ({ children }) => (
-                      <h1 className="text-2xl font-bold text-white mt-4 mb-2">
+                      <h1 className="text-2xl font-bold text-primary mt-4 mb-2">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-xl font-semibold text-white mt-3 mb-2">
+                      <h2 className="text-xl font-semibold text-primary mt-3 mb-2">
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-lg font-semibold text-white mt-3 mb-1">
+                      <h3 className="text-lg font-semibold text-primary mt-3 mb-1">
                         {children}
                       </h3>
                     ),
                     h4: ({ children }) => (
-                      <h4 className="text-base font-semibold text-white mt-2 mb-1">
+                      <h4 className="text-base font-semibold text-primary mt-2 mb-1">
                         {children}
                       </h4>
                     ),
                     h5: ({ children }) => (
-                      <h5 className="text-sm font-semibold text-white mt-2 mb-1">
+                      <h5 className="text-sm font-semibold text-primary mt-2 mb-1">
                         {children}
                       </h5>
                     ),
@@ -251,8 +251,12 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
                     code({ inline, className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || "");
                       return !inline && match ? (
-                        <div style={{ position: "relative" }}>
-                          <span className="absolute top-2 left-3 text-xs text-white/50 select-none">
+                        <div
+                          style={{
+                            position: "relative",
+                          }}
+                        >
+                          <span className="absolute top-2 left-3 text-xs text-amber-600 select-none">
                             {match[1]}
                           </span>
                           <CopyButton
@@ -262,9 +266,12 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
                             style={tomorrow}
                             language={match[1]}
                             PreTag="div"
+                            className="gpt-scrollbar bg-sidebar"
                             customStyle={{
                               overflowX: "auto",
-                              paddingTop: "2.5rem", // Make space for the controls
+                              paddingTop: "2.5rem", // Make space for controls
+                              borderRadius: "0.7rem",
+                              fontSize: "0.9rem",
                             }}
                             {...props}
                           >

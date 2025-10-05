@@ -132,3 +132,36 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* 🧠 GPT-like subtle scrollbar */
+.gpt-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.gpt-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gpt-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.3); /* light gray, semi-transparent */
+  border-radius: 9999px;
+}
+
+.gpt-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.5); /* slightly darker on hover */
+}
+
+/* 🦊 Firefox */
+.gpt-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .fancy-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #a78bfa, #6366f1);
+  }
+  .fancy-scrollbar {
+    scrollbar-color: #a78bfa transparent;
+  }
+}

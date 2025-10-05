@@ -188,12 +188,14 @@ const initialState: {
   inputMessage: string;
   messages: Record<string, Message[]>;
   isStreaming: boolean;
+  isSent: boolean;
 } = {
   showModelSelector: false,
   selectedModels: initialSelectedModels,
   inputMessage: "",
   messages: {},
   isStreaming: false,
+  isSent: false,
 };
 export function ChatInterface() {
   const [state, dispatch] = useReducer(chatInterfaceReducer, initialState);
@@ -203,6 +205,7 @@ export function ChatInterface() {
     inputMessage,
     messages,
     isStreaming,
+    isSent,
   } = state;
 
   const { t } = useLanguage();
@@ -229,9 +232,9 @@ export function ChatInterface() {
         provider: model.provider,
         model: model.model,
       }));
-    console.log("Body Routes: ", bodyRoutes);
+    // console.log("Body Routes: ", bodyRoutes);
     const ac = new AbortController();
-    console.log("Selected mode: ", modeSelection());
+    // console.log("Selected mode: ", modeSelection());
 
     const body = {
       mode: modeSelection(),

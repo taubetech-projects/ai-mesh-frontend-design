@@ -124,7 +124,7 @@ export function streamChat(
         buf = ""; // Clear buffer
       }
     };
- 
+
     while (true) {
       const { value, done } = await reader.read();
       if (done) {
@@ -132,7 +132,7 @@ export function streamChat(
         break;
       }
       buf += decoder.decode(value, { stream: true });
-      console.log("Buffer", buf);
+      // console.log("Buffer", buf);
       processBuffer();
     }
   });
