@@ -341,12 +341,17 @@ export function ChatInterface() {
         <div className="max-w-4xl mx-auto">
           {/* Model Selector */}
           {showModelSelector && (
-            <div className="mb-4">
-              <ModelSelector
-                providers={defaultProviders}
-                selectedModels={selectedModels}
-                dispatch={dispatch}
-              />
+            <div
+              className="mb-4 absolute left-0 right-0 bottom-16 z-20 flex justify-center"
+              style={{ pointerEvents: "auto" }}
+            >
+              <div className="max-w-4xl w-full">
+                <ModelSelector
+                  providers={defaultProviders}
+                  selectedModels={selectedModels}
+                  dispatch={dispatch}
+                />
+              </div>
             </div>
           )}
 
