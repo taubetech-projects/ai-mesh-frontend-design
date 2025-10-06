@@ -64,7 +64,7 @@ export function ModelColumns({
   const getContainerClass = () => {
     const count = activeModels.length;
     if (count >= 3) {
-      return "overflow-x-auto scrollbar-hide";
+      return "overflow-x-auto gpt-scrollbar";
     }
     return "";
   };
