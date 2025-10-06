@@ -154,6 +154,14 @@ const defaultProviders: ModelProvider[] = [
       },
     ],
   },
+  {
+    id: "ollama",
+    name: "Meta",
+    models: [
+      { id: "llama2", name: "Llama 2", icon: "icons/ollama-64x64.png" },
+      { id: "llama3", name: "Llama 3", icon: "icons/ollama-64x64.png" },
+    ],
+  },
 ];
 
 var count = 0;
