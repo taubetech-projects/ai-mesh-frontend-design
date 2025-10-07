@@ -2,23 +2,26 @@
 
 import type React from "react";
 
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns";
 import { ModelSelector } from "@/components/model-selector";
+import { PlaygroundSettings } from "@/components/playground-setting";
 import type { ModelProvider } from "@/types/models";
-import { Send, Mic, Paperclip, Settings, icons } from "lucide-react";
+import { Send, Mic, Paperclip, Settings, Beaker, X, icons } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { RouteSel, streamChat } from "@/lib/chatApi";
 import { chatInterfaceReducer } from "@/reducer/chat-interface-reducer";
 import {
   ADD_MESSAGES,
+  ADD_MODEL,
+  REMOVE_MODEL,
   CONCAT_DELTA,
   TOGGLE_MODEL_SELECTOR,
+  TOGGLE_PLAYGROUND_SETTINGS,
   UPDATE_INPUT,
 } from "@/reducer/constants";
-import { Route } from "next";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -166,12 +169,11 @@ const defaultProviders: ModelProvider[] = [
 
 var count = 0;
 
-interface ChatInterfaceProps {
-  providers: ModelProvider[];
-  selectedModels: string[];
-  setSelectedModels: (models: string[]) => void;
+interface ChatInterfaceComponentProps {
+  isPlayground?: boolean;
 }
 
+// --- Message Types ---
 type AssistantMsg = {
   role: "assistant";
   content: string;
@@ -186,18 +188,21 @@ type AssistantMsg = {
 type UserMsg = { role: "user"; content: string };
 type Message = UserMsg | AssistantMsg;
 
+// --- Component State ---
 const initialSelectedModels: RouteSel[] = [
   { provider: "Google", model: "gemini-2.5-flash-lite" },
   { provider: "DeepSeek", model: "deepseek-chat" },
 ];
 const initialState: {
   showModelSelector: boolean;
+  showPlaygroundSettings: boolean;
   selectedModels: RouteSel[];
   inputMessage: string;
   messages: Record<string, Message[]>;
   isStreaming: boolean;
   isSent: boolean;
 } = {
+  showPlaygroundSettings: false,
   showModelSelector: false,
   selectedModels: initialSelectedModels,
   inputMessage: "",
@@ -205,10 +210,12 @@ const initialState: {
   isStreaming: false,
   isSent: false,
 };
-export function ChatInterface() {
+
+export function ChatInterface({ isPlayground }: ChatInterfaceComponentProps) {
   const [state, dispatch] = useReducer(chatInterfaceReducer, initialState);
   const {
     showModelSelector,
+    showPlaygroundSettings,
     selectedModels,
     inputMessage,
     messages,
@@ -217,6 +224,10 @@ export function ChatInterface() {
   } = state;
 
   const { t } = useLanguage();
+
+  if (isPlayground) {
+    console.log("ChatInterface is in playground mode!");
+  }
 
   function modeSelection() {
     const model = selectedModels.find(
@@ -351,7 +362,7 @@ export function ChatInterface() {
       <div className="sticky bottom-0 z-10 p-4 border-t border-border bg-background">
         <div className="max-w-4xl mx-auto">
           {/* Model Selector */}
-          {showModelSelector && (
+          {showModelSelector && !isPlayground && (
             <div
               className="mb-4 absolute left-0 right-0 bottom-16 z-20 flex justify-center"
               style={{ pointerEvents: "auto" }}
@@ -365,6 +376,23 @@ export function ChatInterface() {
               </div>
             </div>
           )}
+
+          {/* Playground Settings */}
+          {isPlayground && showPlaygroundSettings && (
+            <div
+              className="mb-4 absolute left-0 right-0 bottom-16 z-20 flex justify-center"
+              style={{ pointerEvents: "auto" }}
+            >
+              <div className="max-w-4xl w-full">
+                <PlaygroundSettings
+                  dispatch={dispatch}
+                  providers={defaultProviders}
+                  selectedModels={selectedModels}
+                />
+              </div>
+            </div>
+          )}
+
 
           {/* Input Field */}
           <div className="relative">
@@ -383,19 +411,39 @@ export function ChatInterface() {
             />
 
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  dispatch({
-                    type: TOGGLE_MODEL_SELECTOR,
-                    payload: { showModelSelector: !showModelSelector },
-                  })
-                }
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
+              {isPlayground && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    dispatch({
+                      type: TOGGLE_PLAYGROUND_SETTINGS,
+                      payload: { showPlaygroundSettings: !showPlaygroundSettings },
+                    })
+                  }
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  title="Playground Settings"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+              {!isPlayground && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    dispatch({
+                      type: TOGGLE_MODEL_SELECTOR,
+                      payload: { showModelSelector: !showModelSelector },
+                    })
+                  }
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  title="Select Models"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+
               <Button
                 variant="ghost"
                 size="icon"

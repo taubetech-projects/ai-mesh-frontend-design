@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
-      <ChatInterface />
+      <ChatInterface isPlayground={false}/>
     </div>
   );
 }

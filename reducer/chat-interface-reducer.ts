@@ -5,6 +5,7 @@ import {
   REMOVE_MODEL,
   TOGGLE_MODEL_SELECTOR,
   UPDATE_INPUT,
+  TOGGLE_PLAYGROUND_SETTINGS,
 } from "./constants";
 
 export function chatInterfaceReducer(state: any, action: any) {
@@ -81,6 +82,10 @@ export function chatInterfaceReducer(state: any, action: any) {
     case "END_STREAM": {
       const { isStreaming } = action.payload;
       return { ...state, isStreaming: isStreaming };
+    }
+    case TOGGLE_PLAYGROUND_SETTINGS: {
+      const { showPlaygroundSettings } = action.payload;
+      return { ...state, showPlaygroundSettings: showPlaygroundSettings };
     }
     default:
       return state;
