@@ -1,19 +1,5 @@
+import { ChatStreamBody } from "@/types/models";
 import { API_BASE } from "./http";
-
-export type ChatMsg = {
-  role: any; //"user" | "assistant" | "system";
-  content: string;
-};
-export type RouteSel = { provider: string; model: string };
-
-export type ChatStreamBody = {
-  // NEW request contract
-  mode?: any;
-  messages: ChatMsg[];
-  routes: RouteSel[] | null; // multi/consensus: array, single: null
-  stream?: boolean; // new
-  provider_response?: boolean; // new
-};
 
 export async function fetchProviders() {
   const res = await fetch(`${API_BASE}/v1/providers`, { cache: "no-store" });
