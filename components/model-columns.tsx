@@ -5,13 +5,10 @@ import { Switch } from "@/components/ui/switch";
 import { X, ExternalLink } from "lucide-react";
 import type { AIModel, ModelProvider, RouteSel } from "@/types/models";
 import { ChatArea } from "@/components/chat-area";
-import { REMOVE_MODEL } from "@/redux/constants";
 import { useDispatch, useSelector } from "react-redux";
 import { removeModel } from "@/redux/chat-interface-reducer";
 
-interface ModelColumnsProps {}
-
-export function ModelColumns({}: ModelColumnsProps) {
+export function ModelColumns() {
   const { providers, selectedModels } = useSelector(
     (store: any) => store.chatInterface
   );

@@ -1,6 +1,5 @@
 import { AIModel, Message, ModelProvider, RouteSel } from "@/types/models";
 import {
-  ACTIVE_MODEL,
   ADD_MESSAGES,
   ADD_MODEL,
   CONCAT_TEXT_DELTA,
@@ -160,7 +159,6 @@ interface ChatInterfaceState {
   providers: ModelProvider[];
   showModelSelector: boolean;
   selectedModels: RouteSel[];
-  activeModel: AIModel | null;
   inputMessage: string;
   messages: Record<string, Message[]>;
   isStreaming: boolean;
@@ -176,7 +174,6 @@ const initialState: ChatInterfaceState = {
   providers: [...defaultProviders],
   showModelSelector: false,
   selectedModels: initialSelectedModels,
-  activeModel: null,
   inputMessage: "",
   messages: {},
   isStreaming: false,
@@ -210,10 +207,6 @@ export function chatInterfaceReducer(
           (sel: any) => sel.model !== modelId
         ),
       };
-    }
-    case ACTIVE_MODEL: {
-      const { activeModel } = action.payload;
-      return { ...state, activeModel: activeModel };
     }
     case UPDATE_INPUT: {
       const { inputMessage } = action.payload;
@@ -303,8 +296,4 @@ export function addModel(provider: string, model: string) {
 
 export function removeModel(modelId: string) {
   return { type: REMOVE_MODEL, payload: { modelId: modelId } };
-}
-
-export function setActiveModel(activeModel: AIModel) {
-  return { type: ACTIVE_MODEL, payload: { activeModel: activeModel } };
 }
