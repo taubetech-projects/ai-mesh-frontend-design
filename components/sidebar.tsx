@@ -11,12 +11,11 @@ import {
 } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
-import { useSidebarReducer } from "@/reducer/sidebar-reducer";
-import { TOGGLE_SIDEBAR } from "@/reducer/constants";
 import { ThemeToggle } from "./theme-toggle";
+import { useState } from "react";
 
 export function Sidebar() {
-  const [{ isCollapsed }, dispatch] = useSidebarReducer();
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { t } = useLanguage();
 
   return (
@@ -48,7 +47,7 @@ export function Sidebar() {
             variant="ghost"
             size="icon"
             className="w-6 h-6 text-sidebar-foreground hover:bg-sidebar-accent"
-            onClick={() => dispatch({ type: TOGGLE_SIDEBAR })}
+            onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />

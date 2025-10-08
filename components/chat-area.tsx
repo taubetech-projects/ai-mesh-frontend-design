@@ -11,39 +11,8 @@ import { useState } from "react";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
-
-interface ChatAreaProps {
-  activeModel: string;
-  messages: Record<string, Message[]>;
-}
-
-interface CopyButtonProps {
-  code: string;
-}
-
-type AssistantMsg = {
-  role: "assistant";
-  content: string;
-  meta?: {
-    provider: string;
-    model: string;
-    label?: string;
-    latency_ms?: number;
-  };
-};
-
-type UserMsg = { role: "user"; content: string };
-type Message = UserMsg | AssistantMsg;
-
-interface Message2 {
-  type: "question" | "answer";
-  content: string;
-}
-
-interface MessageType {
-  role: "user" | "assistant";
-  content: string;
-}
+import { useSelector } from "react-redux";
+import { ChatAreaProps, CopyButtonProps, Message } from "@/types/models";
 
 export function CopyButton({ code }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
@@ -112,7 +81,8 @@ export function formatLLMContent(provider: string, content: string): string {
   return formatted.trim();
 }
 
-export function ChatArea({ activeModel, messages }: ChatAreaProps) {
+export function ChatArea({ activeModel }: ChatAreaProps) {
+  const { messages } = useSelector((store: any) => store.chatInterface);
   const { t } = useLanguage();
 
   const getModelDisplayName = (modelId: string) => {
@@ -141,9 +111,6 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
   };
 
   const modelMessages = messages[activeModel];
-  const modelDisplayName = getModelDisplayName(activeModel);
-  // console.log("Model Messages: ", modelMessages);
-
   if (modelMessages === undefined) return null;
 
   return (
