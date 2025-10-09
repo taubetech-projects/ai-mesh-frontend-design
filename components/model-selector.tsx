@@ -11,7 +11,7 @@ import {
   addModel,
   removeModel,
   toggleModelSelector,
-} from "@/redux/chat-interface-reducer";
+} from "@/redux/chat-interface-slice";
 
 interface ModelSelectorProps {}
 
@@ -24,9 +24,9 @@ export function ModelSelector({}: ModelSelectorProps) {
 
   const handleModelToggle = (modelId: string, checked: boolean) => {
     if (checked) {
-      const providerName = getProviderNameByModelId(modelId);
-      if (providerName) {
-        dispatch(addModel(providerName, modelId));
+      const provider = getProviderByModelId(modelId);
+      if (provider) {
+        dispatch(addModel(provider, modelId));
       }
     } else {
       dispatch(removeModel(modelId));
@@ -34,12 +34,12 @@ export function ModelSelector({}: ModelSelectorProps) {
   };
 
   // Function to find provider name from a model id
-  function getProviderNameByModelId(modelId: string): string | undefined {
+  function getProviderByModelId(modelId: string): string | undefined {
     for (const provider of providers) {
       if (
         provider.models.some((model: ModelProvider) => model.id === modelId)
       ) {
-        return provider.name;
+        return provider;
       }
     }
     return undefined; // if not found

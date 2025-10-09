@@ -16,7 +16,7 @@ import {
   startStreaming,
   toggleModelSelector,
   updateInputMessage,
-} from "@/redux/chat-interface-reducer";
+} from "@/redux/chat-interface-slice";
 
 var count = 0;
 
@@ -83,6 +83,7 @@ export function ChatInterface() {
           count++;
           if (count === bodyRoutes.length) {
             dispatch(endStreaming());
+            count = 0;
           }
         }
         if (e === "consensus") {
@@ -104,7 +105,7 @@ export function ChatInterface() {
   };
 
   const handleSendMessage = () => {
-    if (inputMessage.trim()) {
+    if (inputMessage !== undefined && inputMessage.trim()) {
       // Handle message sending logic here
       onSend(inputMessage);
       console.log(
@@ -184,7 +185,10 @@ export function ChatInterface() {
                 onClick={handleSendMessage}
                 size="icon"
                 className="h-8 w-8 bg-teal-500 hover:bg-teal-600 text-white"
-                disabled={!inputMessage.trim() || isStreaming}
+                disabled={
+                  (inputMessage !== undefined && !inputMessage.trim()) ||
+                  isStreaming
+                }
               >
                 <Send className="w-4 h-4" />
               </Button>
