@@ -3,25 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { X, ExternalLink } from "lucide-react";
-import type { ModelProvider } from "@/types/models";
+import type { AIModel, ModelProvider, RouteSel } from "@/types/models";
 import { ChatArea } from "@/components/chat-area";
-import { RouteSel } from "@/lib/chatApi";
-import { REMOVE_MODEL } from "@/reducer/constants";
+import { useDispatch, useSelector } from "react-redux";
+import { removeModel } from "@/redux/chat-interface-reducer";
 
-interface ModelColumnsProps {
-  providers: ModelProvider[];
-  selectedModels: RouteSel[];
-  // setSelectedModels: (models: RouteSel[]) => void;
-  dispatch: React.Dispatch<any>;
-  messages: Record<string, any>;
-}
+export function ModelColumns() {
+  const { providers, selectedModels } = useSelector(
+    (store: any) => store.chatInterface
+  );
+  const dispatch = useDispatch();
 
-export function ModelColumns({
-  providers,
-  selectedModels,
-  dispatch,
-  messages,
-}: ModelColumnsProps) {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
     for (const provider of providers) {
@@ -32,14 +24,14 @@ export function ModelColumns({
   };
 
   const activeModels = selectedModels
-    .map((routeSel) => getModelDetails(routeSel.model))
+    .map((routeSel: RouteSel) => getModelDetails(routeSel.model))
     .filter(
-      (item): item is { model: any; provider: ModelProvider } => item !== null
+      (item: any): item is { model: any; provider: ModelProvider } =>
+        item !== null
     );
 
   const handleRemoveModel = (modelId: string) => {
-    dispatch({ type: REMOVE_MODEL, payload: { modelId: modelId } });
-    // setSelectedModels(selectedModels.filter((sel) => sel.model !== modelId));
+    dispatch(removeModel(modelId));
   };
 
   const handleToggleModel = (modelId: string, enabled: boolean) => {
@@ -88,63 +80,70 @@ export function ModelColumns({
           gridAutoColumns: activeModels.length === 1 ? "80%" : "50%", // fixed %
         }}
       >
-        {activeModels.map(({ model, provider }) => (
-          <div
-            key={model.id}
-            // fixed-size flex item + allow shrinking + clip overflow at column level
-            className="flex flex-col flex-none min-w-0 overflow-hidden border-r border-border last:border-r-0"
-          >
-            {/* Column Header */}
-            <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30 flex-shrink-0">
-              <div className="flex items-center gap-2 min-w-0">
-                {/*<span className="text-sm text-foreground">{model.icon}</span> */}
-                <img
-                  src={model.icon}
-                  alt={`${provider.name} icon`}
-                  className="w-5 h-5"
-                />
-                <span className="text-sm font-medium truncate text-foreground">
-                  {model.name}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 opacity-60 hover:opacity-100 text-muted-foreground hover:text-foreground"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Switch
-                  checked={true}
-                  size="sm"
-                  className="scale-75"
-                  onCheckedChange={(checked) =>
-                    handleToggleModel(model.id, checked)
-                  }
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground"
-                  onClick={() => handleRemoveModel(model.id)}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
-
-            {/* content: scroll inside the column horizontally & vertically */}
+        {activeModels.map(
+          ({
+            model,
+            provider,
+          }: {
+            model: AIModel;
+            provider: ModelProvider;
+          }) => (
             <div
-              id="div123"
-              className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-auto"
+              key={model.id}
+              // fixed-size flex item + allow shrinking + clip overflow at column level
+              className="flex flex-col flex-none min-w-0 overflow-hidden border-r border-border last:border-r-0"
             >
-              <ChatArea activeModel={model.id} messages={messages} />
+              {/* Column Header */}
+              <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30 flex-shrink-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  {/*<span className="text-sm text-foreground">{model.icon}</span> */}
+                  <img
+                    src={model.icon}
+                    alt={`${provider.name} icon`}
+                    className="w-5 h-5"
+                  />
+                  <span className="text-sm font-medium truncate text-foreground">
+                    {model.name}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 opacity-60 hover:opacity-100 text-muted-foreground hover:text-foreground"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Switch
+                    checked={true}
+                    className="scale-75"
+                    onCheckedChange={(checked) =>
+                      handleToggleModel(model.id, checked)
+                    }
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground"
+                    onClick={() => handleRemoveModel(model.id)}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+
+              {/* content: scroll inside the column horizontally & vertically */}
+              <div
+                id="div123"
+                className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-auto"
+              >
+                <ChatArea activeModel={model.id} />
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
     </div>
   );
