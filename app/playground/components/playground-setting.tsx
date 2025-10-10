@@ -19,7 +19,7 @@ import {
     ADD_MODEL,
     REMOVE_MODEL,
     TOGGLE_PLAYGROUND_SETTINGS,
-} from "@/reducer/constants";
+} from "@/redux/constants";
 import {
     initialPlaygroundState,
     playgroundReducer,
@@ -31,9 +31,8 @@ import {
     UPDATE_TEMPERATURE,
     PLAYGROUND_IS_STREAMING,
     UPDATE_PROVIDER_SPECIFIC,
-} from "@/reducer/playground-reducer";
-import { ModelProvider } from "@/types/models";
-import { RouteSel } from "@/lib/chatApi";
+} from "@/redux/playground-reducer";
+import { ModelProvider,RouteSel } from "@/types/models";
 import { useReducer } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

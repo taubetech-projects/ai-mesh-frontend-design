@@ -3,9 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { X, ExternalLink } from "lucide-react";
-import type { ModelProvider } from "@/types/models";
-import { RouteSel } from "@/lib/chatApi";
-import { REMOVE_MODEL } from "@/reducer/constants";
+import type { ModelProvider, RouteSel } from "@/types/models";
+import { REMOVE_MODEL } from "@/redux/constants";
 import { ChatArea } from "./_chat-area";
 
 interface ModelColumnsProps {

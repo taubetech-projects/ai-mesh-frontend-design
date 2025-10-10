@@ -5,24 +5,25 @@ import type React from "react";
 import { useReducer, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ModelProvider } from "@/types/models";
+import type { ModelProvider, RouteSel } from "@/types/models";
 import { Send, Mic, Paperclip, Settings, Beaker, X, icons } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
-import { RouteSel, streamChat } from "@/lib/chatApi";
-import { chatInterfaceReducer } from "@/reducer/chat-interface-reducer";
+import {  streamChat } from "@/lib/chatApi";
+import { chatInterfaceReducer } from "@/redux/chat-interface-reducer";
 import {
   ADD_MESSAGES,
   ADD_MODEL,
   REMOVE_MODEL,
-  CONCAT_DELTA,
+  CONCAT_TEXT_DELTA,
   TOGGLE_MODEL_SELECTOR,
   TOGGLE_PLAYGROUND_SETTINGS,
   UPDATE_INPUT,
   CONCAT_JSON,
-} from "@/reducer/constants";
-import { initialPlaygroundState, playgroundReducer } from "@/reducer/playground-reducer";
+} from "@/redux/constants";
+import { initialPlaygroundState, playgroundReducer } from "@/redux/playground-reducer";
 import { ModelColumns } from "./_model-columns";
 import { PlaygroundSettings } from "./playground-setting";
+import { playgroundInterfaceReducer } from "@/redux/playground-interface-reducer";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -191,6 +192,7 @@ const initialSelectedModels: RouteSel[] = [
   { provider: "DeepSeek", model: "deepseek-chat" },
 ];
 const initialState: {
+  providers: ModelProvider[];
   showModelSelector: boolean;
   showPlaygroundSettings: boolean;
   selectedModels: RouteSel[];
@@ -200,6 +202,7 @@ const initialState: {
   isStreaming: boolean;
   isSent: boolean;
 } = {
+  providers: defaultProviders,
   showPlaygroundSettings: false,
   showModelSelector: false,
   selectedModels: initialSelectedModels,
@@ -211,14 +214,13 @@ const initialState: {
 };
 
 export function ChatInterface() {
-  const [state, dispatch] = useReducer(chatInterfaceReducer, initialState);
+  const [state, dispatch] = useReducer(playgroundInterfaceReducer, initialState);
   const {
     showModelSelector,
     showPlaygroundSettings,
     selectedModels,
     inputMessage,
     messages,
-    jsonMessages,
     isStreaming,
     isSent,
   } = state;
@@ -302,7 +304,7 @@ export function ChatInterface() {
               payload: { modelId: modelId, content: d },
             });
           }
-          console.log("JSON Message State", jsonMessages);
+          // console.log("JSON Message State", jsonMessages);
           dispatch({
             type: "START_STREAM",
             payload: { isStreaming: true },
@@ -317,7 +319,7 @@ export function ChatInterface() {
 
           if (!modelId || !contentChunk) return;
           dispatch({
-            type: CONCAT_DELTA,
+            type: CONCAT_TEXT_DELTA,
             payload: { modelId: modelId, content: contentChunk },
           });
         }
@@ -337,7 +339,7 @@ export function ChatInterface() {
 
           if (!modelId || !contentChunk) return;
           dispatch({
-            type: CONCAT_DELTA,
+            type: CONCAT_TEXT_DELTA,
             payload: { modelId: modelId, content: contentChunk },
           });
           dispatch({
