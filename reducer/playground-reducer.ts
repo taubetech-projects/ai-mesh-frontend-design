@@ -4,7 +4,7 @@ export const UPDATE_MAX_TOKENS = "UPDATE_MAX_TOKENS";
 export const UPDATE_INPUT_FORMAT = "UPDATE_INPUT_FORMAT";
 export const UPDATE_OUTPUT_FORMAT = "UPDATE_OUTPUT_FORMAT";
 export const UPDATE_REASONING_EFFORT = "UPDATE_REASONING_EFFORT";
-export const IS_STREAMING = "IS_STREAMING";
+export const PLAYGROUND_IS_STREAMING = "IS_STREAMING";
 export const UPDATE_PROVIDER_SPECIFIC = "UPDATE_PROVIDER_SPECIFIC";
 
 
@@ -15,7 +15,7 @@ export const initialPlaygroundState = {
     inputFormat: "text",
     outputFormat: "text",
     reasoningEffort: "auto",
-    isStreaming: false,
+    playgroundIsStreaming: true,
     providerSpecific: false,
 };
 
@@ -33,8 +33,8 @@ export function playgroundReducer(state: typeof initialPlaygroundState, action: 
             return { ...state, outputFormat: action.payload };
         case UPDATE_REASONING_EFFORT:
             return { ...state, reasoningEffort: action.payload };
-        case IS_STREAMING:
-            return { ...state, isStreaming: action.payload };
+        case PLAYGROUND_IS_STREAMING:
+            return { ...state, playgroundIsStreaming: action.payload };
         case UPDATE_PROVIDER_SPECIFIC:
             return { ...state, providerSpecific: action.payload };
         default:

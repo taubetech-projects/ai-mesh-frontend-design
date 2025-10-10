@@ -2,6 +2,7 @@ import {
   ADD_MESSAGES,
   ADD_MODEL,
   CONCAT_DELTA,
+  CONCAT_JSON,
   REMOVE_MODEL,
   TOGGLE_MODEL_SELECTOR,
   UPDATE_INPUT,
@@ -74,6 +75,24 @@ export function chatInterfaceReducer(state: any, action: any) {
       if (lastMessage.role !== "assistant") return state; // No change if last message is not from assistant
       newMessages[modelId] = updatedMessages;
       return { ...state, messages: newMessages };
+    }
+    case CONCAT_JSON: {
+      const { modelId, content } = action.payload;
+      // console.log("CONCAT_JSON", modelId, content);
+      const newMessages = { ...state.jsonMessages };
+      const modelMessages = newMessages[modelId] || [];
+      // console.log("modelMessages json", modelMessages);
+      newMessages[modelId] = [
+        ...modelMessages,
+        { content: content },
+      ];
+      return { ...state, jsonMessages: newMessages };
+
+
+      const updatedMessages = [...modelMessages, content];
+      newMessages[modelId] = updatedMessages;
+      // return {...state};
+      return { ...state, jsonMessages: newMessages };
     }
     case "START_STREAM": {
       const { isStreaming } = action.payload;

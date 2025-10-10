@@ -5,8 +5,6 @@ import type React from "react";
 import { useReducer, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ModelColumns } from "@/components/model-columns";
-import { ModelSelector } from "@/components/model-selector";
 import type { ModelProvider } from "@/types/models";
 import { Send, Mic, Paperclip, Settings, Beaker, X, icons } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
@@ -20,7 +18,11 @@ import {
   TOGGLE_MODEL_SELECTOR,
   TOGGLE_PLAYGROUND_SETTINGS,
   UPDATE_INPUT,
+  CONCAT_JSON,
 } from "@/reducer/constants";
+import { initialPlaygroundState, playgroundReducer } from "@/reducer/playground-reducer";
+import { ModelColumns } from "./_model-columns";
+import { PlaygroundSettings } from "./playground-setting";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -194,6 +196,7 @@ const initialState: {
   selectedModels: RouteSel[];
   inputMessage: string;
   messages: Record<string, Message[]>;
+  jsonMessages: Record<string, any[]>;
   isStreaming: boolean;
   isSent: boolean;
 } = {
@@ -202,6 +205,7 @@ const initialState: {
   selectedModels: initialSelectedModels,
   inputMessage: "",
   messages: {},
+  jsonMessages: {},
   isStreaming: false,
   isSent: false,
 };
@@ -214,9 +218,25 @@ export function ChatInterface() {
     selectedModels,
     inputMessage,
     messages,
+    jsonMessages,
     isStreaming,
     isSent,
   } = state;
+
+  const [settingsState, settingsDispatch] = useReducer(
+    playgroundReducer,
+    initialPlaygroundState
+  );
+  const {
+    systemPrompt,
+    temperature,
+    maxTokens,
+    inputFormat,
+    outputFormat,
+    reasoningEffort,
+    providerSpecific,
+    playgroundIsStreaming,
+  } = settingsState;
 
   const { t } = useLanguage();
 
@@ -246,18 +266,27 @@ export function ChatInterface() {
     const ac = new AbortController();
     // console.log("Selected mode: ", modeSelection());
 
-    var body = {
+    let body: any;
+
+    const messages = [];
+    // if (systemPrompt) {
+    //   messages.push({ role: "system", content: systemPrompt });
+    // }
+    messages.push({ role: "user", content: userMessage });
+
+    body = {
       mode: modeSelection(),
       routes: bodyRoutes.length > 0 ? bodyRoutes : null,
-      messages: [
-        {
-          role: "user",
-          content: userMessage,
-        },
-      ],
-      stream: true,
-      provider_response: false,
+      messages: messages,
+      stream: playgroundIsStreaming,
+      provider_response: providerSpecific,
+      temperature: parseFloat(temperature),
+      max_tokens: parseInt(maxTokens, 10),
+      // reasoning_effort: reasoningEffort,
     };
+
+    console.log("Request Body: ", body);
+    console.log("Output Format :", outputFormat);
 
     await streamChat(
       body,
@@ -265,12 +294,23 @@ export function ChatInterface() {
         const e = evt.event;
         const d = evt.data || {};
         if (e === "chat.response.created") {
+          if (outputFormat === "json") {
+            const modelId = d.model;
+            if (!modelId || !d) return;
+            dispatch({
+              type: CONCAT_JSON,
+              payload: { modelId: modelId, content: d },
+            });
+          }
+          console.log("JSON Message State", jsonMessages);
           dispatch({
             type: "START_STREAM",
             payload: { isStreaming: true },
           });
         }
-        // console.log(e, d); // You can uncomment this for debugging
+        console.log("Event Name :", e); // You can uncomment this for debugging
+        console.log("Event Data :", d);
+
         if (e === "chat.response.delta") {
           const modelId = d.model;
           const contentChunk = d.delta.text || "";
@@ -305,7 +345,7 @@ export function ChatInterface() {
             payload: { isStreaming: false },
           });
         }
-        console.log("Messages", messages);
+        // console.log("Messages", messages);
       },
       ac.signal
     ).catch((err) => {
@@ -329,6 +369,7 @@ export function ChatInterface() {
         type: TOGGLE_MODEL_SELECTOR,
         payload: { showModelSelector: false },
       });
+      dispatch({ type: TOGGLE_PLAYGROUND_SETTINGS, payload: { open: false } });
     }
   };
 
@@ -352,17 +393,20 @@ export function ChatInterface() {
 
       <div className="sticky bottom-0 z-10 p-4 border-t border-border bg-background">
         <div className="max-w-4xl mx-auto">
-          {/* Model Selector */}
-          {showModelSelector && (
+
+          {/* Playground Settings */}
+          {showPlaygroundSettings && (
             <div
               className="mb-4 absolute left-0 right-0 bottom-16 z-20 flex justify-center"
               style={{ pointerEvents: "auto" }}
             >
               <div className="max-w-4xl w-full">
-                <ModelSelector
+                <PlaygroundSettings
+                  dispatch={dispatch}
                   providers={defaultProviders}
                   selectedModels={selectedModels}
-                  dispatch={dispatch}
+                  settingsDispatch={settingsDispatch}
+                  settingsState={settingsState}
                 />
               </div>
             </div>
@@ -386,20 +430,22 @@ export function ChatInterface() {
             />
 
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() =>
                   dispatch({
-                    type: TOGGLE_MODEL_SELECTOR,
-                    payload: { showModelSelector: !showModelSelector },
+                    type: TOGGLE_PLAYGROUND_SETTINGS,
+                    payload: { showPlaygroundSettings: !showPlaygroundSettings },
                   })
                 }
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                title="Select Models"
+                title="Playground Settings"
               >
                 <Settings className="w-4 h-4" />
               </Button>
+
 
               <Button
                 variant="ghost"
