@@ -50,7 +50,7 @@ export function ChatInterface() {
     const ac = new AbortController();
     // console.log("Selected mode: ", modeSelection());
 
-    const body = {
+    var body = {
       mode: modeSelection(),
       routes: bodyRoutes.length > 0 ? bodyRoutes : null,
       messages: [
@@ -145,6 +145,7 @@ export function ChatInterface() {
             </div>
           )}
 
+
           {/* Input Field */}
           <div className="relative">
             <Input
@@ -163,9 +164,11 @@ export function ChatInterface() {
                   dispatch(toggleModelSelector(!showModelSelector))
                 }
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                title="Select Models"
               >
                 <Settings className="w-4 h-4" />
               </Button>
+
               <Button
                 variant="ghost"
                 size="icon"
