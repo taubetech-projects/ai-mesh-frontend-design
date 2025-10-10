@@ -8,9 +8,7 @@ import { ChatArea } from "@/components/chat-area";
 import { useDispatch, useSelector } from "react-redux";
 import { removeModel } from "@/redux/chat-interface-slice";
 
-interface ModelColumnsProps {}
-
-export function ModelColumns({}: ModelColumnsProps) {
+export function ModelColumns() {
   const { providers, selectedModels } = useSelector(
     (store: any) => store.chatInterface
   );

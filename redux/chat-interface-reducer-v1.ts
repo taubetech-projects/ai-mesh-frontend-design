@@ -159,7 +159,6 @@ interface ChatInterfaceState {
   providers: ModelProvider[];
   showModelSelector: boolean;
   selectedModels: RouteSel[];
-  activeModel: AIModel | null;
   inputMessage: string;
   messages: Record<string, Message[]>;
   isStreaming: boolean;
@@ -175,7 +174,6 @@ const initialState: ChatInterfaceState = {
   providers: [...defaultProviders],
   showModelSelector: false,
   selectedModels: initialSelectedModels,
-  activeModel: null,
   inputMessage: "",
   messages: {},
   isStreaming: false,
