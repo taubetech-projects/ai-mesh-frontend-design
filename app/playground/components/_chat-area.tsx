@@ -5,16 +5,27 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import { Check, Copy } from "lucide-react"; // or any icon lib
+import {
+  Check,
+  Copy,
+  ChevronDown,
+  ChevronUp,
+  ArrowDown,
+} from "lucide-react"; // or any icon lib
 import { useState } from "react";
+import JSONPretty from "react-json-pretty";
+import "react-json-pretty/themes/monikai.css";
 
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
+import { Arrow } from "@radix-ui/react-tooltip";
+import { json } from "node:stream/consumers";
 
 interface ChatAreaProps {
   activeModel: string;
   messages: Record<string, Message[]>;
+  jsonMessages: Record<string, any[]>;
 }
 
 interface CopyButtonProps {
@@ -104,7 +115,7 @@ export function formatLLMContent(provider: string, content: string): string {
         try {
           const obj = JSON.parse(formatted);
           formatted = "```json\n" + JSON.stringify(obj, null, 2) + "\n```";
-        } catch (_) {}
+        } catch (_) { }
       }
       break;
   }
@@ -112,9 +123,9 @@ export function formatLLMContent(provider: string, content: string): string {
   return formatted.trim();
 }
 
-export function ChatArea({ activeModel, messages }: ChatAreaProps) {
+export function ChatArea({ activeModel, messages, jsonMessages }: ChatAreaProps) {
   const { t } = useLanguage();
-
+  console.log("Messages from chat area :", messages);
   const getModelDisplayName = (modelId: string) => {
     const modelNames: Record<string, string> = {
       "gpt-4": "GPT-4",
@@ -141,8 +152,75 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
   };
 
   const modelMessages = messages[activeModel];
+  const jsonModelMessages = jsonMessages[activeModel];
   const modelDisplayName = getModelDisplayName(activeModel);
-  // console.log("Model Messages: ", modelMessages);
+  const [expandedJsonIndex, setExpandedJsonIndex] = useState<number | null>(
+    null
+  );
+
+  const handleTypeClick = (index: number) => {
+    setExpandedJsonIndex(expandedJsonIndex === index ? null : index);
+  };
+
+  console.log("Json model message: ", jsonModelMessages);
+
+  if (jsonModelMessages && jsonModelMessages.length > 0) {
+    return (
+      <div className="p-4 space-y-4">
+        {/* {lastUserMessage && (
+          <div className="bg-muted rounded-lg border p-3">
+            <div className="text-xs font-medium mb-1 text-blue-300">
+              Question
+            </div>
+            <div className="text-sm text-primary">{lastUserMessage.content}</div>
+          </div>
+        )} */}
+        <div className=" overflow-hidden">
+
+          {jsonModelMessages.map((msg, index) => {
+            const isExpanded = expandedJsonIndex === index;
+            return (
+              <>
+                <div key={index} className="bg-muted">
+                  {msg.role === "user" && (
+                    <div className="rounded-lg border p-3">
+                      <div className="text-xs font-medium mb-1 text-blue-300">
+                        Question
+                      </div>
+                      <div className="text-sm text-primary">{msg.content}</div>
+                    </div>
+                  )} </div>
+
+                {msg.role === "user" &&  <div className="mt-10"> </div>}
+                <div key={index} className="border-b border-foreground/10 last:border-b-0">
+
+                  {msg.role === "assistant" && <button
+                    onClick={() => handleTypeClick(index)}
+                    className="flex items-center justify-between w-full p-3 text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="bg-muted-foreground/20 p-1.5 rounded-md">
+                        <ArrowDown className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <span className="text-sm p-1.5 rounded-md text-stream-front">
+                        {msg?.content?.type || "N/A"}
+                      </span>
+                    </div>
+                    {isExpanded ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+                  </button>}
+                  {isExpanded && (
+                    <div className="px-3 pb-3 text-sm">
+                      <JSONPretty id={`json-pretty-${index}`} json={msg} />
+                    </div>
+                  )}
+
+                </div>
+              </>);
+          })}
+        </div>
+      </div>
+    );
+  }
 
   if (modelMessages === undefined) return null;
 
@@ -175,15 +253,13 @@ export function ChatArea({ activeModel, messages }: ChatAreaProps) {
           return (
             <div
               key={index}
-              className={`p-3 ${
-                message.role === "user" ? "bg-muted rounded-lg border" : ""
-              }`}
+              className={`p-3 ${message.role === "user" ? "bg-muted rounded-lg border" : ""
+                }`}
             >
               {/* Label (Question / Answer) */}
               <div
-                className={`text-xs font-medium mb-1 ${
-                  message.role === "user" ? "text-blue-300" : "text-emerald-300"
-                }`}
+                className={`text-xs font-medium mb-1 ${message.role === "user" ? "text-blue-300" : "text-emerald-300"
+                  }`}
               >
                 {message.role === "user" ? "Question" : ""}
               </div>

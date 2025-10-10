@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import type { ModelProvider, RouteSel } from "@/types/models";
 import { Send, Mic, Paperclip, Settings, Beaker, X, icons } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
-import {  streamChat } from "@/lib/chatApi";
+import { streamChat } from "@/lib/chatApi";
 import { chatInterfaceReducer } from "@/redux/chat-interface-reducer";
 import {
   ADD_MESSAGES,
@@ -19,6 +19,7 @@ import {
   TOGGLE_PLAYGROUND_SETTINGS,
   UPDATE_INPUT,
   CONCAT_JSON,
+  CONCAT_JSON2,
 } from "@/redux/constants";
 import { initialPlaygroundState, playgroundReducer } from "@/redux/playground-reducer";
 import { ModelColumns } from "./_model-columns";
@@ -223,6 +224,7 @@ export function ChatInterface() {
     messages,
     isStreaming,
     isSent,
+    jsonMessages,
   } = state;
 
   const [settingsState, settingsDispatch] = useReducer(
@@ -256,6 +258,11 @@ export function ChatInterface() {
     dispatch({
       type: ADD_MESSAGES,
       payload: { inputMessage: userMessage },
+    });
+
+    dispatch({
+      type: CONCAT_JSON2,
+      payload: { content: userMessage },
     });
     // console.log("Messages", messages);
     const bodyRoutes = selectedModels
@@ -304,7 +311,6 @@ export function ChatInterface() {
               payload: { modelId: modelId, content: d },
             });
           }
-          // console.log("JSON Message State", jsonMessages);
           dispatch({
             type: "START_STREAM",
             payload: { isStreaming: true },
@@ -315,13 +321,22 @@ export function ChatInterface() {
 
         if (e === "chat.response.delta") {
           const modelId = d.model;
-          const contentChunk = d.delta.text || "";
+          if (outputFormat === "json") {
+            const modelId = d.model;
+            if (!modelId || !d) return;
+            dispatch({
+              type: CONCAT_JSON,
+              payload: { modelId: modelId, content: d },
+            });
+          } else {
+            const contentChunk = d.delta.text || "";
+            if (!modelId || !contentChunk) return;
+            dispatch({
+              type: CONCAT_TEXT_DELTA,
+              payload: { modelId: modelId, content: contentChunk },
+            });
+          }
 
-          if (!modelId || !contentChunk) return;
-          dispatch({
-            type: CONCAT_TEXT_DELTA,
-            payload: { modelId: modelId, content: contentChunk },
-          });
         }
         if (e === "chat.response.completed") {
           count++;
@@ -390,6 +405,7 @@ export function ChatInterface() {
           selectedModels={selectedModels}
           dispatch={dispatch}
           messages={messages}
+          jsonMessages={jsonMessages}
         />
       </div>
 

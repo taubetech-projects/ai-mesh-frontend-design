@@ -13,6 +13,7 @@ interface ModelColumnsProps {
   // setSelectedModels: (models: RouteSel[]) => void;
   dispatch: React.Dispatch<any>;
   messages: Record<string, any>;
+  jsonMessages: Record<string, any[]>;
 }
 
 export function ModelColumns({
@@ -20,6 +21,7 @@ export function ModelColumns({
   selectedModels,
   dispatch,
   messages,
+  jsonMessages,
 }: ModelColumnsProps) {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
@@ -140,7 +142,7 @@ export function ModelColumns({
               id="div123"
               className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-auto"
             >
-              <ChatArea activeModel={model.id} messages={messages} />
+              <ChatArea activeModel={model.id} messages={messages} jsonMessages ={jsonMessages} />
             </div>
           </div>
         ))}

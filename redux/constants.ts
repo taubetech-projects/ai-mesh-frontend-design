@@ -10,3 +10,5 @@ export const END_STREAM: string = "END_STREAM";
 export const ACTIVE_MODEL: string = "ACTIVE_MODEL";
 export const TOGGLE_PLAYGROUND_SETTINGS: string = "TOGGLE_PLAYGROUND_SETTINGS";
 export const CONCAT_JSON: string = "CONCAT_JSON";
+export const CONCAT_JSON2: string = "CONCAT_JSON2";
+

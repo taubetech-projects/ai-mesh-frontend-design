@@ -9,6 +9,8 @@ import {
   TOGGLE_MODEL_SELECTOR,
   TOGGLE_PLAYGROUND_SETTINGS,
   UPDATE_INPUT,
+  CONCAT_JSON,
+  CONCAT_JSON2,
 } from "./constants";
 import { de } from "date-fns/locale";
 
@@ -165,6 +167,7 @@ interface ChatInterfaceState {
   isStreaming: boolean;
   isSent: boolean;
   showPlaygroundSettings: boolean;
+  jsonMessages: Record<string, any[]>;
 }
 
 const initialSelectedModels: RouteSel[] = [
@@ -181,6 +184,7 @@ const initialState: ChatInterfaceState = {
   isStreaming: false,
   isSent: false,
   showPlaygroundSettings: false,
+  jsonMessages: {},
 };
 
 export function playgroundInterfaceReducer(
@@ -235,6 +239,50 @@ export function playgroundInterfaceReducer(
         ];
       }
       return { ...state, messages: newMessages };
+    }
+    case CONCAT_JSON: {
+      const { modelId, content } = action.payload;
+      // console.log("CONCAT_JSON", modelId, content);
+      // console.log("JSON Message State", content);
+      const newMessages = { ...state.jsonMessages };
+      const modelMessages = newMessages[modelId] || [];
+      newMessages[modelId] = [
+        ...modelMessages,
+        { role: "assistant", content: content },
+      ];
+      console.log("newMessages json", newMessages);
+      return { ...state, jsonMessages: newMessages };
+
+
+      const updatedMessages = [...modelMessages, content];
+      newMessages[modelId] = updatedMessages;
+      // return {...state};
+      return { ...state, jsonMessages: newMessages };
+    }
+
+    case CONCAT_JSON2: {
+      const {content } = action.payload;
+      // console.log("CONCAT_JSON", modelId, content);
+      // console.log("JSON Message State", content);
+      const newMessages = { ...state.jsonMessages };
+
+
+      for (const selectedModel of state.selectedModels) {
+        const modelId = selectedModel.model;
+        // const modelMessages = newMessages[modelId] || [];
+        // newMessages[modelId] = [
+        //   ...modelMessages,
+        //   { content: content },
+        // ];
+        const existingMessages = newMessages[modelId] || [];
+        // const newMessages = { ...state.jsonMessages };
+        newMessages[modelId] = [
+          ...existingMessages,
+          { role: "user", content: content },
+        ];
+      }
+      // console.log("newMessages json", newMessages);
+      return { ...state, jsonMessages: newMessages };
     }
     case CONCAT_TEXT_DELTA: {
       const { modelId, content } = action.payload;
