@@ -251,6 +251,11 @@ export function playgroundInterfaceReducer(
       ];
       console.log("newMessages json", newMessages);
       return { ...state, jsonMessages: newMessages };
+
+      const updatedMessages = [...modelMessages, content];
+      newMessages[modelId] = updatedMessages;
+      // return {...state};
+      return { ...state, jsonMessages: newMessages };
     }
 
     case CONCAT_JSON2: {
