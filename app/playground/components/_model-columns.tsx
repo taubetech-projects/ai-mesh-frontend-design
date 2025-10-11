@@ -14,6 +14,7 @@ interface ModelColumnsProps {
   dispatch: React.Dispatch<any>;
   messages: Record<string, any>;
   jsonMessages: Record<string, any[]>;
+  outputFormat: string;
 }
 
 export function ModelColumns({
@@ -22,6 +23,7 @@ export function ModelColumns({
   dispatch,
   messages,
   jsonMessages,
+  outputFormat,
 }: ModelColumnsProps) {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
@@ -142,7 +144,7 @@ export function ModelColumns({
               id="div123"
               className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-auto"
             >
-              <ChatArea activeModel={model.id} messages={messages} jsonMessages ={jsonMessages} />
+              <ChatArea activeModel={model.id} messages={messages} jsonMessages ={jsonMessages} outputFormat={outputFormat} />
             </div>
           </div>
         ))}

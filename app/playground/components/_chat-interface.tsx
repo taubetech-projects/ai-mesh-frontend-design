@@ -303,14 +303,12 @@ export function ChatInterface() {
         const e = evt.event;
         const d = evt.data || {};
         if (e === "chat.response.created") {
-          if (outputFormat === "json") {
-            const modelId = d.model;
-            if (!modelId || !d) return;
-            dispatch({
-              type: CONCAT_JSON,
-              payload: { modelId: modelId, content: d },
-            });
-          }
+          const modelId = d.model;
+          if (!modelId || !d) return;
+          dispatch({
+            type: CONCAT_JSON,
+            payload: { modelId: modelId, content: d },
+          });
           dispatch({
             type: "START_STREAM",
             payload: { isStreaming: true },
@@ -321,31 +319,35 @@ export function ChatInterface() {
 
         if (e === "chat.response.delta") {
           const modelId = d.model;
-          if (outputFormat === "json") {
-            const modelId = d.model;
-            if (!modelId || !d) return;
-            dispatch({
-              type: CONCAT_JSON,
-              payload: { modelId: modelId, content: d },
-            });
-          } else {
-            const contentChunk = d.delta.text || "";
-            if (!modelId || !contentChunk) return;
-            dispatch({
-              type: CONCAT_TEXT_DELTA,
-              payload: { modelId: modelId, content: contentChunk },
-            });
-          }
+          if (!modelId || !d) return;
+          dispatch({
+            type: CONCAT_JSON,
+            payload: { modelId: modelId, content: d },
+          });
+          const contentChunk = d.delta.text || "";
+          if (!modelId || !contentChunk) return;
+          dispatch({
+            type: CONCAT_TEXT_DELTA,
+            payload: { modelId: modelId, content: contentChunk },
+          });
+
 
         }
         if (e === "chat.response.completed") {
+          const modelId = d.model;
+          if (!modelId || !d) return;
           count++;
           if (count === bodyRoutes.length) {
             dispatch({
               type: "END_STREAM",
               payload: { isStreaming: false },
             });
+            count = 0;
           }
+          dispatch({
+            type: CONCAT_JSON,
+            payload: { modelId: modelId, content: d },
+          });
         }
         if (e === "consensus") {
           console.log("This is a consensus event", d.delta.text);
@@ -356,6 +358,10 @@ export function ChatInterface() {
           dispatch({
             type: CONCAT_TEXT_DELTA,
             payload: { modelId: modelId, content: contentChunk },
+          });
+          dispatch({
+            type: CONCAT_JSON,
+            payload: { modelId: modelId, content: d },
           });
           dispatch({
             type: "END_STREAM",
@@ -406,6 +412,7 @@ export function ChatInterface() {
           dispatch={dispatch}
           messages={messages}
           jsonMessages={jsonMessages}
+          outputFormat={outputFormat}
         />
       </div>
 
