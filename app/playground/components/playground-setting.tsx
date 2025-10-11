@@ -38,16 +38,19 @@ import {
   addModel,
   removeModel,
   togglePlaygroundSettings,
+  updateSystemPrompt,
+  updateTemperature,
+  updateMaxTokens,
+  updateInputFormat,
+  updateOutputFormat,
+  updateReasoningEffort,
+  updatePlaygroundIsStreaming,
+  updateProviderSpecific
 } from "@/redux/playground-interface-slice";
+import { te } from "date-fns/locale";
 
-export function PlaygroundSettings({
-  settingsDispatch,
-  settingsState,
-}: {
-  settingsDispatch: React.Dispatch<any>;
-  settingsState: any;
-}) {
-  const { selectedModels, providers } = useSelector(
+export function PlaygroundSettings() {
+  const { selectedModels, providers,systemPrompt, showPlaygroundSettings, providerSpecific, playgroundIsStreaming , temperature, maxTokens, inputFormat, outputFormat, reasoningEffort } = useSelector(
     (store: any) => store.playgroundInterface
   );
 
@@ -90,12 +93,9 @@ export function PlaygroundSettings({
           <Textarea
             id="system-prompt"
             placeholder="You are a helpful assistant."
-            value={settingsState.systemPrompt}
+            value={systemPrompt}
             onChange={(e) =>
-              settingsDispatch({
-                type: UPDATE_SYSTEM_PROMPT,
-                payload: e.target.value,
-              })
+              dispatch(updateSystemPrompt(e.target.value))
             }
             className="h-48 resize-none bg-background border border-text-area"
           />
@@ -155,12 +155,9 @@ export function PlaygroundSettings({
               id="temperature"
               type="number"
               step="0.1"
-              value={settingsState.temperature}
+              value={temperature}
               onChange={(e) =>
-                settingsDispatch({
-                  type: UPDATE_TEMPERATURE,
-                  payload: e.target.value,
-                })
+                dispatch(updateTemperature(e.target.value))
               }
               className="bg-background border-border"
               placeholder="0.7"
@@ -171,9 +168,9 @@ export function PlaygroundSettings({
               Input Format
             </Label>
             <Select
-              value={settingsState.inputFormat}
+              value={inputFormat}
               onValueChange={(value) =>
-                settingsDispatch({ type: UPDATE_INPUT_FORMAT, payload: value })
+                dispatch(updateInputFormat(value))
               }
             >
               <SelectTrigger
@@ -193,9 +190,9 @@ export function PlaygroundSettings({
               Output Format
             </Label>
             <Select
-              value={settingsState.outputFormat}
+              value={outputFormat}
               onValueChange={(value) =>
-                settingsDispatch({ type: UPDATE_OUTPUT_FORMAT, payload: value })
+                dispatch(updateOutputFormat(value))
               }
             >
               <SelectTrigger
@@ -215,12 +212,9 @@ export function PlaygroundSettings({
               Reasoning Effort
             </Label>
             <Select
-              value={settingsState.reasoningEffort}
+              value={reasoningEffort}
               onValueChange={(value) =>
-                settingsDispatch({
-                  type: UPDATE_REASONING_EFFORT,
-                  payload: value,
-                })
+                dispatch(updateReasoningEffort(value))
               }
             >
               <SelectTrigger
@@ -243,12 +237,9 @@ export function PlaygroundSettings({
             <Input
               id="max-tokens"
               type="number"
-              value={settingsState.maxTokens}
+              value={maxTokens}
               onChange={(e) =>
-                settingsDispatch({
-                  type: UPDATE_MAX_TOKENS,
-                  payload: e.target.value,
-                })
+                dispatch(updateMaxTokens(e.target.value))
               }
               className="bg-background border-border"
               placeholder="4096"
@@ -259,12 +250,9 @@ export function PlaygroundSettings({
               Streaming
             </Label>
             <Select
-              value={String(settingsState.playgroundIsStreaming)}
+              value={String(playgroundIsStreaming)}
               onValueChange={(value) =>
-                settingsDispatch({
-                  type: PLAYGROUND_IS_STREAMING,
-                  payload: value === "true",
-                })
+                dispatch(updatePlaygroundIsStreaming(value === "true"))
               }
             >
               <SelectTrigger
@@ -284,12 +272,9 @@ export function PlaygroundSettings({
               Provider Specific
             </Label>
             <Select
-              value={String(settingsState.providerSpecific)}
+              value={String(providerSpecific)}
               onValueChange={(value) =>
-                settingsDispatch({
-                  type: UPDATE_PROVIDER_SPECIFIC,
-                  payload: value === "true",
-                })
+                dispatch(updateProviderSpecific(value === "true"))
               }
             >
               <SelectTrigger

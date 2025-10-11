@@ -156,6 +156,15 @@ interface ChatInterfaceState {
   isSent: boolean;
   showPlaygroundSettings: boolean;
   jsonMessages: Record<string, any[]>;
+  systemPrompt: string;
+  temperature: string;
+  maxTokens: string;
+  inputFormat: string;
+  outputFormat: string;
+  reasoningEffort: string;
+  playgroundIsStreaming: boolean;
+  providerSpecific: boolean;
+
 }
 
 const initialSelectedModels: RouteSel[] = [
@@ -173,6 +182,14 @@ const initialState: ChatInterfaceState = {
   isSent: false,
   showPlaygroundSettings: false,
   jsonMessages: {},
+  systemPrompt: "You are a helpful assistant.",
+  temperature: "0.7",
+  maxTokens: "4096",
+  inputFormat: "text",
+  outputFormat: "text",
+  reasoningEffort: "auto",
+  playgroundIsStreaming: true,
+  providerSpecific: false,
 };
 
 const playgroundInterfaceSlice = createSlice({
@@ -296,6 +313,31 @@ const playgroundInterfaceSlice = createSlice({
         state.jsonMessages = newMessages;
       },
     },
+    updateSystemPrompt(state, action) {
+      state.systemPrompt = action.payload;
+    },
+    updateTemperature(state, action) {
+      state.temperature = action.payload;
+    },
+    updateMaxTokens(state, action) {
+      state.maxTokens = action.payload;
+    },
+    updateInputFormat(state, action) {
+      state.inputFormat = action.payload;
+    },
+    updateOutputFormat(state, action) {
+      state.outputFormat = action.payload;
+    },
+    updateReasoningEffort(state, action) {
+      state.reasoningEffort = action.payload;
+    },
+    updatePlaygroundIsStreaming(state, action) {
+      state.playgroundIsStreaming = action.payload;
+    },
+    updateProviderSpecific(state, action) {
+      state.providerSpecific = action.payload;
+    },
+
   },
 });
 
@@ -311,5 +353,13 @@ export const {
   togglePlaygroundSettings,
   addJsonUserMessages,
   addJsonAssistantMessage,
+  updateSystemPrompt,
+  updateTemperature,
+  updateMaxTokens,
+  updateInputFormat,
+  updateOutputFormat,
+  updateReasoningEffort,
+  updatePlaygroundIsStreaming,
+  updateProviderSpecific
 } = playgroundInterfaceSlice.actions;
 export default playgroundInterfaceSlice.reducer;
