@@ -63,7 +63,10 @@ export function ChatAreaJsonResponse({ jsonModelMessages }: JsonAreaProps) {
                   )}
                   {isExpanded && (
                     <div className="px-3 pb-3 text-sm">
-                      <JSONPretty id={`json-pretty-${index}`} json={msg} />
+                      <JSONPretty
+                        id={`json-pretty-${index}`}
+                        json={msg.content}
+                      />
                     </div>
                   )}
                 </div>
