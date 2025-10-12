@@ -33,12 +33,13 @@ export function ChatArea({
 
   const modelMessages = messages[activeModel];
   const jsonModelMessages = jsonMessages[activeModel];
+
   return (
     <div className="flex-1 flex flex-col h-full border-0 border-l border-border">
       {outputFormat === "json" &&
         jsonModelMessages &&
         jsonModelMessages.length > 0 && (
-          <ChatAreaJsonResponse jsonModelMessages={jsonModelMessages} />
+          <ChatAreaJsonResponse activeModel={activeModel} />
         )}
       {outputFormat === "text" && modelMessages && modelMessages.length > 0 && (
         <ChatAreaTextResponse modelMessages={modelMessages} />
