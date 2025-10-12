@@ -1,25 +1,23 @@
 "use client";
 
-import { useReducer } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { RouteSel } from "@/types/models";
-import { Send, Mic, Paperclip, Settings, Beaker, X, icons } from "lucide-react";
+import { Send, Mic, Paperclip, Settings, Beaker } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { streamChat } from "@/lib/chatApi";
-
-import {
-  initialPlaygroundState,
-  playgroundReducer,
-} from "@/redux/playground-reducer";
 import { ModelColumns } from "./_model-columns";
 import { PlaygroundSettings } from "./playground-setting";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  addUserMessagesWithMessageId,
   addJsonAssistantMessage,
+  addJsonAssistantMessageWithMessageId,
   addJsonUserMessages,
+  addJsonUserMessagesWithMessageId,
   addMessages,
   concateDelta,
+  concateDeltaWithMessageId,
   endStreaming,
   startStreaming,
   toggleModelSelector,
@@ -43,10 +41,20 @@ type AssistantMsg = {
 
 type UserMsg = { role: "user"; content: string };
 type Message = UserMsg | AssistantMsg;
+var messageId = 1;
 
 export function ChatInterface() {
-  const { selectedModels, inputMessage, isStreaming, showPlaygroundSettings, temperature, maxTokens, outputFormat, playgroundIsStreaming, providerSpecific } =
-    useSelector((store: any) => store.playgroundInterface);
+  const {
+    selectedModels,
+    inputMessage,
+    isStreaming,
+    showPlaygroundSettings,
+    temperature,
+    maxTokens,
+    outputFormat,
+    playgroundIsStreaming,
+    providerSpecific,
+  } = useSelector((store: any) => store.playgroundInterface);
 
   const dispatch = useDispatch();
 
@@ -65,7 +73,8 @@ export function ChatInterface() {
     // Initialize messages state for each selected model if not already present
     dispatch(addMessages(userMessage));
     dispatch(addJsonUserMessages(userMessage));
-
+    dispatch(addUserMessagesWithMessageId(messageId, userMessage));
+    dispatch(addJsonUserMessagesWithMessageId(messageId, userMessage));
     // console.log("Messages", messages);
     const bodyRoutes = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
@@ -108,6 +117,7 @@ export function ChatInterface() {
           const modelId = d.model;
           if (!modelId || !d) return;
           dispatch(addJsonAssistantMessage(modelId, d));
+          dispatch(addJsonAssistantMessageWithMessageId(modelId, messageId, d));
           dispatch(startStreaming());
         }
         console.log("Event Name :", e); // You can uncomment this for debugging
@@ -117,17 +127,22 @@ export function ChatInterface() {
           const modelId = d.model;
           if (!modelId || !d) return;
           dispatch(addJsonAssistantMessage(modelId, d));
+          dispatch(addJsonAssistantMessageWithMessageId(modelId, messageId, d));
           const contentChunk = d.delta.text || "";
           if (!modelId || !contentChunk) return;
           dispatch(concateDelta(modelId, contentChunk));
+          dispatch(concateDeltaWithMessageId(modelId, messageId, contentChunk));
         }
         if (e === "chat.response.completed") {
           const modelId = d.model;
           if (!modelId || !d) return;
+          dispatch(addJsonAssistantMessageWithMessageId(modelId, messageId, d));
           count++;
           if (count === bodyRoutes.length) {
             dispatch(endStreaming());
             count = 0;
+            messageId++;
+            console.log("Message ID: ", messageId);
           }
           dispatch(addJsonAssistantMessage(modelId, d));
         }
@@ -188,8 +203,7 @@ export function ChatInterface() {
               style={{ pointerEvents: "auto" }}
             >
               <div className="max-w-4xl w-full">
-                <PlaygroundSettings
-                />
+                <PlaygroundSettings />
               </div>
             </div>
           )}

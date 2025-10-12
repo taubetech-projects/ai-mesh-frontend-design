@@ -164,7 +164,8 @@ interface ChatInterfaceState {
   reasoningEffort: string;
   playgroundIsStreaming: boolean;
   providerSpecific: boolean;
-
+  textMessagesWithMsgId: Record<string, Record<string, any[]>>; // LinkedHashMap-like { modelName: { convId: [messages] } }
+  jsonMessagesWithMsgId: Record<string, Record<string, any[]>>; // LinkedHashMap-like { modelName: { convId: [messages] } }
 }
 
 const initialSelectedModels: RouteSel[] = [
@@ -190,6 +191,8 @@ const initialState: ChatInterfaceState = {
   reasoningEffort: "auto",
   playgroundIsStreaming: true,
   providerSpecific: false,
+  textMessagesWithMsgId: {},
+  jsonMessagesWithMsgId: {},
 };
 
 const playgroundInterfaceSlice = createSlice({
@@ -338,6 +341,123 @@ const playgroundInterfaceSlice = createSlice({
       state.providerSpecific = action.payload;
     },
 
+    addUserMessagesWithMessageId: {
+      prepare(messageId, userMessage) {
+        return {
+          payload: { messageId: messageId, content: userMessage },
+          meta: undefined,
+          error: undefined,
+        };
+      },
+      reducer(state, action) {
+        const { messageId, content } = action.payload;
+        for (const selectedModel of state.selectedModels) {
+          const modelId = selectedModel.model;
+          // Initialize model map if missing
+          if (!state.textMessagesWithMsgId[modelId]) {
+            state.textMessagesWithMsgId[modelId] = {};
+          }
+          // Initialize message if missing
+          if (!state.textMessagesWithMsgId[modelId][messageId]) {
+            state.textMessagesWithMsgId[modelId][messageId] = [];
+          }
+          // Append message (maintaining order)
+          state.textMessagesWithMsgId[modelId][messageId].push({
+            messageId: messageId,
+            role: "user",
+            content: content,
+          });
+          state.textMessagesWithMsgId[modelId][messageId].push({
+            messageId: messageId,
+            role: "assistant",
+            content: "",
+            meta: {
+              provider: selectedModel.provider,
+              model: selectedModel.model,
+            },
+          });
+        }
+      },
+    },
+    concateDeltaWithMessageId: {
+      prepare(modelId, messageId, contentChunk) {
+        return {
+          payload: {
+            modelId: modelId,
+            messageId: messageId,
+            content: contentChunk,
+          },
+          meta: undefined,
+          error: undefined,
+        };
+      },
+      reducer(state, action) {
+        const { modelId, messageId, content } = action.payload;
+        const modelMessages =
+          state.textMessagesWithMsgId[modelId][messageId] || [];
+        if (modelMessages.length === 0) return; // Should not happen
+        const updatedMessages = [...modelMessages];
+        const lastMessage = updatedMessages[updatedMessages.length - 1];
+        // Append the new content chunk to the last message
+        lastMessage.content += content;
+        if (lastMessage.role !== "assistant") return; // No change if last message is not from assistant
+        state.textMessagesWithMsgId[modelId][messageId] = updatedMessages;
+      },
+    },
+    addJsonUserMessagesWithMessageId: {
+      prepare(messageId, userMessage) {
+        return {
+          payload: { messageId: messageId, content: userMessage },
+          meta: undefined,
+          error: undefined,
+        };
+      },
+      reducer(state, action) {
+        const { messageId, content } = action.payload;
+        for (const selectedModel of state.selectedModels) {
+          const modelId = selectedModel.model;
+          // Initialize model map if missing
+          if (!state.jsonMessagesWithMsgId[modelId]) {
+            state.jsonMessagesWithMsgId[modelId] = {};
+          }
+          // Initialize message if missing
+          if (!state.jsonMessagesWithMsgId[modelId][messageId]) {
+            state.jsonMessagesWithMsgId[modelId][messageId] = [];
+          }
+          // Append message (maintaining order)
+          state.jsonMessagesWithMsgId[modelId][messageId].push({
+            messageId: messageId,
+            role: "user",
+            content: content,
+          });
+        }
+      },
+    },
+    addJsonAssistantMessageWithMessageId: {
+      prepare(modelId, messageId, content) {
+        return {
+          payload: {
+            modelId: modelId,
+            messageId: messageId,
+            content: content,
+          },
+          meta: undefined,
+          error: undefined,
+        };
+      },
+      reducer(state, action) {
+        const { modelId, messageId, content } = action.payload;
+        const modelMessages =
+          state.jsonMessagesWithMsgId[modelId][messageId] || [];
+        if (modelMessages.length === 0) return; // Should not happen
+        // Append message (maintaining order)
+        state.jsonMessagesWithMsgId[modelId][messageId].push({
+          messageId: messageId,
+          role: "assistant",
+          content: content,
+        });
+      },
+    },
   },
 });
 
@@ -360,6 +480,10 @@ export const {
   updateOutputFormat,
   updateReasoningEffort,
   updatePlaygroundIsStreaming,
-  updateProviderSpecific
+  updateProviderSpecific,
+  addUserMessagesWithMessageId,
+  concateDeltaWithMessageId,
+  addJsonUserMessagesWithMessageId,
+  addJsonAssistantMessageWithMessageId,
 } = playgroundInterfaceSlice.actions;
 export default playgroundInterfaceSlice.reducer;
