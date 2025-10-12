@@ -45,22 +45,8 @@ type UserMsg = { role: "user"; content: string };
 type Message = UserMsg | AssistantMsg;
 
 export function ChatInterface() {
-  const { selectedModels, inputMessage, isStreaming, showPlaygroundSettings } =
+  const { selectedModels, inputMessage, isStreaming, showPlaygroundSettings, temperature, maxTokens, outputFormat, playgroundIsStreaming, providerSpecific } =
     useSelector((store: any) => store.playgroundInterface);
-  const [settingsState, settingsDispatch] = useReducer(
-    playgroundReducer,
-    initialPlaygroundState
-  );
-  const {
-    systemPrompt,
-    temperature,
-    maxTokens,
-    inputFormat,
-    outputFormat,
-    reasoningEffort,
-    providerSpecific,
-    playgroundIsStreaming,
-  } = settingsState;
 
   const dispatch = useDispatch();
 
@@ -203,8 +189,6 @@ export function ChatInterface() {
             >
               <div className="max-w-4xl w-full">
                 <PlaygroundSettings
-                  settingsDispatch={settingsDispatch}
-                  settingsState={settingsState}
                 />
               </div>
             </div>
