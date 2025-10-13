@@ -145,9 +145,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             className={`${
-              isCollapsed
-                ? "w-full justify-center"
-                : "flex-1 justify-start gap-2 ml-2"
+              isCollapsed ? "h-8 w-8 p-0" : "flex-1 justify-start gap-2 ml-2"
             } text-sidebar-foreground hover:bg-sidebar-accent`}
           >
             <Settings className="w-4 h-4" />
