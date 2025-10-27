@@ -13,10 +13,15 @@ import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
 import { ThemeToggle } from "./theme-toggle";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchConversations } from "@/lib/conversationApi";
+import { useGetConversationsApi } from "@/lib/hooks/conversation";
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { t } = useLanguage();
+
+  const { isPending, data: conversations, isError } = useGetConversationsApi();
 
   return (
     <div
@@ -120,9 +125,17 @@ export function Sidebar() {
           <div className="text-xs text-muted-foreground mb-2">
             Monday, September 8th
           </div>
-          <div className="text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded">
-            An overview of Bangl...
-          </div>
+          {isPending && <div>Conversations Loading...</div>}
+          {isError && <div>Error fetching conversations</div>}
+          {conversations &&
+            conversations.map((conversation: any) => (
+              <div
+                key={conversation.id}
+                className="text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded"
+              >
+                {conversation.title}
+              </div>
+            ))}
         </div>
       )}
 
