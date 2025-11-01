@@ -16,6 +16,5 @@ export function setApiKey(v: string) {
 
 export function authHeader(): Record<string, string> {
   const k = getApiKey();
-  // console.log(k);
   return k ? { Authorization: `Bearer ${k}` } : {};
 }

@@ -32,7 +32,6 @@ export function ChatInterface() {
   const createMessages = useCreateMessages(selectedConvId);
 
   const { t } = useLanguage();
-  console.log("Model Responses in Chat Interface:", modelResponses);
 
   function modeSelection() {
     const model = selectedModels.find(
@@ -44,9 +43,6 @@ export function ChatInterface() {
   // ---- Send / Stream ----
   const onSend = async (userMessage: string) => {
     if (selectedModels.length === 0) return;
-    // Initialize messages state for each selected model if not already present
-    // dispatch(addMessages(userMessage));
-    // console.log("Messages", messages);
     const bodyRoutes: RouteSel[] = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
       .map((model: RouteSel) => ({

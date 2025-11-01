@@ -56,10 +56,9 @@ export function CopyButton({ code }: CopyButtonProps) {
 
 // utils/formatLLMContent.ts
 export function formatLLMContent(provider: string, content: string): string {
-  if (!content || !provider) return "";
+  if (!content) return "";
 
   let formatted = content;
-  console.log("Formatting content for provider:", provider);
 
   switch (provider?.toLowerCase()) {
     case "anthropic":
@@ -173,7 +172,6 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
 
   const modelMessages = getModelMessages(activeModel, data);
   if (modelMessages === undefined) return null;
-  console.log("Model Messages in Chat Area:", modelMessages);
 
   return (
     <div className="flex flex-col h-full" onClick={() => handleSendBatch()}>
