@@ -17,7 +17,9 @@ export async function fetchModels(providerId: string) {
 
 /** Basic SSE reader. Calls onEvent({event, data}) for each frame. */
 export function streamChat(
-  body: ChatStreamBody,
+  // body: ChatStreamBody,
+  body: any,
+  
   onEvent: (evt: { event: string; data: any }) => void,
   signal?: AbortSignal
 ) {
