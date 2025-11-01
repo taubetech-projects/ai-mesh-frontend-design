@@ -61,3 +61,84 @@ export interface ChatAreaProps {
 export interface CopyButtonProps {
   code: string;
 }
+
+// Type representing your ConversationView record
+export interface ConversationView {
+  id: number;
+  externalId: string | null;
+  title: string | null;
+  isArchived: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface ConversationRequest {
+  title: string;
+}
+
+export interface MessagePartRequest {
+  type: string;
+  text?: string;
+  mimeType?: string;
+  attachments?: AttachmentRequest[];
+  attachmentIds?: number[];
+  jsonData?: string;
+}
+
+export interface AttachmentRequest {
+  storageType?: string; // "object" | "provider" | "external_url"
+  provider?: string; // "openai" | "anthropic" | "vertex" | "none"
+  providerFileId?: string;
+  objectPath?: string; // e.g., "s3://bucket/key"
+  externalUrl?: string;
+  fileName?: string;
+  mimeType?: string;
+  bytes?: number;
+  sha256?: string;
+  status?: string; // "pending" | "available" | "failed" | "deleted"
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface AttachmentView {
+  id?: number;
+  fileName?: string;
+  mimeType?: string;
+  bytes?: number;
+  url?: string;
+}
+
+export interface PartView {
+  type?: string;
+  text?: string;
+  mimeType?: string;
+  seq?: number;
+  attachments?: AttachmentView[];
+  jsonData?: string;
+}
+
+export interface MessageView {
+  id?: number;
+  conversationId?: number;
+  role?: string;
+  authorId?: string;
+  replyToMessageId?: number;
+  groupId?: string; // UUID represented as a string in TypeScript
+  versionIndex?: number;
+  groupTs?: Date;
+  createdAt?: Date;
+  parts?: PartView[];
+}
+
+export interface SaveMessageRequest {
+  externalConversationId: string;
+  authorId: string;
+  role: string;
+  parts: MessagePartRequest[];
+}
+
+// types/local.ts (or wherever you keep shared types)
+export type MessagePage = {
+  messages: MessageView[];
+  nextCursor?: string | null;
+};

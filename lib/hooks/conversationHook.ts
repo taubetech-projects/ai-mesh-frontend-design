@@ -4,7 +4,8 @@ import {
   getConversationsApi,
   updateConversationApi,
   deleteConversationApi,
-} from "@/lib/conversationAxiosApi";
+} from "@/lib/conversationApi";
+import { queryKey } from "../query/keys";
 
 // Custom hooks for CRUD operations
 export const useCreateConversationApi = () => {
@@ -18,8 +19,9 @@ export const useCreateConversationApi = () => {
 
 export const useGetConversationsApi = () =>
   useQuery({
-    queryKey: ["conversations"],
+    queryKey: queryKey.conversations(),
     queryFn: getConversationsApi,
+    staleTime: 60_000, // 👈 1 minute
   });
 
 export const useUpdateConversationApi = () => {

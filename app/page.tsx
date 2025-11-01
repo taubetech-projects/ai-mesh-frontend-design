@@ -4,7 +4,7 @@ import "./globals.css";
 
 import { Provider } from "react-redux";
 import { Sidebar } from "@/components/sidebar";
-import { ChatInterface } from "@/components/chat-interface";
+import { ChatInterface } from "@/components/chat-interface-2";
 import store from "../redux/store";
 
 export type RouteSel = { provider: string; model: string };

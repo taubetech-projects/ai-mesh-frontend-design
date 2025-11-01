@@ -12,16 +12,29 @@ import {
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
 import { ThemeToggle } from "./theme-toggle";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchConversations } from "@/lib/conversationApi";
-import { useGetConversationsApi } from "@/lib/hooks/conversation";
+import { useEffect, useState } from "react";
+import { useGetConversationsApi } from "@/lib/hooks/conversationHook";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedConvId } from "@/redux/conversation-slice";
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { t } = useLanguage();
+  const { selectedConvId } = useSelector(
+    (store: any) => store.conversationSlice
+  );
+
+  const dispatch = useDispatch();
 
   const { isPending, data: conversations, isError } = useGetConversationsApi();
+
+  // 👇 When conversations load, select the last one automatically
+  useEffect(() => {
+    if (conversations && conversations.length > 0 && !selectedConvId) {
+      const last = conversations[0];
+      dispatch(setSelectedConvId(last.id));
+    }
+  }, [conversations, selectedConvId]);
 
   return (
     <div
@@ -125,13 +138,16 @@ export function Sidebar() {
           <div className="text-xs text-muted-foreground mb-2">
             Monday, September 8th
           </div>
-          {isPending && <div>Conversations Loading...</div>}
+          {isPending && <div>Loading Conversations...</div>}
           {isError && <div>Error fetching conversations</div>}
           {conversations &&
             conversations.map((conversation: any) => (
               <div
                 key={conversation.id}
-                className="text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded"
+                className={`text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${
+                  selectedConvId === conversation.id ? "bg-gray-200" : ""
+                }`}
+                onClick={() => dispatch(setSelectedConvId(conversation.id))}
               >
                 {conversation.title}
               </div>
