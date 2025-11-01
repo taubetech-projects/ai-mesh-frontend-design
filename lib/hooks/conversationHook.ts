@@ -13,7 +13,7 @@ export const useCreateConversationApi = () => {
   return useMutation({
     mutationFn: createConversationApi,
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["conversations"] }), // Refetch conversations after a new conversation is created
+      queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after a new conversation is created
   });
 };
 
@@ -29,7 +29,7 @@ export const useUpdateConversationApi = () => {
   return useMutation({
     mutationFn: updateConversationApi,
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["conversations"] }), // Refetch conversations after an update
+      queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after an update
   });
 };
 
@@ -38,6 +38,6 @@ export const useDeleteConversationApi = () => {
   return useMutation({
     mutationFn: deleteConversationApi,
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["conversations"] }), // Refetch conversations after deletion
+      queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after deletion
   });
 };

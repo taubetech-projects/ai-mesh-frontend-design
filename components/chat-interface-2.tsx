@@ -4,28 +4,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns-2";
 import { ModelSelector } from "@/components/model-selector";
-import { RouteSel } from "@/types/models";
+import { ChatRequestBody, RouteSel } from "@/types/models";
 import { Send, Mic, Paperclip, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
-import { streamChat } from "@/lib/chatApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addMessages,
-  concateDelta,
-  endStreaming,
-  startStreaming,
+  clearModelResponses,
   toggleModelSelector,
   updateInputMessage,
 } from "@/redux/chat-interface-slice";
-
-var count = 0;
+import { useCreateMessages } from "@/lib/hooks/messageHook";
+import { clear } from "console";
 
 export function ChatInterface() {
-  const { showModelSelector, selectedModels, inputMessage, isStreaming } =
-    useSelector((store: any) => store.chatInterface);
+  const {
+    modelResponses,
+    showModelSelector,
+    selectedModels,
+    inputMessage,
+    isStreaming,
+  } = useSelector((store: any) => store.chatInterface);
+  const { selectedConvId } = useSelector(
+    (store: any) => store.conversationSlice
+  );
   const dispatch = useDispatch();
+  const createMessages = useCreateMessages(selectedConvId);
 
   const { t } = useLanguage();
+  console.log("Model Responses in Chat Interface:", modelResponses);
 
   function modeSelection() {
     const model = selectedModels.find(
@@ -38,9 +45,9 @@ export function ChatInterface() {
   const onSend = async (userMessage: string) => {
     if (selectedModels.length === 0) return;
     // Initialize messages state for each selected model if not already present
-    dispatch(addMessages(userMessage));
+    // dispatch(addMessages(userMessage));
     // console.log("Messages", messages);
-    const bodyRoutes = selectedModels
+    const bodyRoutes: RouteSel[] = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
       .map((model: RouteSel) => ({
         provider: model.provider,
@@ -50,7 +57,7 @@ export function ChatInterface() {
     const ac = new AbortController();
     // console.log("Selected mode: ", modeSelection());
 
-    var body = {
+    const chatRequestBody: ChatRequestBody = {
       mode: modeSelection(),
       routes: bodyRoutes.length > 0 ? bodyRoutes : null,
       messages: [
@@ -62,46 +69,8 @@ export function ChatInterface() {
       stream: true,
       provider_response: false,
     };
-
-    await streamChat(
-      body,
-      (evt) => {
-        const e = evt.event;
-        const d = evt.data || {};
-        if (e === "chat.response.created") {
-          dispatch(startStreaming());
-        }
-        // console.log(e, d); // You can uncomment this for debugging
-        if (e === "chat.response.delta") {
-          const modelId = d.model;
-          const contentChunk = d.delta.text || "";
-
-          if (!modelId || !contentChunk) return;
-          dispatch(concateDelta(modelId, contentChunk));
-        }
-        if (e === "chat.response.completed") {
-          count++;
-          if (count === bodyRoutes.length) {
-            dispatch(endStreaming());
-            count = 0;
-          }
-        }
-        if (e === "consensus") {
-          console.log("This is a consensus event", d.delta.text);
-          const modelId = "consensus";
-          const contentChunk = d.delta.text || "";
-
-          if (!modelId || !contentChunk) return;
-          dispatch(concateDelta(modelId, contentChunk));
-          // Since consensus is the last event, we can end streaming here
-          dispatch(endStreaming());
-        }
-        // console.log("Messages", messages);
-      },
-      ac.signal
-    ).catch((err) => {
-      console.error("SSE error", err);
-    });
+    await createMessages.mutateAsync(chatRequestBody);
+    dispatch(clearModelResponses());
   };
 
   const handleSendMessage = () => {

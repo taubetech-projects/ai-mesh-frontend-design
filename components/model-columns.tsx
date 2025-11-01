@@ -17,7 +17,7 @@ export function ModelColumns() {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
     for (const provider of providers) {
-      const model = provider.models.find((m) => m.id === modelId);
+      const model = provider.models.find((m: any) => m.id === modelId);
       if (model) return { model, provider };
     }
     return null;

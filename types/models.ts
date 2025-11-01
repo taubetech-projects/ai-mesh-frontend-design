@@ -123,6 +123,8 @@ export interface MessageView {
   role?: string;
   authorId?: string;
   replyToMessageId?: number;
+  provider: string;
+  model: string;
   groupId?: string; // UUID represented as a string in TypeScript
   versionIndex?: number;
   groupTs?: Date;
@@ -131,9 +133,10 @@ export interface MessageView {
 }
 
 export interface SaveMessageRequest {
-  externalConversationId: string;
+  externalConversationId?: string;
   authorId: string;
   role: string;
+  model?: string;
   parts: MessagePartRequest[];
 }
 
@@ -142,3 +145,11 @@ export type MessagePage = {
   messages: MessageView[];
   nextCursor?: string | null;
 };
+
+export interface ChatRequestBody {
+  mode: string | null;
+  routes: RouteSel[] | null;
+  messages: Message[];
+  stream: boolean;
+  provider_response: boolean;
+}

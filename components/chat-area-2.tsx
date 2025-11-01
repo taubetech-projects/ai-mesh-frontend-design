@@ -24,7 +24,7 @@ import {
   useGetMessagesByConversationId,
   useUpdateMessages,
 } from "@/lib/hooks/messageHook";
-import { se } from "date-fns/locale";
+import { fi, se } from "date-fns/locale";
 
 export function CopyButton({ code }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
@@ -56,12 +56,13 @@ export function CopyButton({ code }: CopyButtonProps) {
 
 // utils/formatLLMContent.ts
 export function formatLLMContent(provider: string, content: string): string {
-  if (!content) return "";
+  if (!content || !provider) return "";
 
   let formatted = content;
+  console.log("Formatting content for provider:", provider);
 
-  switch (provider.toLowerCase()) {
-    case "claude":
+  switch (provider?.toLowerCase()) {
+    case "anthropic":
       // Convert triple single quotes to code fences
       formatted = formatted.replace(
         /'''(\w+)?\n([\s\S]*?)'''/g,
@@ -93,15 +94,26 @@ export function formatLLMContent(provider: string, content: string): string {
   return formatted.trim();
 }
 
-const getModelMessages = (activeModel: string, messagePage: MessagePage) => {
-  if (!messagePage || !messagePage.messages) return [];
-  const messages = messagePage.messages;
+const getModelMessages = (
+  activeModel: string,
+  messagePage?: MessagePage
+): MessageView[] => {
+  if (!messagePage?.messages?.length) return [];
 
-  let filteredMessages: MessageView[] = [];
-  messages.map((msg, index) => {
-    filteredMessages.push(msg);
-  });
-  return filteredMessages;
+  const messages = messagePage.messages;
+  const result: MessageView[] = [];
+
+  let lastUserMessage: MessageView | undefined;
+
+  for (const msg of messages) {
+    if (msg.role === "user") {
+      lastUserMessage = msg;
+    } else if (msg.model === activeModel && lastUserMessage) {
+      result.push(lastUserMessage, msg);
+    }
+  }
+
+  return result;
 };
 
 export function ChatArea({ activeModel }: ChatAreaProps) {
@@ -161,6 +173,7 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
 
   const modelMessages = getModelMessages(activeModel, data);
   if (modelMessages === undefined) return null;
+  console.log("Model Messages in Chat Area:", modelMessages);
 
   return (
     <div className="flex flex-col h-full" onClick={() => handleSendBatch()}>
@@ -183,6 +196,13 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
         style={{ minHeight: 0, minWidth: 0 }} // important
       >
         {modelMessages.map((message: MessageView, index: number) => {
+          const contentToRender =
+            message.role === "assistant" && message.model
+              ? formatLLMContent(
+                  message.provider,
+                  message.parts?.at(0)?.text ?? ""
+                )
+              : message.parts?.at(0)?.text;
           return (
             <div
               key={index}
@@ -297,28 +317,7 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
                     },
                   }}
                 >
-                  {message.role === "assistant"
-                    ? formatLLMContent(
-                        "gemini",
-                        "Id: " +
-                          message.id +
-                          ", " +
-                          "Type: " +
-                          message.parts?.at(0)?.type +
-                          ", Message: " +
-                          message.parts?.at(0)?.text +
-                          ", version index: " +
-                          message.versionIndex
-                      )
-                    : "Id: " +
-                      message.id +
-                      ", " +
-                      "Type: " +
-                      message.parts?.at(0)?.type +
-                      ", Message: " +
-                      message.parts?.at(0)?.text +
-                      ", version index: " +
-                      message.versionIndex}
+                  {contentToRender}
                 </ReactMarkdown>
               </div>
             </div>
