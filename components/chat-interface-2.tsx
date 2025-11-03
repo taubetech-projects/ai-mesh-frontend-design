@@ -19,7 +19,7 @@ import { useEffect } from "react";
 
 export function ChatInterface() {
   const {
-    messageId,
+    editedMessageId,
     showModelSelector,
     selectedModels,
     inputMessage,
@@ -31,7 +31,7 @@ export function ChatInterface() {
   );
   const dispatch = useDispatch();
   const createMessages = useCreateMessages(selectedConvId);
-  const updateMessages = useUpdateMessages(selectedConvId, messageId);
+  const updateMessages = useUpdateMessages(selectedConvId, editedMessageId);
 
   const { t } = useLanguage();
 
@@ -73,7 +73,7 @@ export function ChatInterface() {
       provider_response: false,
     };
 
-    messageId && messageId > 0
+    editedMessageId && editedMessageId > 0
       ? await updateMessages.mutateAsync(chatRequestBody)
       : await createMessages.mutateAsync(chatRequestBody);
     dispatch(setEditMessageId(null));
