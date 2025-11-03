@@ -1,6 +1,7 @@
 import { AIModel, Message, ModelProvider, RouteSel } from "@/types/models";
 
 import { createSlice } from "@reduxjs/toolkit";
+import { clear } from "console";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -152,8 +153,11 @@ interface ChatInterfaceState {
   selectedModels: RouteSel[];
   inputMessage: string;
   messages: Record<string, Message[]>;
+  modelResponses: Record<string, string>;
+  editedMessageId: number | null;
   isStreaming: boolean;
   isSent: boolean;
+  triggerSend: boolean;
 }
 
 const initialSelectedModels: RouteSel[] = [
@@ -167,8 +171,11 @@ const initialState: ChatInterfaceState = {
   selectedModels: initialSelectedModels,
   inputMessage: "",
   messages: {},
+  modelResponses: {},
+  editedMessageId: null,
   isStreaming: false,
   isSent: false,
+  triggerSend: false,
 };
 
 const chatInterfaceSlice = createSlice({
@@ -178,6 +185,7 @@ const chatInterfaceSlice = createSlice({
     toggleModelSelector(state, action) {
       state.showModelSelector = action.payload;
     },
+
     addModel: {
       prepare(provider, modelId) {
         return {
@@ -199,15 +207,18 @@ const chatInterfaceSlice = createSlice({
         state.selectedModels.push({ provider: provider.id, model: modelId });
       },
     },
+
     removeModel(state, action) {
       const modelId = action.payload;
       state.selectedModels = state.selectedModels.filter(
         (selectedModel: RouteSel) => selectedModel.model !== modelId
       );
     },
+
     updateInputMessage(state, action) {
       state.inputMessage = action.payload;
     },
+
     addMessages(state, action) {
       const newMessages = { ...state.messages };
       for (const selectedModel of state.selectedModels) {
@@ -228,6 +239,7 @@ const chatInterfaceSlice = createSlice({
       }
       state.messages = newMessages;
     },
+
     concateDelta: {
       prepare(modelId, contentChunk) {
         return {
@@ -251,11 +263,45 @@ const chatInterfaceSlice = createSlice({
         state.messages = newMessages;
       },
     },
+
+    concatenateDelta: {
+      prepare(modelId, contentChunk) {
+        return {
+          payload: { modelId: modelId, content: contentChunk },
+          meta: undefined,
+          error: undefined,
+        };
+      },
+      reducer(state, action) {
+        const { modelId, content } = action.payload;
+
+        // ✅ Safely initialize key if missing
+        if (!state.modelResponses[modelId]) {
+          state.modelResponses[modelId] = "";
+        }
+        console.log("modelId", modelId, "content", content);
+        // ✅ Append new content to existing text
+        state.modelResponses[modelId] += content;
+      },
+    },
+
+    clearModelResponses(state) {
+      state.modelResponses = {};
+    },
+
     startStreaming(state) {
       state.isStreaming = true;
     },
+
     endStreaming(state) {
       state.isStreaming = false;
+    },
+
+    setEditMessageId(state, action) {
+      state.editedMessageId = action.payload;
+    },
+    triggerParentSend: (state) => {
+      state.triggerSend = !state.triggerSend; // toggle to force update
     },
   },
 });
@@ -267,7 +313,11 @@ export const {
   updateInputMessage,
   addMessages,
   concateDelta,
+  concatenateDelta,
   startStreaming,
   endStreaming,
+  clearModelResponses,
+  setEditMessageId,
+  triggerParentSend,
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;
