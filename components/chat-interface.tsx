@@ -19,6 +19,7 @@ import {
   updateInputMessage,
 } from "@/redux/chat-interface-slice";
 import { API_BASE } from "@/lib/http";
+import { AudioRecorderModal } from "@/components/audio-recorder-model";
 
 var count = 0;
 
@@ -32,6 +33,9 @@ export function ChatInterface() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  
+  // 🎤 Audio recording state
+  const [showRecorder, setShowRecorder] = useState(false);
 
   type ContentItem =
     | { type: "input_text"; text: string }
@@ -286,22 +290,6 @@ export function ChatInterface() {
 
       console.log("Final request body:", body);
 
-      // Prepare main API body
-      // const body = {
-      //   mode: modeSelection(),
-      //   routes: bodyRoutes.length > 0 ? bodyRoutes : null,
-      //   messages: [
-      //     {
-      //       role: "user",
-      //       content: userMessage,
-      //       // Optionally include file references here if needed
-      //       // ...(uploadResponse && { files: uploadResponse }),
-      //     },
-      //   ],
-      //   stream: true,
-      //   provider_response: false,
-      // };
-
       const ac = new AbortController();
 
       // Call main API
@@ -342,7 +330,6 @@ export function ChatInterface() {
       );
     } catch (err) {
       console.error("Error while sending message:", err);
-      // Optionally show error to user
       alert("Failed to send message. Please check console for details.");
     }
   };
@@ -369,6 +356,16 @@ export function ChatInterface() {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  // 🎤 Handle audio recording
+  const handleMicClick = () => {
+    setShowRecorder(true);
+  };
+
+  const handleTranscriptionComplete = (transcription: string) => {
+    console.log("Transcription complete:", transcription);
+    dispatch(updateInputMessage(transcription));
   };
 
   return (
@@ -464,11 +461,14 @@ export function ChatInterface() {
                 )}
               </Button>
 
+              {/* 🎤 Microphone button */}
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={handleMicClick}
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 disabled={uploadingFiles || isStreaming}
+                title="Voice Input"
               >
                 <Mic className="w-4 h-4" />
               </Button>
@@ -500,6 +500,14 @@ export function ChatInterface() {
           )}
         </div>
       </div>
+
+      {/* 🎤 Audio Recorder Modal */}
+      {showRecorder && (
+        <AudioRecorderModal
+          onClose={() => setShowRecorder(false)}
+          onTranscriptionComplete={handleTranscriptionComplete}
+        />
+      )}
     </div>
   );
 }
