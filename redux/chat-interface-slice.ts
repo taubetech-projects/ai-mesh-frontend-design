@@ -154,8 +154,10 @@ interface ChatInterfaceState {
   inputMessage: string;
   messages: Record<string, Message[]>;
   modelResponses: Record<string, string>;
+  editedMessageId: number | null;
   isStreaming: boolean;
   isSent: boolean;
+  triggerSend: boolean;
 }
 
 const initialSelectedModels: RouteSel[] = [
@@ -170,8 +172,10 @@ const initialState: ChatInterfaceState = {
   inputMessage: "",
   messages: {},
   modelResponses: {},
+  editedMessageId: null,
   isStreaming: false,
   isSent: false,
+  triggerSend: false,
 };
 
 const chatInterfaceSlice = createSlice({
@@ -292,6 +296,13 @@ const chatInterfaceSlice = createSlice({
     endStreaming(state) {
       state.isStreaming = false;
     },
+
+    setEditMessageId(state, action) {
+      state.editedMessageId = action.payload;
+    },
+    triggerParentSend: (state) => {
+      state.triggerSend = !state.triggerSend; // toggle to force update
+    },
   },
 });
 
@@ -306,5 +317,7 @@ export const {
   startStreaming,
   endStreaming,
   clearModelResponses,
+  setEditMessageId,
+  triggerParentSend,
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;

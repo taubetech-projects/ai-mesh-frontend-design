@@ -11,7 +11,7 @@ import { useState } from "react";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ChatAreaProps,
   CopyButtonProps,
@@ -25,6 +25,11 @@ import {
   useUpdateMessages,
 } from "@/lib/hooks/messageHook";
 import { fi, se } from "date-fns/locale";
+import {
+  setEditMessageId,
+  triggerParentSend,
+  updateInputMessage,
+} from "@/redux/chat-interface-slice";
 
 export function CopyButton({ code }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
@@ -107,8 +112,47 @@ const getModelMessages = (
   for (const msg of messages) {
     if (msg.role === "user") {
       lastUserMessage = msg;
-    } else if (msg.model === activeModel && lastUserMessage) {
+    } else if (
+      msg.role === "assistant" &&
+      msg.model === activeModel &&
+      lastUserMessage
+    ) {
       result.push(lastUserMessage, msg);
+    }
+  }
+
+  return result;
+};
+
+const getModelGrouppedMessages = (
+  activeModel: string,
+  messagePage?: MessagePage
+): Map<string, Map<string, MessageView[]>> | {} => {
+  if (!messagePage?.messages?.length) return {};
+
+  const result = new Map<string, Map<string, MessageView[]>>();
+  let lastUserMsg: MessageView | undefined;
+
+  for (const msg of messagePage.messages) {
+    if (msg.role === "user") {
+      lastUserMsg = msg;
+      continue;
+    }
+    // Suppose you have model and groupId:
+    const model = msg.model;
+    const groupId = String(msg.groupId);
+
+    // Only group assistant messages for the active model and only if we have a preceding user
+    if (msg.role === "assistant" && msg.model === activeModel && lastUserMsg) {
+      if (!result.has(model)) {
+        result.set(model, new Map());
+      }
+      const groupMap = result.get(model)!;
+
+      if (!groupMap.has(groupId)) {
+        groupMap.set(groupId, []);
+      }
+      groupMap.get(groupId)!.push(lastUserMsg, msg);
     }
   }
 
@@ -120,41 +164,17 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
     (store: any) => store.conversationSlice
   );
 
-  const createMessagesMutation = useCreateMessages(selectedConvId);
-  const updateMessagesMutation = useUpdateMessages(selectedConvId, 335);
-  const messages: SaveMessageRequest[] = [
-    {
-      externalConversationId: String(selectedConvId),
-      authorId: "user-123",
-      role: "user",
-      parts: [
-        {
-          type: "text",
-          text: "Hello assistant, how are you - updated?",
-        },
-      ],
-    },
-    {
-      externalConversationId: String(selectedConvId),
-      authorId: "assistant-123",
-      role: "assistant",
-      parts: [
-        {
-          type: "text",
-          text: "Hello! How can I assist you today - updated?",
-        },
-      ],
-    },
-  ];
+  const dispatch = useDispatch();
 
-  const handleSendBatch = async () => {
-    try {
-      // const result = await createMessagesMutation.mutateAsync(messages);
-      // const result = await updateMessagesMutation.mutateAsync(messages);
-      // console.log("✅ Batch messages created:", result);
-    } catch (error) {
-      console.error("❌ Error creating batch messages:", error);
-    }
+  const handleSetEditMessageId = async (
+    messageId?: number,
+    editedMessage: string = ""
+  ) => {
+    if (messageId === undefined) return;
+    dispatch(setEditMessageId(messageId));
+    // ✅ trigger parent via redux
+    dispatch(triggerParentSend());
+    dispatch(updateInputMessage(editedMessage));
   };
 
   const { isPending, data, isError } =
@@ -173,8 +193,13 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
   const modelMessages = getModelMessages(activeModel, data);
   if (modelMessages === undefined) return null;
 
+  console.log(
+    "getModelGrouppedMessages:",
+    getModelGrouppedMessages(activeModel, data)
+  );
+
   return (
-    <div className="flex flex-col h-full" onClick={() => handleSendBatch()}>
+    <div className="flex flex-col h-full">
       {/* Header 
       <div className="flex flex-col items-center justify-center py-8 text-center flex-shrink-0">
         {getModelIcon(activeModel)}
@@ -208,6 +233,21 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
                 message.role === "user" ? "bg-muted rounded-lg border" : ""
               }`}
             >
+              {message.role === "user" ? (
+                <button
+                  onClick={() =>
+                    handleSetEditMessageId(
+                      message.id,
+                      message.parts?.at(0)?.text
+                    )
+                  }
+                  className="inline-flex items-center justify-center w-full px-4 py-1 text-base font-bold leading-6 text-white bg-indigo-600 border border-transparent rounded-full md:w-auto hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
+                >
+                  Edit
+                </button>
+              ) : (
+                ""
+              )}
               {/* Label (Question / Answer) */}
               <div
                 className={`text-xs font-medium mb-1 ${

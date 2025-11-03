@@ -9,27 +9,29 @@ import { Send, Mic, Paperclip, Settings } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addMessages,
   clearModelResponses,
+  setEditMessageId,
   toggleModelSelector,
   updateInputMessage,
 } from "@/redux/chat-interface-slice";
-import { useCreateMessages } from "@/lib/hooks/messageHook";
-import { clear } from "console";
+import { useCreateMessages, useUpdateMessages } from "@/lib/hooks/messageHook";
+import { useEffect } from "react";
 
 export function ChatInterface() {
   const {
-    modelResponses,
+    messageId,
     showModelSelector,
     selectedModels,
     inputMessage,
     isStreaming,
+    triggerSend,
   } = useSelector((store: any) => store.chatInterface);
   const { selectedConvId } = useSelector(
     (store: any) => store.conversationSlice
   );
   const dispatch = useDispatch();
   const createMessages = useCreateMessages(selectedConvId);
+  const updateMessages = useUpdateMessages(selectedConvId, messageId);
 
   const { t } = useLanguage();
 
@@ -39,6 +41,11 @@ export function ChatInterface() {
     );
     return model ? "consensus" : "multi";
   }
+
+  // ✅ React to the trigger
+  useEffect(() => {
+    handleSendMessage();
+  }, [triggerSend]); // fires whenever child toggles triggerSend
 
   // ---- Send / Stream ----
   const onSend = async (userMessage: string) => {
@@ -65,7 +72,11 @@ export function ChatInterface() {
       stream: true,
       provider_response: false,
     };
-    await createMessages.mutateAsync(chatRequestBody);
+
+    messageId && messageId > 0
+      ? await updateMessages.mutateAsync(chatRequestBody)
+      : await createMessages.mutateAsync(chatRequestBody);
+    dispatch(setEditMessageId(null));
     dispatch(clearModelResponses());
   };
 
