@@ -5,9 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import { Check, Copy } from "lucide-react"; // or any icon lib
-import { useState } from "react";
-
+import { Check, Copy, Edit, Trash2, User, File, Image as ImageIcon } from "lucide-react"; // or any icon lib
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
@@ -23,6 +21,7 @@ import {
   useCreateMessages,
   useGetMessagesByConversationId,
   useUpdateMessages,
+  useDeleteMessage,
 } from "@/lib/hooks/messageHook";
 import { fi, se } from "date-fns/locale";
 import {
@@ -30,6 +29,9 @@ import {
   triggerParentSend,
   updateInputMessage,
 } from "@/redux/chat-interface-slice";
+import UserMessageComponent from "./user-message-component";
+import { Button } from "./ui/button";
+import { useState } from "react";
 
 export function CopyButton({ code }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
@@ -90,7 +92,7 @@ export function formatLLMContent(provider: string, content: string): string {
         try {
           const obj = JSON.parse(formatted);
           formatted = "```json\n" + JSON.stringify(obj, null, 2) + "\n```";
-        } catch (_) {}
+        } catch (_) { }
       }
       break;
   }
@@ -180,6 +182,8 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
   const { isPending, data, isError } =
     useGetMessagesByConversationId(selectedConvId);
 
+  const deleteMessage = useDeleteMessage(selectedConvId);
+
   const getModelIcon = (modelId: string) => {
     return (
       <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
@@ -188,6 +192,25 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
         </div>
       </div>
     );
+  };
+
+  const handleDeleteMessage = (messageId: number) => {
+    if (window.confirm("Are you sure you want to delete this message?")) {
+      deleteMessage.mutate(messageId);
+    }
+  };
+
+  const handleCopyMessage = async (message: MessageView) => {
+    const textContent =
+      message.parts?.find((p) => p.type === "text")?.text ?? "";
+    if (textContent) {
+      try {
+        await navigator.clipboard.writeText(textContent);
+        // You could add a toast notification here for user feedback
+      } catch (err) {
+        console.error("Failed to copy message:", err);
+      }
+    }
   };
 
   const modelMessages = getModelMessages(activeModel, data);
@@ -219,147 +242,131 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
         style={{ minHeight: 0, minWidth: 0 }} // important
       >
         {modelMessages.map((message: MessageView, index: number) => {
-          const contentToRender =
-            message.role === "assistant" && message.model
-              ? formatLLMContent(
+          if (message.role === "user") {
+            return (
+              <UserMessageComponent
+                key={index}
+                message={message}
+                onEdit={handleSetEditMessageId}
+                onCopy={handleCopyMessage}
+                onDelete={handleDeleteMessage}
+              />
+            );
+          }
+
+          if (message.role === "assistant") {
+            const contentToRender =
+              message.model
+                ? formatLLMContent(
                   message.provider,
                   message.parts?.at(0)?.text ?? ""
                 )
-              : message.parts?.at(0)?.text;
-          return (
-            <div
-              key={index}
-              className={`p-3 ${
-                message.role === "user" ? "bg-muted rounded-lg border" : ""
-              }`}
-            >
-              {message.role === "user" ? (
-                <button
-                  onClick={() =>
-                    handleSetEditMessageId(
-                      message.id,
-                      message.parts?.at(0)?.text
-                    )
-                  }
-                  className="inline-flex items-center justify-center w-full px-4 py-1 text-base font-bold leading-6 text-white bg-indigo-600 border border-transparent rounded-full md:w-auto hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
-                >
-                  Edit
-                </button>
-              ) : (
-                ""
-              )}
-              {/* Label (Question / Answer) */}
-              <div
-                className={`text-xs font-medium mb-1 ${
-                  message.role === "user" ? "text-blue-300" : "text-emerald-300"
-                }`}
-              >
-                {message.role === "user" ? "Question" : ""}
-              </div>
-
-              {/* Markdown Rendering */}
-              <div className="prose prose-invert max-w-none text-sm leading-relaxed text-primary prose-ul:list-disc prose-ul:pl-5 prose-li:marker:text-blue-400 break-words">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeRaw, rehypeKatex]}
-                  components={{
-                    ul: ({ children }) => (
-                      <ul className="list-disc pl-5 my-2">{children}</ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal pl-5 my-2">{children}</ol>
-                    ),
-                    li: ({ children }) => <li className="mb-1">{children}</li>,
-                    h1: ({ children }) => (
-                      <h1 className="text-2xl font-bold text-primary mt-4 mb-2">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-xl font-semibold text-primary mt-3 mb-2">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-lg font-semibold text-primary mt-3 mb-1">
-                        {children}
-                      </h3>
-                    ),
-                    h4: ({ children }) => (
-                      <h4 className="text-base font-semibold text-primary mt-2 mb-1">
-                        {children}
-                      </h4>
-                    ),
-                    h5: ({ children }) => (
-                      <h5 className="text-sm font-semibold text-primary mt-2 mb-1">
-                        {children}
-                      </h5>
-                    ),
-                    h6: ({ children }) => (
-                      <h6 className="text-xs font-semibold text-gray-300 mt-2 mb-1 uppercase">
-                        {children}
-                      </h6>
-                    ),
-                    table: ({ children }) => (
-                      <div className="overflow-x-auto my-2">
-                        <table className="min-w-full border border-gray-600 text-sm">
+                : message.parts?.at(0)?.text ?? "";
+            return (
+              <div key={index} className="p-3">
+                <div className="text-xs font-medium mb-1 text-emerald-300">
+                  {/* Assistant response, no "Question" label */}
+                </div>
+                <div className="prose prose-invert max-w-none text-sm leading-relaxed text-primary prose-ul:list-disc prose-ul:pl-5 prose-li:marker:text-blue-400 break-words">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeRaw, rehypeKatex]}
+                    components={{
+                      ul: ({ children }) => (
+                        <ul className="list-disc pl-5 my-2">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal pl-5 my-2">{children}</ol>
+                      ),
+                      li: ({ children }) => <li className="mb-1">{children}</li>,
+                      h1: ({ children }) => (
+                        <h1 className="text-2xl font-bold text-primary mt-4 mb-2">
                           {children}
-                        </table>
-                      </div>
-                    ),
-                    th: ({ children }) => (
-                      <th className="border border-gray-600 px-2 py-1 bg-gray-800 font-semibold">
-                        {children}
-                      </th>
-                    ),
-                    td: ({ children }) => (
-                      <td className="border border-gray-600 px-2 py-1">
-                        {children}
-                      </td>
-                    ),
-                    code({ inline, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(className || "");
-                      return !inline && match ? (
-                        <div
-                          style={{
-                            position: "relative",
-                          }}
-                        >
-                          <span className="absolute top-2 left-3 text-xs text-amber-600 select-none">
-                            {match[1]}
-                          </span>
-                          <CopyButton
-                            code={String(children).replace(/\n$/, "")}
-                          />
-                          <SyntaxHighlighter
-                            style={tomorrow}
-                            language={match[1]}
-                            PreTag="div"
-                            className="gpt-scrollbar bg-sidebar"
-                            customStyle={{
-                              overflowX: "auto",
-                              paddingTop: "2.5rem", // Make space for controls
-                              borderRadius: "0.7rem",
-                              fontSize: "0.9rem",
-                            }}
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, "")}
-                          </SyntaxHighlighter>
+                        </h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="text-xl font-semibold text-primary mt-3 mb-2">
+                          {children}
+                        </h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="text-lg font-semibold text-primary mt-3 mb-1">
+                          {children}
+                        </h3>
+                      ),
+                      h4: ({ children }) => (
+                        <h4 className="text-base font-semibold text-primary mt-2 mb-1">
+                          {children}
+                        </h4>
+                      ),
+                      h5: ({ children }) => (
+                        <h5 className="text-sm font-semibold text-primary mt-2 mb-1">
+                          {children}
+                        </h5>
+                      ),
+                      h6: ({ children }) => (
+                        <h6 className="text-xs font-semibold text-gray-300 mt-2 mb-1 uppercase">
+                          {children}
+                        </h6>
+                      ),
+                      table: ({ children }) => (
+                        <div className="overflow-x-auto my-2">
+                          <table className="min-w-full border border-gray-600 text-sm">
+                            {children}
+                          </table>
                         </div>
-                      ) : (
-                        <code className={className} {...props}>
+                      ),
+                      th: ({ children }) => (
+                        <th className="border border-gray-600 px-2 py-1 bg-gray-800 font-semibold">
                           {children}
-                        </code>
-                      );
-                    },
-                  }}
-                >
-                  {contentToRender}
-                </ReactMarkdown>
+                        </th>
+                      ),
+                      td: ({ children }) => (
+                        <td className="border border-gray-600 px-2 py-1">
+                          {children}
+                        </td>
+                      ),
+                      code({ inline, className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || "");
+                        return !inline && match ? (
+                          <div style={{ position: "relative" }}>
+                            <span className="absolute top-2 left-3 text-xs text-amber-600 select-none">
+                              {match[1]}
+                            </span>
+                            <CopyButton
+                              code={String(children).replace(/\n$/, "")}
+                            />
+                            <SyntaxHighlighter
+                              style={tomorrow}
+                              language={match[1]}
+                              PreTag="div"
+                              className="gpt-scrollbar bg-sidebar"
+                              customStyle={{
+                                overflowX: "auto",
+                                paddingTop: "2.5rem",
+                                borderRadius: "0.7rem",
+                                fontSize: "0.9rem",
+                              }}
+                              {...props}
+                            >
+                              {String(children).replace(/\n$/, "")}
+                            </SyntaxHighlighter>
+                          </div>
+                        ) : (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                    }}
+                  >
+                    {contentToRender}
+                  </ReactMarkdown>
+                </div>
               </div>
-            </div>
-          );
+            );
+          }
+          return null;
         })}
 
         <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent my-2"></div>
