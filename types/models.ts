@@ -36,8 +36,24 @@ export type AssistantMsg = {
   };
 };
 
+export interface Message {
+  role: "user" | "assistant";
+  content: ContentItem[] ;
+}
+
+export type ContentItem =
+  | { type: "input_text"; text: string }
+  | { type: "input_image"; image_url: string; image_analyzed_text: string }
+  | { type: "input_file"; file_id: string; file_base64: string; file_analyzed_text: string };
+
+export interface FileUploadItem {
+  type: "application/pdf" | "image/png" | "image/jpeg" | string;
+  filename: string;
+  output: string;
+}
+
 export type UserMsg = { role: "user"; content: string };
-export type Message = UserMsg | AssistantMsg;
+// export type Message = UserMsg | AssistantMsg;
 export type RouteSel = { provider: string; model: string };
 
 export type ChatMsg = {

@@ -109,10 +109,10 @@ export const useCreateMessages = (conversationId: number) => {
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-              ({
-                ...(p as any),
-                type: (p as any)?.type ?? "text",
-              } as MessagePartRequest)
+            ({
+              ...(p as any),
+              type: (p as any)?.type ?? "text",
+            } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
@@ -144,15 +144,33 @@ export const useCreateMessages = (conversationId: number) => {
       // (We do it here so we can keep ids for streaming updates.)
       const pageBefore = getPage();
 
+
       // 1) Optimistically add user message
-      const userText = chatRequestBody.messages[0]?.content ?? "";
+      let messageParts: MessagePartRequest[] = [];
+
+      chatRequestBody.messages[0]?.content.map((item) => {
+        if (item.type === "input_text") {
+          // userText = item.text;
+          messageParts.push({ type: "text", text: item.text });
+        } else if (item.type === "input_image") {
+          messageParts.push({ type: "image", mimeType: "image/jpeg" });
+          console.log("Image Type", item.type);
+        } else if (item.type === "input_file") {
+          messageParts.push({ type: "file", mimeType: "application/pdf" });
+          console.log("File Type", item.type);
+        } else {
+          throw new Error("Invalid Input Type");
+        }
+      })
+
+      // const userText = chatRequestBody.messages[0]?.content ?? "";
       const tempUserId = Number(`-1${Math.floor(Math.random() * 1e9)}`);
       const tempUser: MessageView = {
         id: tempUserId,
         conversationId,
         role: "user",
         authorId: "user-123",
-        parts: [{ type: "text", text: userText }],
+        parts: messageParts,
       } as any;
       pushMessage(tempUser);
 
@@ -260,7 +278,7 @@ export const useCreateMessages = (conversationId: number) => {
       bodies.push({
         role: "user",
         authorId: "user-123",
-        parts: [{ type: "text", text: userText }] as MessagePartRequest[],
+        parts: messageParts,
       });
 
       // assistants (from finalByModel or temp cache if empty)
@@ -283,7 +301,7 @@ export const useCreateMessages = (conversationId: number) => {
           });
         }
       }
-
+      console.log("Bodies:", bodies);
       const saved = await messageApi.createBatch(conversationId, bodies);
 
       // We could replace temp ids with saved ids; simplest is to revalidate:
@@ -361,10 +379,10 @@ export const useUpdateMessages = (
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-              ({
-                ...(p as any),
-                type: (p as any)?.type ?? "text",
-              } as MessagePartRequest)
+            ({
+              ...(p as any),
+              type: (p as any)?.type ?? "text",
+            } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
@@ -397,14 +415,29 @@ export const useUpdateMessages = (
       const pageBefore = getPage();
 
       // 1) Optimistically add user message
-      const userText = chatRequestBody.messages[0]?.content ?? "";
+      let messageParts: MessagePartRequest[] = [];
+
+      chatRequestBody.messages[0]?.content.map((item) => {
+        if (item.type === "input_text") {
+          // userText = item.text;
+          messageParts.push({ type: item.type, text: item.text });
+        } else if (item.type === "input_image") {
+          messageParts.push({ type: item.type, mimeType: "image/jpeg" });
+          console.log("Image Type", item.type);
+        } else if (item.type === "input_file") {
+          messageParts.push({ type: item.type, mimeType: "application/pdf" });
+          console.log("File Type", item.type);
+        } else {
+          throw new Error("Invalid Input Type");
+        }
+      })
       const tempUserId = Number(`-1${Math.floor(Math.random() * 1e9)}`);
       const tempUser: MessageView = {
         id: tempUserId,
         conversationId,
         role: "user",
         authorId: "user-123",
-        parts: [{ type: "text", text: userText }],
+        parts: messageParts,
       } as any;
       pushMessage(tempUser);
 
@@ -512,7 +545,7 @@ export const useUpdateMessages = (
       bodies.push({
         role: "user",
         authorId: "user-123",
-        parts: [{ type: "text", text: userText }] as MessagePartRequest[],
+        parts: messageParts as MessagePartRequest[],
       });
 
       // assistants (from finalByModel or temp cache if empty)

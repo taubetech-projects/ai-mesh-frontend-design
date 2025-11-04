@@ -42,10 +42,10 @@ export function ChatInterface() {
     | { type: "input_image"; image_url: string; image_analyzed_text: string }
     | { type: "input_file"; file_id: string;file_base64: string ;file_analyzed_text: string };
 
-  interface Message {
-    role: "user" | "assistant";
-    content: ContentItem[] | string;
-  }
+  // interface Message {
+  //   role: "user" | "assistant";
+  //   content: ContentItem[] | string;
+  // }
 
   interface FileUploadItem {
     type: "application/pdf" | "image/png" | "image/jpeg" | string;
