@@ -11,7 +11,6 @@ import {
     ChevronRight,
 } from "lucide-react";
 import { Input } from "./ui/input";
-import AssistantMessageComponent from "./assistant-message-component";
 import { useDispatch, useSelector } from "react-redux";
 import { setEditMessageId, triggerParentSend, updateInputMessage } from "@/redux/chat-interface-slice";
 
@@ -20,7 +19,7 @@ interface UserMessageProps {
     message: MessageView;
     onDelete: (messageId: number) => void;
     messageLength: number;
-    handleVersionChange: (direction: 'next' | 'prev') => void;
+    handleVersionChange: (direction: 'next' | 'prev' | 'edit') => void;
     currentVersion: number;
 }
 
@@ -32,7 +31,6 @@ function UserMessageComponent({
     currentVersion
 }: UserMessageProps) {
     const dispatch = useDispatch();
-
     if (!message) return null;
     // const [currentVersion, setCurrentVersion] = useState(0);
     const [isEditing, setIsEditing] = useState(false);
@@ -70,6 +68,7 @@ function UserMessageComponent({
         if (message.id) {
             handleSetEditMessageId(message.id, editedText);
         }
+        handleVersionChange('edit');
         setIsEditing(false);
     };
 

@@ -2,7 +2,6 @@ import { MessageView } from "@/types/models";
 import React, { useState } from "react";
 import AssistantMessageComponent from "./assistant-message-component";
 import UserMessageComponent from "./user-message-component";
-
 interface MessageComponentProps {
     messageGroup: MessageView[];
     onDelete: (messageId: number) => void;
@@ -20,11 +19,13 @@ function MessageComponent({
 
     if (!userMessage || !assistantMessage) return null;
 
-    const handleVersionChange = (direction: 'next' | 'prev') => {
-        if (direction === 'next') {
+    const handleVersionChange = (command: 'next' | 'prev' | 'edit') => {
+        if (command === 'next') {
             setCurrentVersion(v => (v + 1) % assistantMessages.length);
-        } else {
+        } else if (command === 'prev') {
             setCurrentVersion(v => (v - 1 + assistantMessages.length) % assistantMessages.length);
+        } else {
+            setCurrentVersion(assistantMessages.length);
         }
     };
 

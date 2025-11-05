@@ -160,6 +160,7 @@ interface ChatInterfaceState {
   triggerSend: boolean;
   uploadingFiles: boolean;
   showRecorder: boolean;
+  currentMessageVersion: number;
 }
 
 const initialSelectedModels: RouteSel[] = [
@@ -180,6 +181,7 @@ const initialState: ChatInterfaceState = {
   triggerSend: false,
   uploadingFiles: false,
   showRecorder: false,
+  currentMessageVersion: 0,
 };
 
 const chatInterfaceSlice = createSlice({
@@ -320,6 +322,9 @@ const chatInterfaceSlice = createSlice({
     stopRecorder: (state) => {
       state.showRecorder = false;
     },
+    setCurrentMessageVersion(state, action) {
+      state.currentMessageVersion = action.payload;
+    }
   },
 });
 
@@ -340,5 +345,6 @@ export const {
   triggerFileUploading,
   startRecorder,
   stopRecorder,
+  setCurrentMessageVersion
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;
