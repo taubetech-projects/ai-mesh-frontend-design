@@ -1,31 +1,43 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns";
 import { ModelSelector } from "@/components/model-selector";
-import { ModelProvider, RouteSel } from "@/types/models";
+import { ChatRequestBody, ModelProvider, RouteSel } from "@/types/models";
 import { Send, Mic, Paperclip, Settings, X } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { streamChat } from "@/lib/chatApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addMessages,
+  clearModelResponses,
   concateDelta,
   endStreaming,
+  setEditMessageId,
   startStreaming,
   toggleModelSelector,
   updateInputMessage,
 } from "@/redux/chat-interface-slice";
 import { API_BASE } from "@/lib/http";
 import { AudioRecorderModal } from "@/components/audio-recorder-model";
+import { useCreateMessages, useUpdateMessages } from "@/lib/hooks/messageHook";
 
 var count = 0;
 
 export function ChatInterface() {
-  const { showModelSelector, selectedModels, inputMessage, isStreaming } =
-    useSelector((store: any) => store.chatInterface);
+  const {
+    editedMessageId,
+    showModelSelector,
+    selectedModels,
+    inputMessage,
+    isStreaming,
+    triggerSend,
+  } = useSelector((store: any) => store.chatInterface);
+  const { selectedConvId } = useSelector(
+    (store: any) => store.conversationSlice
+  );
   const dispatch = useDispatch();
   const { t } = useLanguage();
 
@@ -33,7 +45,7 @@ export function ChatInterface() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  
+
   // 🎤 Audio recording state
   const [showRecorder, setShowRecorder] = useState(false);
 
@@ -41,6 +53,14 @@ export function ChatInterface() {
     | { type: "input_text"; text: string }
     | { type: "input_image"; image_url: string; image_analyzed_text: string }
     | { type: "input_file"; file_id: string;file_base64: string ;file_analyzed_text: string };
+
+  const createMessages = useCreateMessages(selectedConvId);
+  const updateMessages = useUpdateMessages(selectedConvId);
+
+  // ✅ React to the trigger from UserMessageComponent
+  useEffect(() => {
+    if (triggerSend) handleSendMessage();
+  }, [triggerSend]);
 
   // interface Message {
   //   role: "user" | "assistant";
@@ -229,21 +249,16 @@ export function ChatInterface() {
   // ---- Send / Stream ----
   const onSend = async (userMessage: string) => {
     if (selectedModels.length === 0) {
-      console.warn("No models selected");
       return;
     }
-
-    dispatch(addMessages(userMessage));
-
     const bodyRoutes = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
       .map((model: RouteSel) => ({
         provider: model.provider,
         model: model.model,
       }));
-
     const providers = bodyRoutes
-      .map((r: { provider: ModelProvider }) => r.provider)
+      .map((r: RouteSel) => r.provider)
       .join(",");
 
     let uploadResponse = null;
@@ -275,7 +290,7 @@ export function ChatInterface() {
       });
 
       // Step 4: Prepare main API body
-      const body = {
+      const chatRequestBody: ChatRequestBody = {
         mode: modeSelection(),
         routes: bodyRoutes.length > 0 ? bodyRoutes : null,
         messages: [
@@ -288,49 +303,17 @@ export function ChatInterface() {
         provider_response: false,
       };
 
-      console.log("Final request body:", body);
-
-      const ac = new AbortController();
-
-      // Call main API
-      await streamChat(
-        body,
-        (evt) => {
-          const e = evt.event;
-          const d = evt.data || {};
-
-          if (e === "chat.response.created") {
-            dispatch(startStreaming());
-          }
-
-          if (e === "chat.response.delta") {
-            const modelId = d.model;
-            const contentChunk = d.delta.text || "";
-            if (!modelId || !contentChunk) return;
-            dispatch(concateDelta(modelId, contentChunk));
-          }
-
-          if (e === "chat.response.completed") {
-            count++;
-            if (count === bodyRoutes.length) {
-              dispatch(endStreaming());
-              count = 0;
-            }
-          }
-
-          if (e === "consensus") {
-            const modelId = "consensus";
-            const contentChunk = d.delta.text || "";
-            if (!modelId || !contentChunk) return;
-            dispatch(concateDelta(modelId, contentChunk));
-            dispatch(endStreaming());
-          }
-        },
-        ac.signal
-      );
+      console.log("editedMessageId", editedMessageId);
+      if (editedMessageId && editedMessageId > 0) {
+        await updateMessages.mutateAsync({ messageId: editedMessageId, chatRequestBody });
+      } else {
+        await createMessages.mutateAsync(chatRequestBody);
+      }
+      dispatch(setEditMessageId(null));
+      dispatch(clearModelResponses());
     } catch (err) {
       console.error("Error while sending message:", err);
-      alert("Failed to send message. Please check console for details.");
+      // alert("Failed to send message. Please check console for details.");
     }
   };
 

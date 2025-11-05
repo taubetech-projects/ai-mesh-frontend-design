@@ -288,7 +288,7 @@ export function ChatInterface() {
 
             console.log("Final request body:", chatRequestBody);
 
-            const ac = new AbortController();        // console.log("Selected mode: ", modeSelection());
+            // const ac = new AbortController();        // console.log("Selected mode: ", modeSelection());
 
             // const chatRequestBody: ChatRequestBody = {
             //     mode: modeSelection(),
@@ -303,9 +303,13 @@ export function ChatInterface() {
             //     provider_response: false,
             // };
 
-            editedMessageId && editedMessageId > 0
-                ? await updateMessages.mutateAsync(chatRequestBody)
-                : await createMessages.mutateAsync(chatRequestBody);
+            console.log("editedMessageId", editedMessageId)
+            console.log("editedMessageId", editedMessageId);
+            if (editedMessageId && editedMessageId > 0) {
+                await updateMessages.mutateAsync({ messageId: editedMessageId, chatRequestBody });
+            } else {
+                await createMessages.mutateAsync(chatRequestBody);
+            }
             dispatch(setEditMessageId(null));
             dispatch(clearModelResponses());
         } catch (error) {

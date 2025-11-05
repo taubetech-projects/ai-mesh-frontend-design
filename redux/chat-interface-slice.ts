@@ -208,6 +208,10 @@ const chatInterfaceSlice = createSlice({
       },
     },
 
+    setSelectedModels(state, action) {
+      state.selectedModels = action.payload;
+    },
+
     removeModel(state, action) {
       const modelId = action.payload;
       state.selectedModels = state.selectedModels.filter(
@@ -310,6 +314,7 @@ export const {
   toggleModelSelector,
   addModel,
   removeModel,
+  setSelectedModels,
   updateInputMessage,
   addMessages,
   concateDelta,

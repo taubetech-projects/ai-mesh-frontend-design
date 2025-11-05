@@ -338,10 +338,7 @@ export const useCreateMessages = (conversationId: number) => {
   });
 };
 
-export const useUpdateMessages = (
-  conversationId: number,
-  messageId: number
-) => {
+export const useUpdateMessages = (conversationId: number) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
 
@@ -397,7 +394,13 @@ export const useUpdateMessages = (
 
   return useMutation({
     // STREAM + SAVE
-    mutationFn: async (chatRequestBody: ChatRequestBody) => {
+    mutationFn: async ({
+      messageId,
+      chatRequestBody,
+    }: {
+      messageId: number;
+      chatRequestBody: ChatRequestBody;
+    }) => {
       if (!conversationId) throw new Error("Missing conversationId");
       if (!chatRequestBody) throw new Error("Missing chatRequestBody");
       if (!chatRequestBody.messages?.length)
@@ -420,7 +423,7 @@ export const useUpdateMessages = (
       chatRequestBody.messages[0]?.content.map((item) => {
         if (item.type === "input_text") {
           // userText = item.text;
-          messageParts.push({ type: item.type, text: item.text });
+          messageParts.push({ type: "text", text: item.text });
         } else if (item.type === "input_image") {
           messageParts.push({ type: item.type, mimeType: "image/jpeg" });
           console.log("Image Type", item.type);
@@ -568,7 +571,7 @@ export const useUpdateMessages = (
           });
         }
       }
-
+      console.log("bodies from updateBatch", bodies);
       const saved = await messageApi.updateBatch(
         conversationId,
         messageId,
