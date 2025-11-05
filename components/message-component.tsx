@@ -1,47 +1,52 @@
 import { MessageView } from "@/types/models";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AssistantMessageComponent from "./assistant-message-component";
 import UserMessageComponent from "./user-message-component";
 interface MessageComponentProps {
-    messageGroup: MessageView[];
-    onDelete: (messageId: number) => void;
+  messageGroup: MessageView[];
+  onDelete: (messageId: number) => void;
 }
 
-function MessageComponent({
-    messageGroup,
-    onDelete,
-}: MessageComponentProps) {
-    const [currentVersion, setCurrentVersion] = useState(0);
-    const userMessages = messageGroup.filter(m => m.role === 'user');
-    const assistantMessages = messageGroup.filter(m => m.role === 'assistant');
-    const assistantMessage = assistantMessages[currentVersion]; // The message to display actions for
-    const userMessage = userMessages[currentVersion]; // The message to display actions for
+function MessageComponent({ messageGroup, onDelete }: MessageComponentProps) {
+  const [currentVersion, setCurrentVersion] = useState(0);
+  const userMessages = messageGroup.filter((m) => m.role === "user");
+  const assistantMessages = messageGroup.filter((m) => m.role === "assistant");
 
-    if (!userMessage || !assistantMessage) return null;
+  // keep currentVersion within bounds when the list size changes
+  useEffect(() => {
+    setCurrentVersion((prev) => {
+      if (assistantMessages.length === 0) return 0;
+      return assistantMessages.length - 1;
+    });
+  }, [assistantMessages.length]); // Reset to latest when messages change
 
-    const handleVersionChange = (command: 'next' | 'prev' | 'edit') => {
-        if (command === 'next') {
-            setCurrentVersion(v => (v + 1) % assistantMessages.length);
-        } else if (command === 'prev') {
-            setCurrentVersion(v => (v - 1 + assistantMessages.length) % assistantMessages.length);
-        } else {
-            setCurrentVersion(assistantMessages.length);
-        }
-    };
+  const assistantMessage = assistantMessages[currentVersion]; // The message to display actions for
+  const userMessage = userMessages[currentVersion]; // The message to display actions for
 
-    return (
-        <div className="flex flex-col group relative">
-            <UserMessageComponent
-                message={userMessage}
-                onDelete={onDelete}
-                messageLength={userMessages.length}
-                handleVersionChange={handleVersionChange}
-                currentVersion={currentVersion}
-            />
-            <AssistantMessageComponent message={assistantMessage} />
+  if (!userMessage || !assistantMessage) return null;
 
-        </div>
-    );
+  const handleVersionChange = (command: "next" | "prev") => {
+    if (command === "next") {
+      setCurrentVersion((v) => (v + 1) % assistantMessages.length);
+    } else if (command === "prev") {
+      setCurrentVersion(
+        (v) => (v - 1 + assistantMessages.length) % assistantMessages.length
+      );
+    }
+  };
+
+  return (
+    <div className="flex flex-col group relative">
+      <UserMessageComponent
+        message={userMessage}
+        onDelete={onDelete}
+        messageLength={userMessages.length}
+        handleVersionChange={handleVersionChange}
+        currentVersion={currentVersion}
+      />
+      <AssistantMessageComponent message={assistantMessage} />
+    </div>
+  );
 }
 
 export default MessageComponent;
