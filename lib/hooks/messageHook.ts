@@ -109,10 +109,10 @@ export const useCreateMessages = (conversationId: number) => {
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-            ({
-              ...(p as any),
-              type: (p as any)?.type ?? "text",
-            } as MessagePartRequest)
+              ({
+                ...(p as any),
+                type: (p as any)?.type ?? "text",
+              } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
@@ -144,7 +144,6 @@ export const useCreateMessages = (conversationId: number) => {
       // (We do it here so we can keep ids for streaming updates.)
       const pageBefore = getPage();
 
-
       // 1) Optimistically add user message
       let messageParts: MessagePartRequest[] = [];
 
@@ -161,7 +160,7 @@ export const useCreateMessages = (conversationId: number) => {
         } else {
           throw new Error("Invalid Input Type");
         }
-      })
+      });
 
       // const userText = chatRequestBody.messages[0]?.content ?? "";
       const tempUserId = Number(`-1${Math.floor(Math.random() * 1e9)}`);
@@ -277,6 +276,7 @@ export const useCreateMessages = (conversationId: number) => {
       // user
       bodies.push({
         role: "user",
+        mode: chatRequestBody.mode,
         authorId: "user-123",
         parts: messageParts,
       });
@@ -288,6 +288,7 @@ export const useCreateMessages = (conversationId: number) => {
             role: "assistant",
             authorId: modelId,
             model: modelId,
+            mode: chatRequestBody.mode,
             parts: [{ type: "text", text }],
           });
         }
@@ -296,6 +297,7 @@ export const useCreateMessages = (conversationId: number) => {
         for (const [, t] of tempsByModel) {
           bodies.push({
             role: "assistant",
+            mode: chatRequestBody.mode,
             authorId: t.modelId,
             parts: [{ type: "text", text: t.text }],
           });
@@ -376,10 +378,10 @@ export const useUpdateMessages = (conversationId: number) => {
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-            ({
-              ...(p as any),
-              type: (p as any)?.type ?? "text",
-            } as MessagePartRequest)
+              ({
+                ...(p as any),
+                type: (p as any)?.type ?? "text",
+              } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
@@ -433,7 +435,7 @@ export const useUpdateMessages = (conversationId: number) => {
         } else {
           throw new Error("Invalid Input Type");
         }
-      })
+      });
       const tempUserId = Number(`-1${Math.floor(Math.random() * 1e9)}`);
       const tempUser: MessageView = {
         id: tempUserId,
@@ -547,6 +549,7 @@ export const useUpdateMessages = (conversationId: number) => {
       // user
       bodies.push({
         role: "user",
+        mode: chatRequestBody.mode,
         authorId: "user-123",
         parts: messageParts as MessagePartRequest[],
       });
@@ -558,6 +561,7 @@ export const useUpdateMessages = (conversationId: number) => {
             role: "assistant",
             authorId: modelId,
             model: modelId,
+            mode: chatRequestBody.mode,
             parts: [{ type: "text", text }],
           });
         }
@@ -566,6 +570,7 @@ export const useUpdateMessages = (conversationId: number) => {
         for (const [, t] of tempsByModel) {
           bodies.push({
             role: "assistant",
+            mode: chatRequestBody.mode,
             authorId: t.modelId,
             parts: [{ type: "text", text: t.text }],
           });
