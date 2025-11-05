@@ -340,7 +340,7 @@ export const useCreateMessages = (conversationId: number) => {
   });
 };
 
-export const useUpdateMessages = (conversationId: number) => {
+export const useUpdateMessages = (conversationId: number, editedMessageId: number) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
 

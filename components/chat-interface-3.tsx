@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns-2";
 import { ModelSelector } from "@/components/model-selector";
 import { ChatRequestBody, ContentItem, FileUploadItem, ModelProvider, RouteSel } from "@/types/models";
-import { Send, Mic, Paperclip, Settings } from "lucide-react";
+import { Send, Mic, Paperclip, Settings, X, File, FileImage, FileText, FileAudio, FileVideo } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,10 +13,14 @@ import {
     setEditMessageId,
     toggleModelSelector,
     updateInputMessage,
+    triggerFileUploading,
+    startRecorder,
+    stopRecorder,
 } from "@/redux/chat-interface-slice";
 import { useCreateMessages, useUpdateMessages } from "@/lib/hooks/messageHook";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "@/lib/http";
+import { AudioRecorderModal } from "./audio-recorder-model";
 
 export function ChatInterface() {
     const {
@@ -26,6 +30,8 @@ export function ChatInterface() {
         inputMessage,
         isStreaming,
         triggerSend,
+        uploadingFiles,
+        showRecorder,
     } = useSelector((store: any) => store.chatInterface);
     const { selectedConvId } = useSelector(
         (store: any) => store.conversationSlice
@@ -33,14 +39,11 @@ export function ChatInterface() {
     const dispatch = useDispatch();
     const createMessages = useCreateMessages(selectedConvId);
     const updateMessages = useUpdateMessages(selectedConvId, editedMessageId);
+    // const updateMessages = useUpdateMessages(selectedConvId);
 
     // 🔹 File handling
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [uploadingFiles, setUploadingFiles] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    // 🎤 Audio recording state
-    const [showRecorder, setShowRecorder] = useState(false);
 
 
 
@@ -77,7 +80,8 @@ export function ChatInterface() {
         if (files.length === 0) return null;
 
         console.log("Uploading files to providers:", providers);
-        setUploadingFiles(true);
+        // setUploadingFiles(true);
+        dispatch(triggerFileUploading(true));
 
         try {
             const formData = new FormData();
@@ -112,7 +116,7 @@ export function ChatInterface() {
             console.error("Error uploading files:", error);
             throw error;
         } finally {
-            setUploadingFiles(false);
+            dispatch(triggerFileUploading(false));
         }
     };
 
@@ -343,13 +347,29 @@ export function ChatInterface() {
     };
 
     // 🎤 Handle audio recording
-    const handleMicClick = () => {
-        setShowRecorder(true);
-    };
+    // const handleMicClick = () => {
+    //     setShowRecorder(true);
+    // };
 
     const handleTranscriptionComplete = (transcription: string) => {
         console.log("Transcription complete:", transcription);
         dispatch(updateInputMessage(transcription));
+    };
+
+    const getFileIcon = (fileType: string) => {
+        if (fileType.startsWith("image/")) {
+            return <FileImage className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
+        }
+        if (fileType.startsWith("audio/")) {
+            return <FileAudio className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
+        }
+        if (fileType.startsWith("video/")) {
+            return <FileVideo className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
+        }
+        if (fileType === "application/pdf") {
+            return <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
+        }
+        return <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
     };
 
     return (
@@ -369,6 +389,30 @@ export function ChatInterface() {
                             <div className="max-w-4xl w-full">
                                 <ModelSelector />
                             </div>
+                        </div>
+                    )}
+
+                    {/* Show selected files with preview */}
+                    {selectedFiles.length > 0 && (
+                        <div className="mb-2 flex flex-wrap gap-2">
+                            {selectedFiles.map((file: File, index : number) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm"
+                                >
+                                    {getFileIcon(file.type)}
+                                    <span className="text-foreground truncate max-w-[200px]">
+                                        {file.name}
+                                    </span>
+                                    <button
+                                        onClick={() => removeFile(index)}
+                                        className="text-muted-foreground hover:text-foreground"
+                                        title="Remove file"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     )}
 
@@ -426,7 +470,7 @@ export function ChatInterface() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={handleMicClick}
+                                onClick={() => dispatch(startRecorder())}
                                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                 disabled={uploadingFiles || isStreaming}
                                 title="Voice Input"
@@ -455,6 +499,13 @@ export function ChatInterface() {
                     </div>
                 </div>
             </div>
+            {/* 🎤 Audio Recorder Modal */}
+            {showRecorder && (
+                <AudioRecorderModal
+                    onClose={() => dispatch(stopRecorder())}
+                    onTranscriptionComplete={handleTranscriptionComplete}
+                />
+            )}
         </div>
     );
 }
