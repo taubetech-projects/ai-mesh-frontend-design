@@ -158,6 +158,9 @@ interface ChatInterfaceState {
   isStreaming: boolean;
   isSent: boolean;
   triggerSend: boolean;
+  uploadingFiles: boolean;
+  showRecorder: boolean;
+  currentMessageVersion: number;
 }
 
 const initialSelectedModels: RouteSel[] = [
@@ -176,6 +179,9 @@ const initialState: ChatInterfaceState = {
   isStreaming: false,
   isSent: false,
   triggerSend: false,
+  uploadingFiles: false,
+  showRecorder: false,
+  currentMessageVersion: 0,
 };
 
 const chatInterfaceSlice = createSlice({
@@ -206,6 +212,10 @@ const chatInterfaceSlice = createSlice({
         }
         state.selectedModels.push({ provider: provider.id, model: modelId });
       },
+    },
+
+    setSelectedModels(state, action) {
+      state.selectedModels = action.payload;
     },
 
     removeModel(state, action) {
@@ -303,6 +313,18 @@ const chatInterfaceSlice = createSlice({
     triggerParentSend: (state) => {
       state.triggerSend = !state.triggerSend; // toggle to force update
     },
+    triggerFileUploading:(state,action) =>{
+      state.uploadingFiles = action.payload;
+    },
+    startRecorder: (state) => {
+      state.showRecorder = true;
+    },
+    stopRecorder: (state) => {
+      state.showRecorder = false;
+    },
+    setCurrentMessageVersion(state, action) {
+      state.currentMessageVersion = action.payload;
+    }
   },
 });
 
@@ -310,6 +332,7 @@ export const {
   toggleModelSelector,
   addModel,
   removeModel,
+  setSelectedModels,
   updateInputMessage,
   addMessages,
   concateDelta,
@@ -319,5 +342,9 @@ export const {
   clearModelResponses,
   setEditMessageId,
   triggerParentSend,
+  triggerFileUploading,
+  startRecorder,
+  stopRecorder,
+  setCurrentMessageVersion
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;

@@ -86,7 +86,7 @@ export function AudioRecorderModal({
 
             recorder.onstop = () => {
                 const newAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                console.log("new audio blob after stop",newAudioBlob);
+                console.log("new audio blob after stop", newAudioBlob);
                 setAudioBlob(newAudioBlob);
                 userStream.getTracks().forEach(track => track.stop());
             };
@@ -108,7 +108,7 @@ export function AudioRecorderModal({
                 cancelAnimationFrame(animationRef.current);
             }
         }
-        console.log("Recording stopped",audioBlob);
+        console.log("Recording stopped", audioBlob);
         setIsRecording(false);
     };
 
@@ -168,7 +168,7 @@ export function AudioRecorderModal({
                 },
                 body: formData,
             });
-            console.log("Audio Response",response);
+            console.log("Audio Response", response);
 
             if (!response.ok) {
                 throw new Error(`Transcription failed: ${response.statusText}`);
@@ -244,7 +244,7 @@ export function AudioRecorderModal({
                         {isTranscribing ? (
                             <>
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                Transcribing...
+                                Processing...
                             </>
                         ) : (
                             <>
