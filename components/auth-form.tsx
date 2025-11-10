@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { authenticatedApi } from "@/lib/axiosApi";
 import { setTokens } from "@/lib/auth";
 import { AuthService } from "@/lib/services/AuthService";
+import { ErrorResponse } from "@/types/authModels";
+import { toast } from "sonner";
 
 
 // --- SVG Icons ---
@@ -83,12 +85,16 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
             console.log("Login response:", response);
             if (response && response.accessToken) {
                 setTokens(response.accessToken, response.refreshToken);
-                router.push("/home");
+                toast.success("Login successful! Welcome to our platform...");
+                setTimeout(() => {
+                    router.push("/home");
+                }, 2000);
             } else {
                 setError("Login failed: No token received.");
             }
         } catch (err: any) {
-            handleAuthError(err);
+            const errorResponse = err.response?.data as ErrorResponse;
+            handleAuthError(errorResponse);
         }
     };
 
@@ -96,22 +102,24 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
         try {
             const response = await AuthService.signup({ username, email, password });
             if (response) {
-                // setApiKey(response.accessToken);
-                router.push("/login");
+                toast.success("Signup successful! Redirecting to login...");
+                setTimeout(() => {
+                    router.push("/login");
+                }, 2000); // 2-second delay before redirecting
             } else {
                 setError("Signup failed: No token received.");
             }
         } catch (err: any) {
-            handleAuthError(err);
+            const errorResponse = err.response?.data as ErrorResponse;
+            handleAuthError(errorResponse);
+            // handleAuthError(errorResponse.detail);
         }
     };
 
-    const handleAuthError = (err: any) => {
+    const handleAuthError = (err: ErrorResponse) => {
         console.error("Authentication error:", err);
-        if (err.response && err.response.data && err.response.data.message) {
-            setError(err.response.data.message);
-        } else if (err.message) {
-            setError(err.message);
+        if (err.errors && err.errors.length > 0) {
+            setError(err.errors.at(0) || "Something went wrong");
         } else {
             setError("An unknown error occurred.");
         }

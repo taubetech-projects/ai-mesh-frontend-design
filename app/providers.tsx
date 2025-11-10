@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/contexts/theme-context";
 import { LanguageProvider } from "@/contexts/language-context";
 import { Suspense, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { Provider } from "react-redux";
+import store from "@/redux/store";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -24,9 +26,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools initialIsOpen={false} />
       <Suspense fallback={null}>
-        <ThemeProvider>
-          <LanguageProvider>{children}</LanguageProvider>
-        </ThemeProvider>
+        <Provider store={store}>
+          <ThemeProvider>
+            <LanguageProvider>{children}</LanguageProvider>
+          </ThemeProvider>
+        </Provider>
       </Suspense>
       <Analytics />
     </QueryClientProvider>
