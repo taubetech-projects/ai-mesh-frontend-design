@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/contexts/theme-context";
 import { LanguageSelector } from "@/components/language-selector";
-import { clearTokens } from "@/lib/auth";
+import { clearTokens, getRefreshToken } from "@/lib/auth";
+import { AuthService } from "@/lib/services/AuthService";
+import { get } from "http";
 
-const SettingsPage = () => {
+export default function SettingsPage() {
     const router = useRouter();
     const { theme, toggleTheme } = useTheme();
 
@@ -73,8 +75,18 @@ const SettingsPage = () => {
         </div>
     );
 
-    const handleLogout = () => {
-        clearTokens();
+    async function handleLogout() {
+        console.log("Response Token before log out:", getRefreshToken() ?? "");
+        const response = await AuthService.logout({ refreshToken: getRefreshToken() ?? "" });
+        console.log("Response Token :", getRefreshToken() ?? "");
+        console.log("Logout response:", response);
+        if (response==="200") {
+            // setApiKey(response.accessToken);
+            clearTokens();
+            router.push("/login");
+        } else {
+            alert("Logout failed: No token received.");
+        }
         router.push('/');
     };
 

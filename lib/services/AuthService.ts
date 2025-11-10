@@ -1,12 +1,13 @@
 // src/services/authService.ts
-import { api } from "@/lib/axiosApi";
+import { api, authenticatedApi } from "@/lib/axiosApi";
 import { SignupRequest, TokenResponse, RefreshRequest, LogoutRequest, LoginRequest } from "@/types/authModels";
+import { clear } from "console";
 import { da } from "date-fns/locale";
+import { clearTokens } from "../auth";
 
 export const AuthService = {
 
     login: async (data: LoginRequest): Promise<TokenResponse> => {
-
         const res = await api.post<TokenResponse>("/v1/api/auth/login", data);
         return res.data;
     },
@@ -21,7 +22,11 @@ export const AuthService = {
     },
 
     logout: async (data: LogoutRequest): Promise<string> => {
-        const res = await api.post<string>("/v1/api/auth/logout", data);
-        return res.data;
+        if (!data.refreshToken) return "";
+        // Call the authenticated endpoint to invalidate the token on the server
+        const response = await authenticatedApi.post("/v1/api/auth/logout", data);
+        console.log("Logout response:", response.status);
+        // Clear tokens after successful logout
+        return response.status.toString();
     },
 };
