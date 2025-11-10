@@ -7,35 +7,38 @@ import store from "@/redux/store";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken } from "@/lib/auth";
+import ProtectedRoute from "@/components/protected-route";
 
 export type RouteSel = { provider: string; model: string };
 
 export default function HomePage() {
-    const router = useRouter();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    // const router = useRouter();
+    // const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-        const token = getAccessToken();
-        console.log("Token:", token);
-        if (!token) {
-            router.push('/login');
-        } else {
-            setIsAuthenticated(true);
-        }
-    }, [router]);
+    // useEffect(() => {
+    //     const token = getAccessToken();
+    //     console.log("Token:", token);
+    //     if (!token) {
+    //         router.push('/login');
+    //     } else {
+    //         setIsAuthenticated(true);
+    //     }
+    // }, [router]);
 
-    if (!isAuthenticated) {
-        // Render a loading state or null while checking authentication
-        // to prevent flashing the protected content.
-        return null; 
-    }
+    // if (!isAuthenticated) {
+    //     // Render a loading state or null while checking authentication
+    //     // to prevent flashing the protected content.
+    //     return null;
+    // }
 
     return (
-        <div className="flex h-screen bg-background">
-            <Provider store={store}>
-                <Sidebar />
-                <ChatInterface />
-            </Provider>
-        </div>
+        <ProtectedRoute>
+            <div className="flex h-screen bg-background">
+                <Provider store={store}>
+                    <Sidebar />
+                    <ChatInterface />
+                </Provider>
+            </div>
+        </ProtectedRoute>
     );
 }

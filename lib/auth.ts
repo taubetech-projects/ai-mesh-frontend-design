@@ -36,3 +36,13 @@ export function authHeader(): Record<string, string> {
   const k = getAccessToken();
   return k ? { Authorization: `Bearer ${k}` } : {};
 }
+
+export function ensureAuthenticatedClient() {
+  const token = getAccessToken();
+  if (!token) {
+    clearTokens();
+    window.location.href = "/login";
+    throw new Error("Unauthorized access — no token found.");
+  }
+}
+
