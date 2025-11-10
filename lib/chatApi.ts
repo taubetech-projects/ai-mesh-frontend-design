@@ -1,14 +1,18 @@
 import { ChatStreamBody } from "@/types/models";
 import { API_BASE } from "./http";
+import { authHeader } from "./auth";
 
 export async function fetchProviders() {
-  const res = await fetch(`${API_BASE}/v1/providers`, { cache: "no-store" });
+  const res = await fetch(`${API_BASE}/v1/providers`, {
+    headers: authHeader(),
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
-
 export async function fetchModels(providerId: string) {
   const res = await fetch(`${API_BASE}/v1/providers/${providerId}/models`, {
+    headers: authHeader(),
     cache: "no-store",
   });
   if (!res.ok) throw new Error(await res.text());
@@ -19,16 +23,15 @@ export async function fetchModels(providerId: string) {
 export function streamChat(
   // body: ChatStreamBody,
   body: any,
-  
+
   onEvent: (evt: { event: string; data: any }) => void,
   signal?: AbortSignal
 ) {
   return fetch(`${API_BASE}/v1/chat/completions/streaming-and-non-streaming`, {
     method: "POST",
     headers: {
+      ...authHeader(),
       "Content-Type": "application/json",
-      Authorization:
-        "Bearer amk_live_dev_1f3b2c9a.$2a$12$d6rQGxp8lQo1TyhdR4Qq7uPb4knRJhLKF47pea4j0ilI/TS1HarHS",
     },
     body: JSON.stringify(body),
     signal,
@@ -53,7 +56,7 @@ export function streamChat(
         if (data) {
           try {
             onEvent({ event: event, data: JSON.parse(data) });
-          } catch {}
+          } catch { }
         }
       }
       // Process final incomplete frame if stream is done
@@ -68,7 +71,7 @@ export function streamChat(
         if (data) {
           try {
             onEvent({ event: event, data: JSON.parse(data) });
-          } catch {}
+          } catch { }
         }
         buf = ""; // Clear buffer
       }

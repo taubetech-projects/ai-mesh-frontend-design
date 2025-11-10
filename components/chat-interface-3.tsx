@@ -21,6 +21,7 @@ import { useCreateMessages, useUpdateMessages } from "@/lib/hooks/messageHook";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "@/lib/http";
 import { AudioRecorderModal } from "./audio-recorder-model";
+import { authHeader } from "@/lib/auth";
 
 export function ChatInterface() {
     const {
@@ -96,10 +97,7 @@ export function ChatInterface() {
 
             const response = await fetch(`${API_BASE}/v1/upload`, {
                 method: "POST",
-                headers: {
-                    Authorization:
-                        "Bearer amk_live_dev_1f3b2c9a.$2a$12$d6rQGxp8lQo1TyhdR4Qq7uPb4knRJhLKF47pea4j0ilI/TS1HarHS",
-                },
+                headers: authHeader(),
                 body: formData,
             });
 
@@ -395,7 +393,7 @@ export function ChatInterface() {
                     {/* Show selected files with preview */}
                     {selectedFiles.length > 0 && (
                         <div className="mb-2 flex flex-wrap gap-2">
-                            {selectedFiles.map((file: File, index : number) => (
+                            {selectedFiles.map((file: File, index: number) => (
                                 <div
                                     key={index}
                                     className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm"

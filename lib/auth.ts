@@ -1,13 +1,15 @@
 // Minimal API key storage (client-side)
 const KEY = "AI_MESH_API_KEY";
 
+const defaultApiKey = process.env.NEXT_PUBLIC_DEFAULT_API_KEY || "";
+
 export function getApiKey(): string {
-  if (typeof window === "undefined")
-    return (
-      process.env.NEXT_PUBLIC_DEFAULT_API_KEY ||
-      "amk_live_dev_1f3b2c9a.$2a$12$d6rQGxp8lQo1TyhdR4Qq7uPb4knRJhLKF47pea4j0ilI/TS1HarHS"
-    );
-  return localStorage.getItem(KEY) || "";
+  // On the server, always use the default key.
+  if (typeof window === "undefined") {
+    return defaultApiKey;
+  }
+  // On the client, use the key from local storage, or fall back to the default.
+  return localStorage.getItem(KEY) || defaultApiKey;
 }
 
 export function setApiKey(v: string) {
