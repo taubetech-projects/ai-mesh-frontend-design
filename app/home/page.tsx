@@ -12,25 +12,6 @@ import ProtectedRoute from "@/components/protected-route";
 export type RouteSel = { provider: string; model: string };
 
 export default function HomePage() {
-    // const router = useRouter();
-    // const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    // useEffect(() => {
-    //     const token = getAccessToken();
-    //     console.log("Token:", token);
-    //     if (!token) {
-    //         router.push('/login');
-    //     } else {
-    //         setIsAuthenticated(true);
-    //     }
-    // }, [router]);
-
-    // if (!isAuthenticated) {
-    //     // Render a loading state or null while checking authentication
-    //     // to prevent flashing the protected content.
-    //     return null;
-    // }
-
     return (
         <ProtectedRoute>
             <div className="flex h-screen bg-background">
