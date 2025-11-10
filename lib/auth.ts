@@ -1,22 +1,38 @@
 // Minimal API key storage (client-side)
-const KEY = "AI_MESH_API_KEY";
+const ACCESS_TOKEN_KEY = "AI_MESH_ACCESS_TOKEN";
+const REFRESH_TOKEN_KEY = "AI_MESH_REFRESH_TOKEN";
 
 const defaultApiKey = process.env.NEXT_PUBLIC_DEFAULT_API_KEY || "";
 
-export function getApiKey(): string {
-  // On the server, always use the default key.
+export function getAccessToken(): string {
   if (typeof window === "undefined") {
-    return defaultApiKey;
+    return ""; // No user-specific access token on the server
   }
-  // On the client, use the key from local storage, or fall back to the default.
-  return localStorage.getItem(KEY) || defaultApiKey;
+  return localStorage.getItem(ACCESS_TOKEN_KEY) || "";
 }
 
-export function setApiKey(v: string) {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, v.trim());
+export function getRefreshToken(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || "";
+}
+
+export function setTokens(accessToken: string, refreshToken: string) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken.trim());
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken.trim());
+  }
+}
+
+export function clearTokens() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
 }
 
 export function authHeader(): Record<string, string> {
-  const k = getApiKey();
+  const k = getAccessToken();
   return k ? { Authorization: `Bearer ${k}` } : {};
 }
