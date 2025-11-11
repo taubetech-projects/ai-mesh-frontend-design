@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useGetConversationsApi } from "@/lib/hooks/conversationHook";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedConvId } from "@/redux/conversation-slice";
+import Link from "next/link";
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -38,17 +39,15 @@ export function Sidebar() {
 
   return (
     <div
-      className={`${
-        isCollapsed ? "w-18" : "w-80"
-      } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 flex-shrink-0`}
+      className={`${isCollapsed ? "w-18" : "w-80"
+        } h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 flex-shrink-0`}
     >
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
           <div
-            className={`flex items-center gap-2 ${
-              isCollapsed ? "justify-center" : ""
-            }`}
+            className={`flex items-center gap-2 ${isCollapsed ? "justify-center" : ""
+              }`}
           >
             <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
               <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
@@ -91,9 +90,8 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="icon"
-          className={`${
-            isCollapsed ? "w-full" : "mt-2"
-          } text-sidebar-foreground hover:bg-sidebar-accent`}
+          className={`${isCollapsed ? "w-full" : "mt-2"
+            } text-sidebar-foreground hover:bg-sidebar-accent`}
         >
           <Search className="w-4 h-4" />
         </Button>
@@ -144,9 +142,8 @@ export function Sidebar() {
             conversations.map((conversation: any) => (
               <div
                 key={conversation.id}
-                className={`text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${
-                  selectedConvId === conversation.id ? "bg-gray-200" : ""
-                }`}
+                className={`text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${selectedConvId === conversation.id ? "bg-sidebar-ring" : ""
+                  }`}
                 onClick={() => dispatch(setSelectedConvId(conversation.id))}
               >
                 {conversation.title}
@@ -165,21 +162,21 @@ export function Sidebar() {
 
         {/* Settings */}
         <div
-          className={`flex ${
-            isCollapsed ? "flex-col gap-2" : "items-center justify-between"
-          }`}
+          className={`flex ${isCollapsed ? "flex-col gap-2" : "items-center justify-between"
+            }`}
         >
           <ThemeToggle />
 
-          <Button
-            variant="ghost"
-            className={`${
-              isCollapsed ? "h-8 w-8 p-0" : "flex-1 justify-start gap-2 ml-2"
-            } text-sidebar-foreground hover:bg-sidebar-accent`}
-          >
-            <Settings className="w-4 h-4" />
-            {!isCollapsed && t.nav.settings}
-          </Button>
+          <Link href="/setting" passHref legacyBehavior>
+            <Button
+              variant="ghost"
+              className={`${isCollapsed ? "h-8 w-8 p-0" : "flex-1 justify-start gap-2 ml-2"
+                } text-sidebar-foreground hover:bg-sidebar-accent`}
+            >
+              <Settings className="w-4 h-4" />
+              {!isCollapsed && t.nav.settings}
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
