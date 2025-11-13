@@ -64,7 +64,7 @@ export const useGetMessagesByConversationId = (conversationId: number) =>
     // 👇 listByConversation must return { messages, nextCursor }
     queryFn: () =>
       messageApi.listByConversation(conversationId) as Promise<MessagePage>,
-    staleTime: 60_000,
+    staleTime: 300_000,
     enabled: !!conversationId,
   });
 

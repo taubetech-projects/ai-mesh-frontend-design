@@ -20,12 +20,23 @@ export interface SignupRequest {
   password: string;  // @Size(min=8,max=100)
 }
 
+export interface SignupResponse {
+  id: string;
+  username: string;
+  email: string;
+  message: string;
+}
+
 export interface RefreshRequest {
   refreshToken: string;
 }
 
 export interface LogoutRequest {
   refreshToken: string;
+}
+
+export interface ResendEmailRequest {
+  email: string;
 }
 
 export interface ErrorResponse {

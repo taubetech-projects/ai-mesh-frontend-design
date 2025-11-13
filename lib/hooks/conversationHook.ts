@@ -21,7 +21,7 @@ export const useGetConversationsApi = () =>
   useQuery({
     queryKey: queryKey.conversations(),
     queryFn: getConversationsApi,
-    staleTime: 60_000, // 👈 1 minute
+    staleTime: 300_000, // 👈 1 minute
   });
 
 export const useUpdateConversationApi = () => {

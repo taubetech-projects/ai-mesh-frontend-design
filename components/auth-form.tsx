@@ -74,7 +74,7 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [email, setEmail] = useState("");
-    const [error, setError] = useState("");
+    const [error, setError] = useState<React.ReactNode>("");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -88,13 +88,39 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
                 toast.success("Login successful! Welcome to our platform...");
                 setTimeout(() => {
                     router.push("/home");
-                }, 2000);
-            } else {
+                }, 1000);
+            }
+            else {
                 setError("Login failed: No token received.");
             }
         } catch (err: any) {
             const errorResponse = err.response?.data as ErrorResponse;
-            handleAuthError(errorResponse);
+            if (errorResponse.status === 403) {
+                setError(
+                    <>
+                        {errorResponse.detail}{' '}
+                        <button
+                            onClick={() => handleResendVerification(username)}
+                            className="font-bold underline hover:text-red-200"
+                        >
+                            Activate Now
+                        </button>
+                    </>
+                );
+            } else {
+                handleAuthError(errorResponse);
+            }
+        }
+    };
+
+    const handleResendVerification = async (email: string) => {
+        console.log("Resending verification email for:", email);
+        try {
+            const response = await AuthService.resendEmail({ email });
+            console.log("Resend email response:", response);
+            toast.success("Verification email sent successfully!");
+        } catch (err: any) {
+            toast.error(err.response?.data?.detail || "Failed to resend email.");
         }
     };
 
@@ -102,10 +128,12 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
         try {
             const response = await AuthService.signup({ username, email, password });
             if (response) {
-                toast.success("Signup successful! Redirecting to login...");
-                setTimeout(() => {
-                    router.push("/login");
-                }, 2000); // 2-second delay before redirecting
+                toast.info("Signup successful! Please check your email for verification.");
+                router.push(`/signup/verify-email?email=${encodeURIComponent(response.email)}`);
+                // toast.success("Signup successful! Redirecting to login...");
+                // setTimeout(() => {
+                //     router.push("/login");
+                // }, 2000); // 2-second delay before redirecting
             } else {
                 setError("Signup failed: No token received.");
             }
@@ -121,7 +149,11 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
         if (err.errors && err.errors.length > 0) {
             setError(err.errors.at(0) || "Something went wrong");
         } else {
-            setError("An unknown error occurred.");
+            if (err.detail) {
+                setError(err.detail);
+            } else {
+                setError("An unknown error occurred.");
+            }
         }
     };
 
