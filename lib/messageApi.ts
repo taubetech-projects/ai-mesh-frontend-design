@@ -84,9 +84,15 @@ export const messageApi = {
       bodies
     ),
 
-  remove: (id: number, conversationId: number) =>
+  removeForAllModel: (id: number, conversationId: number) =>
     apiCall<void>(
       "delete",
-      `/v1/conversations/${conversationId}/messages/${id}`
+      `/v1/conversations/${conversationId}/messages/${id}/all`
+    ),
+
+  removeForSingleModel: (id: number, conversationId: number, model: string) =>
+    apiCall<void>(
+      "delete",
+      `/v1/conversations/${conversationId}/messages/${id}?modelName=${model}`
     ),
 };

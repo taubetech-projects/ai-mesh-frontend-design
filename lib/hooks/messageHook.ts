@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { messageApi } from "@/lib/messageApi";
+import { toast } from "sonner";
 import { queryKey } from "../query/keys";
 import {
   SaveMessageRequest,
@@ -49,9 +50,16 @@ function remove(
   conversationId: number,
   predicate: (m: MessageView) => boolean
 ) {
-  queryClient.setQueryData<MessageView[]>(
+  queryClient.setQueryData<MessagePage>(
     cacheKey(conversationId),
-    (old = []) => (old || []).filter((m) => !predicate(m))
+    (oldPage) => {
+      if (!oldPage) return { messages: [], nextCursor: null };
+      const newMessages = (oldPage.messages || []).filter((m) => !predicate(m));
+      return {
+        ...oldPage,
+        messages: newMessages,
+      };
+    }
   );
 }
 
@@ -109,10 +117,10 @@ export const useCreateMessages = (conversationId: number) => {
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-              ({
-                ...(p as any),
-                type: (p as any)?.type ?? "text",
-              } as MessagePartRequest)
+            ({
+              ...(p as any),
+              type: (p as any)?.type ?? "text",
+            } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
@@ -378,10 +386,10 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-              ({
-                ...(p as any),
-                type: (p as any)?.type ?? "text",
-              } as MessagePartRequest)
+            ({
+              ...(p as any),
+              type: (p as any)?.type ?? "text",
+            } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
@@ -617,18 +625,61 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
   });
 };
 
-export const useDeleteMessage = (conversationId: number) => {
+export const useDeleteForAllModels = (conversationId: number) => {
   const queryClient = useQueryClient();
+  console.log("Delete for all conversation", conversationId);
 
   return useMutation({
-    mutationFn: (id: number) => messageApi.remove(id, conversationId),
+    mutationFn: (id: number) => messageApi.removeForAllModel(id, conversationId),
 
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: cacheKey(conversationId) });
-      const prev =
-        queryClient.getQueryData<MessageView[]>(cacheKey(conversationId)) || [];
+      // Correctly get the previous state as a MessagePage object
+      const prev = queryClient.getQueryData<MessagePage>(cacheKey(conversationId));
 
       remove(queryClient, conversationId, (m) => m.id === id);
+
+      return { prev };
+    },
+
+    onError: (_err, _id, ctx) => {
+      console.log("Delete all models error", _err, _id, ctx);
+      if (!ctx) return;
+      queryClient.setQueryData(cacheKey(conversationId), ctx.prev);
+    },
+
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
+    },
+
+    onSuccess: () => {
+      toast.success("Message deleted successfully.");
+    },
+
+  });
+};
+
+
+export const useDeleteForSingleModel = (conversationId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      messageId,
+      model,
+    }: {
+      messageId: number;
+      model: string;
+    }) => messageApi.removeForSingleModel(messageId, conversationId, model),
+
+    onMutate: async ({ messageId }) => {
+      await queryClient.cancelQueries({ queryKey: cacheKey(conversationId) });
+      // Correctly get the previous state as a MessagePage object
+      const prev = queryClient.getQueryData<MessagePage>(
+        cacheKey(conversationId)
+      );
+      remove(queryClient, conversationId, (m) => m.id === messageId);
 
       return { prev };
     },
@@ -641,5 +692,10 @@ export const useDeleteMessage = (conversationId: number) => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
     },
+
+    onSuccess: () => {
+      toast.success("Message deleted successfully for this model.");
+    },
   });
-};
+
+}
