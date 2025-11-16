@@ -68,7 +68,7 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
         ? "Don't have an account?"
         : 'Already have an account?';
     const switchActionText = isLogin ? 'Sign Up' : 'Log In';
-    const switchLink = isLogin ? '/signup' : '/login';
+    const switchLink = isLogin ? '/auth/signup' : '/auth/login';
 
     const [identifier, setIdentifier] = useState(""); // For username or email on login
     const [username, setUsername] = useState("");
@@ -129,7 +129,7 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
             const response = await AuthService.signup({ username, email, password });
             if (response) {
                 toast.info("Signup successful! Please check your email for verification.");
-                router.push(`/signup/verify-email?email=${encodeURIComponent(response.email)}`);
+                router.push(`auth/signup/verify-email?email=${encodeURIComponent(response.email)}`);
                 // toast.success("Signup successful! Redirecting to login...");
                 // setTimeout(() => {
                 //     router.push("/login");
@@ -280,7 +280,7 @@ export const AuthForm = ({ view }: { view: 'login' | 'signup' }) => {
                                 <span className="ml-2">Remember me</span>
                             </label>
                             <a
-                                href="#"
+                                href="/auth/forgot-password"
                                 className="text-sm text-purple-400 hover:underline"
                             >
                                 Forgot password?

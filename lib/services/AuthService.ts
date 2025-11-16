@@ -1,11 +1,11 @@
 // src/services/authService.ts
 import { api, authenticatedApi } from "@/lib/axiosApi";
-import { SignupRequest, TokenResponse, RefreshRequest, LogoutRequest, LoginRequest, ErrorResponse, ResendEmailRequest, SignupResponse } from "@/types/authModels";
+import { SignupRequest, TokenResponse, RefreshRequest, LogoutRequest, LoginRequest, ErrorResponse, ResendEmailRequest, SignupResponse, ForgotPasswordRequest, ResetPasswordRequest } from "@/types/authModels";
 import { clear } from "console";
 import { da } from "date-fns/locale";
 import { clearTokens } from "../auth";
 import axios from "axios";
-import VerifyEmail from "@/app/signup/verify-email/page";
+import VerifyEmail from "@/app/auth/signup/verify-email/page";
 
 export const AuthService = {
 
@@ -41,4 +41,14 @@ export const AuthService = {
         );
         return res.data;
     },
+
+    forgotPassword: async (data: ForgotPasswordRequest) =>  {
+        const res = await api.post<void>("/v1/api/auth/forgot-password",data);
+        return res.data;
+    },
+
+    resetPassword: async (data: ResetPasswordRequest) =>  {
+        const res = await api.post<void>("/v1/api/auth/reset-password",data);
+        return res.data;
+    }
 };
