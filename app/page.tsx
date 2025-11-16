@@ -56,7 +56,7 @@ const HeroSection = () => {
           Your intelligent assistant is just a click away.
         </p>
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          <Link href="/login" className="text-lg font-semibold px-10 py-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg hover:shadow-2xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300">
+          <Link href="/auth/login" className="text-lg font-semibold px-10 py-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg hover:shadow-2xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300">
             Start Here
           </Link>
           <Link href="/playground" className="text-lg font-semibold px-10 py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg hover:bg-white/20 hover:shadow-2xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-white/50">
