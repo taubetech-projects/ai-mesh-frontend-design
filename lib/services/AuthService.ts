@@ -27,6 +27,7 @@ export const AuthService = {
     logout: async (data: LogoutRequest): Promise<string> => {
         if (!data.refreshToken) return "";
         // Call the authenticated endpoint to invalidate the token on the server
+        console.log("Logout data:", data);
         const response = await authenticatedApi.post("/v1/api/auth/logout", data);
         console.log("Logout response:", response.status);
         // Clear tokens after successful logout
