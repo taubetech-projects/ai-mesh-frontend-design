@@ -84,7 +84,7 @@ export default function SettingsPage() {
         if (response === "200") {
             // setApiKey(response.accessToken);
             clearTokens();
-            router.push("/login");
+            router.push("/auth/login");
         } else {
             alert("Logout failed: No token received.");
         }
