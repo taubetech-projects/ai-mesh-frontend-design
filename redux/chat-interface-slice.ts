@@ -324,6 +324,12 @@ const chatInterfaceSlice = createSlice({
     },
     setCurrentMessageVersion(state, action) {
       state.currentMessageVersion = action.payload;
+    },
+    clearChatState(state) {
+      state.messages = {};
+      state.inputMessage = "";
+      state.modelResponses = {};
+      state.editedMessageId = null;
     }
   },
 });
@@ -345,6 +351,7 @@ export const {
   triggerFileUploading,
   startRecorder,
   stopRecorder,
-  setCurrentMessageVersion
+  setCurrentMessageVersion,
+  clearChatState
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;

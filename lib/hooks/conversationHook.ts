@@ -27,7 +27,8 @@ export const useGetConversationsApi = () =>
 export const useUpdateConversationApi = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateConversationApi,
+    mutationFn: ({ id, conversation }: { id: string; conversation: object }) =>
+      updateConversationApi(id, conversation),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after an update
   });
@@ -36,7 +37,7 @@ export const useUpdateConversationApi = () => {
 export const useDeleteConversationApi = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteConversationApi,
+    mutationFn: (id: string) => deleteConversationApi(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after deletion
   });

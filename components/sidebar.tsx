@@ -8,15 +8,37 @@ import {
   Folder,
   ChevronLeft,
   ChevronRight,
+  MoreHorizontal,
+  Share2,
+  Pencil,
+  Archive,
+  Trash2,
 } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
 import { ThemeToggle } from "./theme-toggle";
 import { useEffect, useState } from "react";
-import { useGetConversationsApi } from "@/lib/hooks/conversationHook";
+import { useDeleteConversationApi, useGetConversationsApi, useUpdateConversationApi } from "@/lib/hooks/conversationHook";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedConvId } from "@/redux/conversation-slice";
+import { clearChatState } from "@/redux/chat-interface-slice";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -26,16 +48,47 @@ export function Sidebar() {
   );
 
   const dispatch = useDispatch();
+  const { mutate: deleteConversation } = useDeleteConversationApi(); // For deleting
+  const { mutate: updateConversation } = useUpdateConversationApi(); // For renaming
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [conversationIdToDelete, setConversationIdToDelete] = useState<string | null>(null);
+  const [renamingConvId, setRenamingConvId] = useState<string | null>(null);
+  const [newTitle, setNewTitle] = useState("");
 
   const { isPending, data: conversations, isError } = useGetConversationsApi();
 
-  // 👇 When conversations load, select the last one automatically
-  useEffect(() => {
-    if (conversations && conversations.length > 0 && !selectedConvId) {
-      const last = conversations[0];
-      dispatch(setSelectedConvId(last.id));
+  const handleNewChat = () => {
+    dispatch(setSelectedConvId(null));
+    dispatch(clearChatState());
+  };
+
+  const handleDeleteConversation = () => {
+    if (conversationIdToDelete) {
+      deleteConversation(conversationIdToDelete);
+      setConversationIdToDelete(null);
     }
-  }, [conversations, selectedConvId]);
+    setShowDeleteDialog(false); // Close the dialog
+  };
+
+  const handleRenameConversation = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && renamingConvId && newTitle.trim() !== "") {
+      updateConversation({ id: renamingConvId, conversation: { title: newTitle } });
+      setRenamingConvId(null);
+      setNewTitle("");
+    } else if (e.key === 'Escape') {
+      setRenamingConvId(null);
+      setNewTitle("");
+    }
+  }
+
+  // 👇 When conversations load, select the last one automatically
+  // useEffect(() => {
+  //   if (conversations && conversations.length > 0 && !selectedConvId) {
+  //     const last = conversations[0];
+  //     dispatch(setSelectedConvId(last.id));
+  //   }
+  // }, [conversations, selectedConvId]);
 
   return (
     <div
@@ -75,14 +128,19 @@ export function Sidebar() {
         </div>
 
         {!isCollapsed && (
-          <Button className="w-full justify-start gap-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
+          <Button
+            onClick={handleNewChat}
+            className="w-full justify-start gap-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
             <Plus className="w-4 h-4" />
             {t.nav.newChat}
           </Button>
         )}
 
         {isCollapsed && (
-          <Button className="w-full justify-center bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
+          <Button
+            onClick={handleNewChat}
+            className="w-full justify-center bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+          >
             <Plus className="w-4 h-4" />
           </Button>
         )}
@@ -140,13 +198,73 @@ export function Sidebar() {
           {isError && <div>Error fetching conversations</div>}
           {conversations &&
             conversations.map((conversation: any) => (
-              <div
+              <div // Use a group to show menu on hover
                 key={conversation.id}
-                className={`text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${selectedConvId === conversation.id ? "bg-sidebar-ring" : ""
+                className={`group flex items-center justify-between text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${selectedConvId === conversation.id ? "bg-sidebar-ring" : ""
                   }`}
-                onClick={() => dispatch(setSelectedConvId(conversation.id))}
               >
-                {conversation.title}
+                {renamingConvId === conversation.id ? (
+                  <input
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    onKeyDown={handleRenameConversation}
+                    onBlur={() => setRenamingConvId(null)}
+                    className="flex-1 bg-transparent border border-sidebar-border rounded px-1 text-sm focus:outline-none focus:ring-1 focus:ring-sidebar-ring"
+                    autoFocus
+                  />
+                ) : (
+                  <>
+                    <span
+                      className="flex-1 truncate"
+                      onClick={() => {
+                        dispatch(clearChatState());
+                        dispatch(setSelectedConvId(conversation.id));
+                      }}
+                    >
+                      {conversation.title}
+                    </span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={(e) => e.stopPropagation()} // Prevent row click
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem>
+                          <Share2 className="mr-2 h-4 w-4" />
+                          <span>Share</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setRenamingConvId(conversation.id);
+                          setNewTitle(conversation.title);
+                        }}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          <span>Rename</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Archive className="mr-2 h-4 w-4" />
+                          <span>Archive</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-500"
+                          onClick={() => {
+                            setConversationIdToDelete(conversation.id);
+                            setShowDeleteDialog(true);
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
               </div>
             ))}
         </div>
@@ -179,6 +297,27 @@ export function Sidebar() {
           </Link>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this conversation? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
