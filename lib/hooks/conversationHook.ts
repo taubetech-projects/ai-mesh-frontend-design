@@ -4,6 +4,7 @@ import {
   getConversationsApi,
   updateConversationApi,
   deleteConversationApi,
+  getConversationByConvoTypeApi,
 } from "@/lib/conversationApi";
 import { queryKey } from "../query/keys";
 
@@ -23,6 +24,22 @@ export const useGetConversationsApi = () =>
     queryFn: getConversationsApi,
     staleTime: 300_000, // 👈 1 minute
   });
+
+export const useGetConversationsForChat = () => {
+  return useQuery({
+    queryKey: [...queryKey.conversations(), "chat"],
+    queryFn: () => getConversationByConvoTypeApi("chat"),
+    staleTime: 300_000, // 👈 1 minute
+  });
+}
+
+export const useGetConversationsForImage = () => {
+  return useQuery({
+    queryKey: [...queryKey.conversations(), "image"],
+    queryFn: () => getConversationByConvoTypeApi("image"),
+    staleTime: 300_000, // 👈 1 minute
+  });
+}
 
 export const useUpdateConversationApi = () => {
   const queryClient = useQueryClient();

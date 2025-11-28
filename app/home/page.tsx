@@ -1,25 +1,31 @@
 "use client"
 
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import { Sidebar } from "@/components/sidebar";
-import { ChatInterface } from "@/components/chat-interface-3";
-import store from "@/redux/store";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/lib/auth";
+import { ChatInterface } from "@/components/chat-interface-3"; // Assuming this is your chat interface
+import { ImageGenerationInterface } from "./image/components/image-generation-interface"; // New import
+import store, { RootState } from "@/redux/store";
 import ProtectedRoute from "@/components/protected-route";
 
 export type RouteSel = { provider: string; model: string };
 
+function HomeContent() {
+    const { activeInterface } = useSelector((state: RootState) => state.ui);
+
+    return (
+        <div className="flex h-screen bg-background">
+            <Sidebar activeInterface={activeInterface} />
+            {activeInterface === 'chat' ? <ChatInterface /> : <ImageGenerationInterface />}
+        </div>
+    );
+}
+
 export default function HomePage() {
     return (
         <ProtectedRoute>
-            <div className="flex h-screen bg-background">
-                <Provider store={store}>
-                    <Sidebar />
-                    <ChatInterface />
-                </Provider>
-            </div>
+            <Provider store={store}>
+                <HomeContent />
+            </Provider>
         </ProtectedRoute>
     );
 }

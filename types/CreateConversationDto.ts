@@ -1,4 +1,5 @@
 export class CreateConversationDto {
     title: string;
-    constructor(title: string) { this.title = title; }
+    convoType: string;
+    constructor(title: string, convoType: string) { this.title = title; this.convoType = convoType;}
 }

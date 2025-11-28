@@ -9,19 +9,22 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
+  ChevronDown,
   Share2,
   Pencil,
   Archive,
   Trash2,
 } from "lucide-react";
+import { ImageIcon } from "lucide-react"; // New import for image icon
 import { LanguageSelector } from "@/components/language-selector";
 import { useLanguage } from "@/contexts/language-context";
 import { ThemeToggle } from "./theme-toggle";
 import { useEffect, useState } from "react";
-import { useDeleteConversationApi, useGetConversationsApi, useUpdateConversationApi } from "@/lib/hooks/conversationHook";
+import { useDeleteConversationApi, useGetConversationsApi, useGetConversationsForChat, useGetConversationsForImage, useUpdateConversationApi } from "@/lib/hooks/conversationHook";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedConvId } from "@/redux/conversation-slice";
 import { clearChatState } from "@/redux/chat-interface-slice";
+import { setActiveInterface as setGlobalActiveInterface } from "@/redux/ui-slice"; // Renamed import
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -40,8 +43,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export function Sidebar() {
+interface SidebarProps {
+  activeInterface: 'chat' | 'image';
+}
+
+export function Sidebar({ activeInterface }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isChatHistoryCollapsed, setIsChatHistoryCollapsed] = useState(false);
+  const [isImageHistoryCollapsed, setIsImageHistoryCollapsed] = useState(false);
   const { t } = useLanguage();
   const { selectedConvId } = useSelector(
     (store: any) => store.conversationSlice
@@ -56,11 +65,17 @@ export function Sidebar() {
   const [renamingConvId, setRenamingConvId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
 
-  const { isPending, data: conversations, isError } = useGetConversationsApi();
+  // const { isPending, data: conversations, isError } = useGetConversationsApi();
+  // Filter conversations into chat and image history
+  const { isPending: isChatPending, data: chatHistory, isError: isChatError } = useGetConversationsForChat();
+  const { isPending: isImagePending, data: imageHistory, isError: isImageError } = useGetConversationsForImage();
+  console.log("Chat History: ", chatHistory, "Image History: ", imageHistory);
+
 
   const handleNewChat = () => {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
+    dispatch(setGlobalActiveInterface('chat')); // Ensure chat interface is active
   };
 
   const handleDeleteConversation = () => {
@@ -81,6 +96,12 @@ export function Sidebar() {
       setNewTitle("");
     }
   }
+
+  const handleGenerateImage = () => {
+    dispatch(setSelectedConvId(null));
+    dispatch(clearChatState());
+    dispatch(setGlobalActiveInterface('image')); // Ensure image interface is active
+  };
 
   // 👇 When conversations load, select the last one automatically
   // useEffect(() => {
@@ -130,7 +151,8 @@ export function Sidebar() {
         {!isCollapsed && (
           <Button
             onClick={handleNewChat}
-            className="w-full justify-start gap-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
+            className={`w-full justify-start gap-2 ${activeInterface === 'chat' ? 'bg-sidebar-primary' : 'bg-sidebar-primary'} text-sidebar-primary-foreground hover:bg-sidebar-primary/90`}
+          >
             <Plus className="w-4 h-4" />
             {t.nav.newChat}
           </Button>
@@ -139,7 +161,7 @@ export function Sidebar() {
         {isCollapsed && (
           <Button
             onClick={handleNewChat}
-            className="w-full justify-center bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+            className={`w-full justify-center ${activeInterface === 'chat' ? 'bg-sidebar-ring' : 'bg-sidebar-primary'} text-sidebar-primary-foreground hover:bg-sidebar-primary/90`}
           >
             <Plus className="w-4 h-4" />
           </Button>
@@ -157,10 +179,10 @@ export function Sidebar() {
 
       {/* Projects Section */}
       {!isCollapsed && (
-        <div className="flex-1 p-4">
+        <div className="p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
-              <Folder className="w-4 h-4" />
+              <Folder className="w-4 h-4 flex-shrink-0" />
               {t.nav.project}
             </div>
             <Button
@@ -174,99 +196,194 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* History Section */}
+      {/* History Sections Wrapper */}
       {!isCollapsed && (
-        <div className="flex-1 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
-              <Folder className="w-4 h-4" />
-              {t.nav.history}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Chat History Section */}
+          <div className="p-4 flex flex-col min-h-[150px] overflow-hidden">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
+                <Folder className="w-4 h-4 flex-shrink-0" />
+                Chat History
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-5 h-5 text-sidebar-foreground hover:bg-sidebar-accent"
+                onClick={() => setIsChatHistoryCollapsed(!isChatHistoryCollapsed)}
+              >
+                {isChatHistoryCollapsed ? (
+                  <ChevronRight className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-5 h-5 text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              <Plus className="w-3 h-3" />
-            </Button>
+            {!isChatHistoryCollapsed && (<div className="flex-1 overflow-y-auto no-scrollbar">
+              {isChatPending && <div>Loading...</div>}
+              {isChatError && <div>Error</div>}
+              {chatHistory?.map((conversation: any) => (
+                <div // Use a group to show menu on hover
+                  key={conversation.id}
+                  className={`group flex items-center justify-between text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${selectedConvId === conversation.id ? "bg-sidebar-ring" : ""
+                    }`}
+                >
+                  {renamingConvId === conversation.id ? (
+                    <input
+                      type="text"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      onKeyDown={handleRenameConversation}
+                      onBlur={() => setRenamingConvId(null)}
+                      className="flex-1 bg-transparent border border-sidebar-border rounded px-1 text-sm focus:outline-none focus:ring-1 focus:ring-sidebar-ring"
+                      autoFocus
+                    />
+                  ) : (
+                    <>
+                      <span
+                        className="flex-1 truncate"
+                        onClick={() => {
+                          dispatch(setGlobalActiveInterface('chat'));
+                          dispatch(clearChatState());
+                          dispatch(setSelectedConvId(conversation.id));
+                        }}
+                      >
+                        {conversation.title}
+                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                            onClick={(e) => e.stopPropagation()} // Prevent row click
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            <span>Share</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setRenamingConvId(conversation.id);
+                            setNewTitle(conversation.title);
+                          }}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>Rename</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Archive className="mr-2 h-4 w-4" />
+                            <span>Archive</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-500"
+                            onClick={() => {
+                              setConversationIdToDelete(conversation.id);
+                              setShowDeleteDialog(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>)}
           </div>
 
-          <div className="text-xs text-muted-foreground mb-2">
-            Monday, September 8th
-          </div>
-          {isPending && <div>Loading Conversations...</div>}
-          {isError && <div>Error fetching conversations</div>}
-          {conversations &&
-            conversations.map((conversation: any) => (
-              <div // Use a group to show menu on hover
-                key={conversation.id}
-                className={`group flex items-center justify-between text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${selectedConvId === conversation.id ? "bg-sidebar-ring" : ""
-                  }`}
-              >
-                {renamingConvId === conversation.id ? (
-                  <input
-                    type="text"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    onKeyDown={handleRenameConversation}
-                    onBlur={() => setRenamingConvId(null)}
-                    className="flex-1 bg-transparent border border-sidebar-border rounded px-1 text-sm focus:outline-none focus:ring-1 focus:ring-sidebar-ring"
-                    autoFocus
-                  />
-                ) : (
-                  <>
-                    <span
-                      className="flex-1 truncate"
-                      onClick={() => {
-                        dispatch(clearChatState());
-                        dispatch(setSelectedConvId(conversation.id));
-                      }}
-                    >
-                      {conversation.title}
-                    </span>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                          onClick={(e) => e.stopPropagation()} // Prevent row click
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem>
-                          <Share2 className="mr-2 h-4 w-4" />
-                          <span>Share</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setRenamingConvId(conversation.id);
-                          setNewTitle(conversation.title);
-                        }}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          <span>Rename</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Archive className="mr-2 h-4 w-4" />
-                          <span>Archive</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-500"
-                          onClick={() => {
-                            setConversationIdToDelete(conversation.id);
-                            setShowDeleteDialog(true);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
+          {/* Image History Section */}
+          <div className="p-4 flex flex-col min-h-[150px] overflow-hidden">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-sm text-sidebar-foreground">
+                <ImageIcon className="w-4 h-4 flex-shrink-0" />
+                Image History
               </div>
-            ))}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-5 h-5 text-sidebar-foreground hover:bg-sidebar-accent"
+                onClick={() => setIsImageHistoryCollapsed(!isImageHistoryCollapsed)}
+              >
+                {isImageHistoryCollapsed ? (
+                  <ChevronRight className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            {!isImageHistoryCollapsed && (<div className="flex-1 overflow-y-auto no-scrollbar">
+              {isImagePending && <div>Loading...</div>}
+              {isImageError && <div>Error</div>}
+              {imageHistory?.map((conversation: any) => (
+                <div
+                  key={conversation.id}
+                  className={`group flex items-center justify-between text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${selectedConvId === conversation.id ? "bg-sidebar-ring" : ""
+                    }`}
+                >
+                  {renamingConvId === conversation.id ? (
+                    <input
+                      type="text"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                      onKeyDown={handleRenameConversation}
+                      onBlur={() => setRenamingConvId(null)}
+                      className="flex-1 bg-transparent border border-sidebar-border rounded px-1 text-sm focus:outline-none focus:ring-1 focus:ring-sidebar-ring"
+                      autoFocus
+                    />
+                  ) : (
+                    <>
+                      <span
+                        className="flex-1 truncate"
+                        onClick={() => {
+                          dispatch(setGlobalActiveInterface('image')); // Set to image interface
+                          dispatch(clearChatState());
+                          dispatch(setSelectedConvId(conversation.id));
+                        }}
+                      >
+                        {conversation.title}
+                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={() => {
+                            setRenamingConvId(conversation.id);
+                            setNewTitle(conversation.title);
+                          }}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>Rename</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-500"
+                            onClick={() => {
+                              setConversationIdToDelete(conversation.id);
+                              setShowDeleteDialog(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>)}
+          </div>
         </div>
       )}
 
@@ -277,6 +394,18 @@ export function Sidebar() {
             <LanguageSelector />
           </div>
         )}
+
+        {/* New: Generate Image Button */}
+        <Button
+          onClick={() => handleGenerateImage()}
+          variant="ghost"
+          className={`w-full justify-start gap-2 ${activeInterface === 'image' ? 'bg-sidebar-ring' : 'bg-sidebar-primary'} text-sidebar-primary-foreground hover:bg-sidebar-primary/90`}
+        >
+          <ImageIcon className="w-4 h-4" />
+          {!isCollapsed && "Generate Image"}
+        </Button>
+
+
 
         {/* Settings */}
         <div

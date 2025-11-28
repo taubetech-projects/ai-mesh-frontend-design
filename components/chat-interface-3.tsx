@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns-2";
-import { ModelSelector } from "@/components/model-selector";
+import { ModelSelector } from "@/components/chat-model-selector";
 import { ChatRequestBody, ContentItem, FileUploadItem, ModelProvider, RouteSel } from "@/types/models";
 import { Send, Mic, Paperclip, Settings, X, File, FileImage, FileText, FileAudio, FileVideo } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
@@ -24,6 +24,7 @@ import { authHeader } from "@/lib/auth";
 import { useCreateConversationApi, useGetConversationsApi } from "@/lib/hooks/conversationHook";
 import { se } from "date-fns/locale";
 import { setSelectedConvId } from "@/redux/conversation-slice";
+import { RootState } from "@/redux/store";
 
 export function ChatInterface() {
     const {
@@ -36,6 +37,7 @@ export function ChatInterface() {
         uploadingFiles,
         showRecorder,
     } = useSelector((store: any) => store.chatInterface);
+    const { activeInterface } = useSelector((store: RootState) => store.ui);
     const { selectedConvId } = useSelector(
         (store: any) => store.conversationSlice
     );
@@ -242,10 +244,12 @@ export function ChatInterface() {
         let currentConvId = selectedConvId;
 
         // If there's no selected conversation, create one first.
+        console.log("Active Interface: ", activeInterface);
         if (!currentConvId) {
             try {
                 const newConversation = await createConversation.mutateAsync({
                     title: userMessage.substring(0, 50), // Use first 50 chars as title
+                    convoType: activeInterface
                 });
                 currentConvId = newConversation.id;
                 dispatch(setSelectedConvId(newConversation.id));
@@ -330,7 +334,7 @@ export function ChatInterface() {
             if (editedMessageId) {
                 await updateMessages.mutateAsync({ messageId: editedMessageId, chatRequestBody }); // Update existing message
             } else {
-                await createMessages.mutateAsync(chatRequestBody ); // Create message
+                await createMessages.mutateAsync(chatRequestBody); // Create message
             }
             dispatch(setEditMessageId(null));
             dispatch(clearModelResponses());
@@ -392,6 +396,7 @@ export function ChatInterface() {
 
     return (
         <div className="flex-1 flex flex-col h-full bg-background">
+            {/* ModelColumns is now always visible */}
             <div className="flex-1 relative h-full" style={{ minHeight: 0 }}>
                 <ModelColumns />
             </div>

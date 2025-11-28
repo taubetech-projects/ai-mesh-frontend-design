@@ -30,10 +30,13 @@ export const apiCall = async <T>(
 
 // CRUD functions for the post feed
 export const createConversationApi = (conversation: CreateConversationDto) =>
-  apiCall<any>("post", "/v1/conversations", new CreateConversationDto(conversation.title));
+  apiCall<any>("post", "/v1/conversations", new CreateConversationDto(conversation.title, conversation.convoType));
 
 export const getConversationsApi = () =>
   apiCall<any>("get", "/v1/conversations");
+
+export const getConversationByConvoTypeApi = (convoType: string) => 
+  apiCall<any>("get", `/v1/conversations/type/${convoType}`);
 
 export const updateConversationApi = (id: string, conversation: object) =>
   apiCall<any>("put", `/v1/conversations/${id}`, conversation);

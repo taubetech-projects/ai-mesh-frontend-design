@@ -164,7 +164,7 @@ interface ChatInterfaceState {
 }
 
 const initialSelectedModels: RouteSel[] = [
-  { provider: "gemini", model: "gemini-2.5-flash-lite" },
+  { provider: "openai", model: "gpt-5-nano" },
   { provider: "deepseek", model: "deepseek-chat" },
 ];
 

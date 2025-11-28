@@ -58,7 +58,7 @@ export interface ImageRequestBody {
   mode: string | null;
   routes: RouteSel[] | null;
   prompt: string;
-  images: ImageInput[];
+  images: ImageInput[] | null;
   stream: boolean;
   provider_response: boolean;
   isImageGeneration?: boolean; // Add this flag
