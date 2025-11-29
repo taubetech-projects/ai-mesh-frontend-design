@@ -1,4 +1,5 @@
 import { authenticatedApi } from "./axiosApi";
+import { CreateConversationDto } from "../types/CreateConversationDto";
 
 // Error handler function to standardize error messages
 export const handleApiError = (error: any): never => {
@@ -28,13 +29,16 @@ export const apiCall = async <T>(
 };
 
 // CRUD functions for the post feed
-export const createConversationApi = (conversation: any) =>
-  apiCall<any>("post", "/v1/conversations", conversation);
+export const createConversationApi = (conversation: CreateConversationDto) =>
+  apiCall<any>("post", "/v1/conversations", new CreateConversationDto(conversation.title, conversation.convoType));
 
 export const getConversationsApi = () =>
   apiCall<any>("get", "/v1/conversations");
 
-export const updateConversationApi = (id: string, conversation: any) =>
+export const getConversationByConvoTypeApi = (convoType: string) => 
+  apiCall<any>("get", `/v1/conversations/type/${convoType}`);
+
+export const updateConversationApi = (id: string, conversation: object) =>
   apiCall<any>("put", `/v1/conversations/${id}`, conversation);
 
 export const deleteConversationApi = (id: string) =>

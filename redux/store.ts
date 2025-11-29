@@ -1,15 +1,17 @@
-import { configureStore } from "@reduxjs/toolkit";
-import chatInterfaceSlice from "./chat-interface-slice";
-import playgroundInterfaceSlice from "./playground-interface-slice";
-import conversationSlice from "./conversation-slice";
+import { configureStore } from '@reduxjs/toolkit';
+import chatInterfaceReducer from './chat-interface-slice';
+import conversationSliceReducer from './conversation-slice';
+import uiReducer from './ui-slice'; // Import the new reducer
+import imageGenerationReducer from './image-generation-slice'; // Import the image generation reducer
 
 const store = configureStore({
   reducer: {
-    chatInterface: chatInterfaceSlice,
-    playgroundInterface: playgroundInterfaceSlice,
-    conversationSlice: conversationSlice,
+    chatInterface: chatInterfaceReducer,
+    conversationSlice: conversationSliceReducer,
+    ui: uiReducer, // Add the new reducer
+    imageGeneration: imageGenerationReducer, // Add the image generation reducer
   },
-  devTools: process.env.NODE_ENV !== "production",
 });
 
+export type RootState = ReturnType<typeof store.getState>;
 export default store;

@@ -164,7 +164,7 @@ interface ChatInterfaceState {
 }
 
 const initialSelectedModels: RouteSel[] = [
-  { provider: "gemini", model: "gemini-2.5-flash-lite" },
+  { provider: "openai", model: "gpt-5-nano" },
   { provider: "deepseek", model: "deepseek-chat" },
 ];
 
@@ -324,6 +324,12 @@ const chatInterfaceSlice = createSlice({
     },
     setCurrentMessageVersion(state, action) {
       state.currentMessageVersion = action.payload;
+    },
+    clearChatState(state) {
+      state.messages = {};
+      state.inputMessage = "";
+      state.modelResponses = {};
+      state.editedMessageId = null;
     }
   },
 });
@@ -345,6 +351,7 @@ export const {
   triggerFileUploading,
   startRecorder,
   stopRecorder,
-  setCurrentMessageVersion
+  setCurrentMessageVersion,
+  clearChatState
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;

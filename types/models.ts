@@ -157,6 +157,7 @@ export interface SaveMessageRequest {
   externalConversationId?: string;
   authorId: string;
   role: string;
+  provider?: string;
   model?: string;
   mode: string | null;
   parts: MessagePartRequest[];

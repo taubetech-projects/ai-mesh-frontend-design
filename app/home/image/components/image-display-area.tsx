@@ -13,8 +13,9 @@ import {
   useDeleteForSingleModel,
 } from "@/lib/hooks/messageHook";
 
-import MessageComponent from "./message-component";
+import MessageComponent from "../../../../components/message-component";
 import { useState } from "react";
+import ImageMessageComponent from "./image-message-component";
 
 const getModelMessages = (
   activeModel: string,
@@ -77,7 +78,7 @@ const getModelGrouppedMessages = (
   return result;
 };
 
-export function ChatArea({ activeModel }: ChatAreaProps) {
+export function ImageDisplayArea({ activeModel }: ChatAreaProps) {
   const { selectedConvId } = useSelector(
     (store: any) => store.conversationSlice
   );
@@ -90,7 +91,6 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
     useDeleteForSingleModel(selectedConvId);
 
   const isDeleting = isDeletingForAll || isDeletingForModel;
-  console.log("Selected Conversations Data : ", data);
 
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
@@ -107,16 +107,15 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
 
   // The deleteMessage hook's mutate function might need to be updated
   // to accept an object like { messageId, modelName } for model-specific deletion.
+  const modelMessages = getModelMessages(activeModel, data);
+  if (modelMessages === undefined) return null;
 
   const groupedMessagesMap = getModelGrouppedMessages(activeModel, data);
-  // console.log("groupedMessagesMap", groupedMessagesMap);
+  console.log("groupedMessagesMap", groupedMessagesMap);
 
   const messageGroups = Array.from(groupedMessagesMap.get(activeModel)?.values() ?? []);
-  console.log(`[ChatArea] Rendering for model "${activeModel}". Found ${messageGroups.length} message groups.`, messageGroups);
+  console.log("messageGroups", messageGroups);
 
-  // if (isPending) {
-  //   return <div className="flex-1 p-4 text-center">Loading messages...</div>;
-  // }
 
   return (
     <div className="flex flex-col h-full">
@@ -128,7 +127,7 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
           if (group.length === 0) return null;
           return (
             <div key={group[0].groupId ?? index}>
-              <MessageComponent
+              <ImageMessageComponent
                 messageGroup={group}
                 onDelete={openDeleteDialog}
               />

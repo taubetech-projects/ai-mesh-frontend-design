@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelColumns } from "@/components/model-columns-2";
-import { ModelSelector } from "@/components/model-selector";
+import { ModelSelector } from "@/components/chat-model-selector";
 import { ChatRequestBody, ContentItem, FileUploadItem, ModelProvider, RouteSel } from "@/types/models";
 import { Send, Mic, Paperclip, Settings, X, File, FileImage, FileText, FileAudio, FileVideo } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
@@ -14,14 +14,17 @@ import {
     toggleModelSelector,
     updateInputMessage,
     triggerFileUploading,
-    startRecorder,
-    stopRecorder,
+    startRecorder, stopRecorder,
 } from "@/redux/chat-interface-slice";
 import { useCreateMessages, useUpdateMessages } from "@/lib/hooks/messageHook";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "@/lib/http";
 import { AudioRecorderModal } from "./audio-recorder-model";
 import { authHeader } from "@/lib/auth";
+import { useCreateConversationApi, useGetConversationsApi } from "@/lib/hooks/conversationHook";
+import { se } from "date-fns/locale";
+import { setSelectedConvId } from "@/redux/conversation-slice";
+import { RootState } from "@/redux/store";
 
 export function ChatInterface() {
     const {
@@ -34,12 +37,14 @@ export function ChatInterface() {
         uploadingFiles,
         showRecorder,
     } = useSelector((store: any) => store.chatInterface);
+    const { activeInterface } = useSelector((store: RootState) => store.ui);
     const { selectedConvId } = useSelector(
         (store: any) => store.conversationSlice
     );
     const dispatch = useDispatch();
-    const createMessages = useCreateMessages(selectedConvId);
+    const createMessages = useCreateMessages(selectedConvId); // Will get convId at time of mutation
     const updateMessages = useUpdateMessages(selectedConvId, editedMessageId);
+    const createConversation = useCreateConversationApi();
     // const updateMessages = useUpdateMessages(selectedConvId);
 
     // 🔹 File handling
@@ -235,6 +240,26 @@ export function ChatInterface() {
     // ---- Send / Stream ----
     const onSend = async (userMessage: string) => {
         if (selectedModels.length === 0) return;
+
+        let currentConvId = selectedConvId;
+
+        // If there's no selected conversation, create one first.
+        console.log("Active Interface: ", activeInterface);
+        if (!currentConvId) {
+            try {
+                const newConversation = await createConversation.mutateAsync({
+                    title: userMessage.substring(0, 50), // Use first 50 chars as title
+                    convoType: activeInterface
+                });
+                currentConvId = newConversation.id;
+                dispatch(setSelectedConvId(newConversation.id));
+                console.log("New conversation created and selected:", currentConvId);
+            } catch (error) {
+                console.error("Failed to create conversation:", error);
+                return; // Stop if conversation creation fails
+            }
+        }
+
         const bodyRoutes: RouteSel[] = selectedModels
             .filter((model: RouteSel) => model.model !== "consensus")
             .map((model: RouteSel) => ({
@@ -304,13 +329,12 @@ export function ChatInterface() {
             //     stream: true,
             //     provider_response: false,
             // };
-
             console.log("editedMessageId", editedMessageId)
             console.log("editedMessageId", editedMessageId);
-            if (editedMessageId && editedMessageId > 0) {
-                await updateMessages.mutateAsync({ messageId: editedMessageId, chatRequestBody });
+            if (editedMessageId) {
+                await updateMessages.mutateAsync({ messageId: editedMessageId, chatRequestBody }); // Update existing message
             } else {
-                await createMessages.mutateAsync(chatRequestBody);
+                await createMessages.mutateAsync(chatRequestBody); // Create message
             }
             dispatch(setEditMessageId(null));
             dispatch(clearModelResponses());
@@ -372,6 +396,7 @@ export function ChatInterface() {
 
     return (
         <div className="flex-1 flex flex-col h-full bg-background">
+            {/* ModelColumns is now always visible */}
             <div className="flex-1 relative h-full" style={{ minHeight: 0 }}>
                 <ModelColumns />
             </div>
