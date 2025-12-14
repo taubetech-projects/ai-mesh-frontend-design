@@ -312,12 +312,12 @@ export const useCreateMessages = (conversationId: number) => {
         }
       }
       console.log("Bodies:", bodies);
-      const saved = await messageApi.createBatch(conversationId, bodies);
+      // const saved = await messageApi.createBatch(conversationId, bodies);
 
       // We could replace temp ids with saved ids; simplest is to revalidate:
       queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
 
-      return saved;
+      return null;
     },
 
     // Keep onMutate just for rollback safety
