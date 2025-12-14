@@ -27,7 +27,7 @@ export function streamChat(
   onEvent: (evt: { event: string; data: any }) => void,
   signal?: AbortSignal
 ) {
-  return fetch(`${API_BASE}/v1/chat/completions/streaming-and-non-streaming`, {
+  return fetch(`${API_BASE}/v1/chat/completions/streaming-and-non-streaming/1`, {
     method: "POST",
     headers: {
       ...authHeader(),
