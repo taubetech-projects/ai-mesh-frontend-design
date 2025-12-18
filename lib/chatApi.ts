@@ -1,11 +1,22 @@
 import { ChatStreamBody } from "@/types/models";
 import { API_BASE } from "./http";
 import { authHeader } from "./auth";
+import {
+  API_PATHS,
+  APPLICATION_JSON,
+  CACHE_NO_STORE,
+  CONTENT_TYPE,
+  EMPTY_STRING,
+  EVENT_DATA_SLICE_START,
+  EVENT_DATA_START_WITH,
+  EVENT_NAME_SLICE_START,
+  EVENT_NAME_START_WITH,
+} from "@/types/constants";
 
 export async function fetchProviders() {
   const res = await fetch(`${API_BASE}/v1/providers`, {
     headers: authHeader(),
-    cache: "no-store",
+    cache: CACHE_NO_STORE,
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -13,7 +24,7 @@ export async function fetchProviders() {
 export async function fetchModels(providerId: string) {
   const res = await fetch(`${API_BASE}/v1/providers/${providerId}/models`, {
     headers: authHeader(),
-    cache: "no-store",
+    cache: CACHE_NO_STORE,
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -21,17 +32,18 @@ export async function fetchModels(providerId: string) {
 
 /** Basic SSE reader. Calls onEvent({event, data}) for each frame. */
 export function streamChat(
+  conversationId: number,
   // body: ChatStreamBody,
   body: any,
 
   onEvent: (evt: { event: string; data: any }) => void,
   signal?: AbortSignal
 ) {
-  return fetch(`${API_BASE}/v1/chat/completions/streaming-and-non-streaming`, {
+  return fetch(API_BASE + API_PATHS.CONVERSATIONS.COMPLETIONS(conversationId), {
     method: "POST",
     headers: {
       ...authHeader(),
-      "Content-Type": "application/json",
+      [CONTENT_TYPE]: APPLICATION_JSON,
     },
     body: JSON.stringify(body),
     signal,
@@ -40,40 +52,44 @@ export function streamChat(
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
 
-    let buf = "";
+    let buf = EMPTY_STRING;
     const processBuffer = (isFinal: boolean = false) => {
       let idx: number;
       while ((idx = buf.indexOf("\n\n")) !== -1) {
         const frame = buf.slice(0, idx);
         buf = buf.slice(idx + 2);
         let event = "message";
-        let data = "";
+        let data = EMPTY_STRING;
         for (const line of frame.split("\n")) {
           if (!line) continue;
-          if (line.startsWith("event:")) event = line.slice(6).trim();
-          else if (line.startsWith("data:")) data += line.slice(5).trim();
+          if (line.startsWith(EVENT_NAME_START_WITH))
+            event = line.slice(EVENT_NAME_SLICE_START).trim();
+          else if (line.startsWith(EVENT_DATA_START_WITH))
+            data += line.slice(EVENT_DATA_SLICE_START).trim();
         }
         if (data) {
           try {
             onEvent({ event: event, data: JSON.parse(data) });
-          } catch { }
+          } catch {}
         }
       }
       // Process final incomplete frame if stream is done
       if (isFinal && buf) {
         let event = "message";
-        let data = "";
+        let data = EMPTY_STRING;
         for (const line of buf.split("\n")) {
           if (!line) continue;
-          if (line.startsWith("event:")) event = line.slice(6).trim();
-          else if (line.startsWith("data:")) data += line.slice(5).trim();
+          if (line.startsWith(EVENT_NAME_START_WITH))
+            event = line.slice(EVENT_NAME_SLICE_START).trim();
+          else if (line.startsWith(EVENT_DATA_START_WITH))
+            data += line.slice(EVENT_DATA_SLICE_START).trim();
         }
         if (data) {
           try {
             onEvent({ event: event, data: JSON.parse(data) });
-          } catch { }
+          } catch {}
         }
-        buf = ""; // Clear buffer
+        buf = EMPTY_STRING; // Clear buffer
       }
     };
 

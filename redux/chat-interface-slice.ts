@@ -1,7 +1,7 @@
+import { EMPTY_STRING, ROLES } from "@/types/constants";
 import { AIModel, Message, ModelProvider, RouteSel } from "@/types/models";
 
 import { createSlice } from "@reduxjs/toolkit";
-import { clear } from "console";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -236,10 +236,10 @@ const chatInterfaceSlice = createSlice({
         const existingMessages = newMessages[modelId] || [];
         newMessages[modelId] = [
           ...existingMessages,
-          { role: "user", content: action.payload },
+          { role: ROLES.USER, content: action.payload },
           {
-            role: "assistant",
-            content: "",
+            role: ROLES.ASSISTANT,
+            content: EMPTY_STRING,
             meta: {
               provider: selectedModel.provider,
               model: selectedModel.model,
@@ -268,7 +268,7 @@ const chatInterfaceSlice = createSlice({
         // Append the new content chunk to the last message
         lastMessage.content += content;
         // console.log("lastMessage", lastMessage.content, contentChunk);
-        if (lastMessage.role !== "assistant") return; // No change if last message is not from assistant
+        if (lastMessage.role !== ROLES.ASSISTANT) return; // No change if last message is not from assistant
         newMessages[modelId] = updatedMessages;
         state.messages = newMessages;
       },
@@ -287,7 +287,7 @@ const chatInterfaceSlice = createSlice({
 
         // ✅ Safely initialize key if missing
         if (!state.modelResponses[modelId]) {
-          state.modelResponses[modelId] = "";
+          state.modelResponses[modelId] = EMPTY_STRING;
         }
         console.log("modelId", modelId, "content", content);
         // ✅ Append new content to existing text
@@ -313,7 +313,7 @@ const chatInterfaceSlice = createSlice({
     triggerParentSend: (state) => {
       state.triggerSend = !state.triggerSend; // toggle to force update
     },
-    triggerFileUploading:(state,action) =>{
+    triggerFileUploading: (state, action) => {
       state.uploadingFiles = action.payload;
     },
     startRecorder: (state) => {
@@ -330,7 +330,7 @@ const chatInterfaceSlice = createSlice({
       state.inputMessage = "";
       state.modelResponses = {};
       state.editedMessageId = null;
-    }
+    },
   },
 });
 
@@ -352,6 +352,6 @@ export const {
   startRecorder,
   stopRecorder,
   setCurrentMessageVersion,
-  clearChatState
+  clearChatState,
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;

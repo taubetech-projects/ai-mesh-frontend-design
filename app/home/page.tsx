@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Provider, useSelector } from "react-redux";
 import { Sidebar } from "@/components/sidebar";
@@ -10,22 +10,26 @@ import ProtectedRoute from "@/components/protected-route";
 export type RouteSel = { provider: string; model: string };
 
 function HomeContent() {
-    const { activeInterface } = useSelector((state: RootState) => state.ui);
+  const { activeInterface } = useSelector((state: RootState) => state.ui);
 
-    return (
-        <div className="flex h-screen bg-background">
-            <Sidebar activeInterface={activeInterface} />
-            {activeInterface === 'chat' ? <ChatInterface /> : <ImageGenerationInterface />}
-        </div>
-    );
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar activeInterface={activeInterface} />
+      {activeInterface === "CHAT" ? (
+        <ChatInterface />
+      ) : (
+        <ImageGenerationInterface />
+      )}
+    </div>
+  );
 }
 
 export default function HomePage() {
-    return (
-        <ProtectedRoute>
-            <Provider store={store}>
-                <HomeContent />
-            </Provider>
-        </ProtectedRoute>
-    );
+  return (
+    <ProtectedRoute>
+      <Provider store={store}>
+        <HomeContent />
+      </Provider>
+    </ProtectedRoute>
+  );
 }

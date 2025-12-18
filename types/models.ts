@@ -1,3 +1,10 @@
+import {
+  ROLES,
+  CONTENT_INPUT_TYPES,
+  MIME_TYPES,
+  CHAT_MODES,
+} from "./constants";
+
 export interface AIModel {
   id: string;
   name: string;
@@ -13,7 +20,7 @@ export interface ModelProvider {
 export interface ChatMessage {
   id: string;
   content: string;
-  role: "user" | "assistant";
+  role: ROLES;
   modelId: string;
   timestamp: Date;
 }
@@ -26,7 +33,7 @@ export interface ChatTab {
 }
 
 export type AssistantMsg = {
-  role: "assistant";
+  role: ROLES.ASSISTANT;
   content: string;
   meta?: {
     provider: string;
@@ -37,27 +44,31 @@ export type AssistantMsg = {
 };
 
 export interface Message {
-  role: "user" | "assistant";
+  role: ROLES.USER | ROLES.ASSISTANT;
   content: ContentItem[];
 }
 
 export type ContentItem =
-  | { type: "input_text"; text: string }
-  | { type: "input_image"; image_url: string; image_analyzed_text: string }
+  | { type: CONTENT_INPUT_TYPES.INPUT_TEXT; text: string }
   | {
-      type: "input_file";
+      type: CONTENT_INPUT_TYPES.INPUT_IMAGE;
+      image_url: string;
+      image_analyzed_text: string;
+    }
+  | {
+      type: CONTENT_INPUT_TYPES.INPUT_FILE;
       file_id: string;
       file_base64: string;
       file_analyzed_text: string;
     };
 
 export interface FileUploadItem {
-  type: "application/pdf" | "image/png" | "image/jpeg" | string;
+  type: MIME_TYPES.PDF | MIME_TYPES.PNG | MIME_TYPES.JPEG | string;
   filename: string;
   output: string;
 }
 
-export type UserMsg = { role: "user"; content: string };
+export type UserMsg = { role: ROLES.USER; content: string };
 // export type Message = UserMsg | AssistantMsg;
 export type RouteSel = { provider: string; model: string };
 
@@ -68,7 +79,7 @@ export type ChatMsg = {
 
 export type ChatStreamBody = {
   // NEW request contract
-  mode?: any;
+  mode?: CHAT_MODES; // single/multi/consensus
   messages: ChatMsg[];
   routes: RouteSel[] | null; // multi/consensus: array, single: null
   stream?: boolean; // new

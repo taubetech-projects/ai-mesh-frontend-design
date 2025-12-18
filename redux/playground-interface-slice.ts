@@ -1,3 +1,4 @@
+import { EMPTY_STRING, ROLES } from "@/types/constants";
 import { AIModel, Message, ModelProvider, RouteSel } from "@/types/models";
 
 import { createSlice } from "@reduxjs/toolkit";
@@ -239,10 +240,10 @@ const playgroundInterfaceSlice = createSlice({
         const existingMessages = newMessages[modelId] || [];
         newMessages[modelId] = [
           ...existingMessages,
-          { role: "user", content: action.payload },
+          { role: ROLES.USER, content: action.payload },
           {
-            role: "assistant",
-            content: "",
+            role: ROLES.ASSISTANT,
+            content: EMPTY_STRING,
             meta: {
               provider: selectedModel.provider,
               model: selectedModel.model,
@@ -270,7 +271,7 @@ const playgroundInterfaceSlice = createSlice({
         // Append the new content chunk to the last message
         lastMessage.content += content;
         // console.log("lastMessage", lastMessage.content, contentChunk);
-        if (lastMessage.role !== "assistant") return; // No change if last message is not from assistant
+        if (lastMessage.role !== ROLES.ASSISTANT) return; // No change if last message is not from assistant
         newMessages[modelId] = updatedMessages;
         state.messages = newMessages;
       },
@@ -291,7 +292,7 @@ const playgroundInterfaceSlice = createSlice({
         const existingMessages = newMessages[modelId] || [];
         newMessages[modelId] = [
           ...existingMessages,
-          { role: "user", content: action.payload },
+          { role: ROLES.USER, content: action.payload },
         ];
       }
       state.jsonMessages = newMessages;
@@ -310,7 +311,7 @@ const playgroundInterfaceSlice = createSlice({
         const modelMessages = newMessages[modelId] || [];
         newMessages[modelId] = [
           ...modelMessages,
-          { role: "assistant", content: content },
+          { role: ROLES.ASSISTANT, content: content },
         ];
         console.log("newMessages json", newMessages);
         state.jsonMessages = newMessages;
@@ -364,13 +365,13 @@ const playgroundInterfaceSlice = createSlice({
           // Append message (maintaining order)
           state.textMessagesWithMsgId[modelId][messageId].push({
             messageId: messageId,
-            role: "user",
+            role: ROLES.USER,
             content: content,
           });
           state.textMessagesWithMsgId[modelId][messageId].push({
             messageId: messageId,
-            role: "assistant",
-            content: "",
+            role: ROLES.ASSISTANT,
+            content: EMPTY_STRING,
             meta: {
               provider: selectedModel.provider,
               model: selectedModel.model,
@@ -400,7 +401,7 @@ const playgroundInterfaceSlice = createSlice({
         const lastMessage = updatedMessages[updatedMessages.length - 1];
         // Append the new content chunk to the last message
         lastMessage.content += content;
-        if (lastMessage.role !== "assistant") return; // No change if last message is not from assistant
+        if (lastMessage.role !== ROLES.ASSISTANT) return; // No change if last message is not from assistant
         state.textMessagesWithMsgId[modelId][messageId] = updatedMessages;
       },
     },
@@ -427,7 +428,7 @@ const playgroundInterfaceSlice = createSlice({
           // Append message (maintaining order)
           state.jsonMessagesWithMsgId[modelId][messageId].push({
             messageId: messageId,
-            role: "user",
+            role: ROLES.USER,
             content: content,
           });
         }
@@ -453,7 +454,7 @@ const playgroundInterfaceSlice = createSlice({
         // Append message (maintaining order)
         state.jsonMessagesWithMsgId[modelId][messageId].push({
           messageId: messageId,
-          role: "assistant",
+          role: ROLES.ASSISTANT,
           content: content,
         });
       },

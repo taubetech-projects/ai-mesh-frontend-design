@@ -1,6 +1,7 @@
 import { SaveMessageRequest, MessageView, MessagePage } from "@/types/models";
 import { authenticatedApi } from "./axiosApi";
 import type { AxiosError, AxiosRequestConfig } from "axios";
+import { API_PATHS, HTTP_METHODS } from "@/types/constants";
 
 /* ---------------------------
  * Error handling
@@ -27,14 +28,18 @@ export function handleApiError(error: unknown): never {
  * - Supports config for GET/DELETE
  * -------------------------- */
 export async function apiCall<T>(
-  method: "get" | "post" | "put" | "delete",
+  method:
+    | HTTP_METHODS.GET
+    | HTTP_METHODS.POST
+    | HTTP_METHODS.PUT
+    | HTTP_METHODS.DELETE,
   url: string,
   // For GET/DELETE, pass config in `config`; for POST/PUT, pass body in `data`
   data?: unknown,
   config?: AxiosRequestConfig
 ): Promise<T> {
   try {
-    if (method === "get" || method === "delete") {
+    if (method === HTTP_METHODS.GET || method === HTTP_METHODS.DELETE) {
       const res = await authenticatedApi[method](url, config);
       return res.data as T;
     }
@@ -51,25 +56,28 @@ export async function apiCall<T>(
 export const messageApi = {
   create: (conversationId: number, body: SaveMessageRequest) =>
     apiCall<MessageView>(
-      "post",
-      `/v1/conversations/${conversationId}/messages`,
+      HTTP_METHODS.POST,
+      API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
       body
     ),
 
   createBatch: (conversationId: number, body: SaveMessageRequest[]) =>
     apiCall<MessageView[]>(
-      "post",
-      `/v1/conversations/${conversationId}/messages`,
+      HTTP_METHODS.POST,
+      API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
       body
     ),
 
   listByConversation: (conversationId: number) =>
-    apiCall<MessagePage>("get", `/v1/conversations/${conversationId}/messages`),
+    apiCall<MessagePage>(
+      HTTP_METHODS.GET,
+      API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId)
+    ),
 
   update: (id: number, conversationId: number, body: SaveMessageRequest) =>
     apiCall<MessageView>(
-      "put",
-      `/v1/conversations/${conversationId}/messages/${id}`,
+      HTTP_METHODS.PUT,
+      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id),
       body
     ),
 
@@ -79,20 +87,21 @@ export const messageApi = {
     bodies: SaveMessageRequest[]
   ) =>
     apiCall<MessageView[]>(
-      "post",
-      `/v1/conversations/${conversationId}/messages/${messageId}`,
+      HTTP_METHODS.POST,
+      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, messageId),
       bodies
     ),
 
   removeForAllModel: (id: number, conversationId: number) =>
     apiCall<void>(
-      "delete",
-      `/v1/conversations/${conversationId}/messages/${id}/all`
+      HTTP_METHODS.DELETE,
+      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) + "/all"
     ),
 
   removeForSingleModel: (id: number, conversationId: number, model: string) =>
     apiCall<void>(
-      "delete",
-      `/v1/conversations/${conversationId}/messages/${id}?modelName=${model}`
+      HTTP_METHODS.DELETE,
+      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) +
+        `?modelName=${model}`
     ),
 };

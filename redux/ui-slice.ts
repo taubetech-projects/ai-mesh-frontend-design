@@ -1,23 +1,25 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { CONVERSATION_TYPES } from "@/types/constants";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type InterfaceType = 'chat' | 'image';
+type InterfaceType = CONVERSATION_TYPES.CHAT | CONVERSATION_TYPES.IMAGE;
 
 interface UiState {
-    activeInterface: InterfaceType;
+  activeInterface: InterfaceType;
 }
 
 const initialState: UiState = {
-    activeInterface: 'chat',
+  activeInterface: CONVERSATION_TYPES.CHAT,
 };
 
 const uiSlice = createSlice({
-    name: 'ui',
-    initialState,
-    reducers: {
-        setActiveInterface: (state, action: PayloadAction<InterfaceType>) => {
-            state.activeInterface = action.payload;
-        },
+  name: "ui",
+  initialState,
+  reducers: {
+    setActiveInterface: (state, action: PayloadAction<InterfaceType>) => {
+      state.activeInterface = action.payload;
+      console.log("Active interface set to:", action.payload);
     },
+  },
 });
 
 export const { setActiveInterface } = uiSlice.actions;

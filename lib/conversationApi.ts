@@ -1,5 +1,6 @@
 import { authenticatedApi } from "./axiosApi";
 import { CreateConversationDto } from "../types/CreateConversationDto";
+import { API_PATHS, HTTP_METHODS } from "@/types/constants";
 
 // Error handler function to standardize error messages
 export const handleApiError = (error: any): never => {
@@ -16,7 +17,11 @@ export const handleApiError = (error: any): never => {
 
 // General function to handle API requests
 export const apiCall = async <T>(
-  method: "get" | "post" | "put" | "delete",
+  method:
+    | HTTP_METHODS.GET
+    | HTTP_METHODS.POST
+    | HTTP_METHODS.PUT
+    | HTTP_METHODS.DELETE,
   url: string,
   data?: any
 ): Promise<T> => {
@@ -30,16 +35,24 @@ export const apiCall = async <T>(
 
 // CRUD functions for the post feed
 export const createConversationApi = (conversation: CreateConversationDto) =>
-  apiCall<any>("post", "/v1/conversations", new CreateConversationDto(conversation.title, conversation.convoType));
+  apiCall<any>(
+    HTTP_METHODS.POST,
+    API_PATHS.CONVERSATIONS.BASE,
+    new CreateConversationDto(conversation.title, conversation.convoType)
+  );
 
 export const getConversationsApi = () =>
-  apiCall<any>("get", "/v1/conversations");
+  apiCall<any>(HTTP_METHODS.GET, API_PATHS.CONVERSATIONS.BASE);
 
-export const getConversationByConvoTypeApi = (convoType: string) => 
-  apiCall<any>("get", `/v1/conversations/type/${convoType}`);
+export const getConversationByConvoTypeApi = (convoType: string) =>
+  apiCall<any>(HTTP_METHODS.GET, API_PATHS.CONVERSATIONS.BY_TYPE(convoType));
 
 export const updateConversationApi = (id: string, conversation: object) =>
-  apiCall<any>("put", `/v1/conversations/${id}`, conversation);
+  apiCall<any>(
+    HTTP_METHODS.PUT,
+    API_PATHS.CONVERSATIONS.BY_ID(id),
+    conversation
+  );
 
 export const deleteConversationApi = (id: string) =>
-  apiCall<any>("delete", `/v1/conversations/${id}`);
+  apiCall<any>(HTTP_METHODS.DELETE, API_PATHS.CONVERSATIONS.BY_ID(id));

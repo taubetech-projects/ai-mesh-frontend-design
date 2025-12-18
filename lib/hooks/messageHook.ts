@@ -16,6 +16,16 @@ import {
   endStreaming,
   startStreaming,
 } from "@/redux/chat-interface-slice";
+import {
+  CHAT_MODES,
+  CHAT_STREAM_EVENT_TYPES,
+  CONTENT_INPUT_TYPES,
+  EMPTY_STRING,
+  MESSAGE_PART_TYPES,
+  MIME_TYPES,
+  ROLES,
+  STALE_TIME,
+} from "@/types/constants";
 
 /* ---------------------------
  * Cache helpers
@@ -50,17 +60,14 @@ function remove(
   conversationId: number,
   predicate: (m: MessageView) => boolean
 ) {
-  queryClient.setQueryData<MessagePage>(
-    cacheKey(conversationId),
-    (oldPage) => {
-      if (!oldPage) return { messages: [], nextCursor: null };
-      const newMessages = (oldPage.messages || []).filter((m) => !predicate(m));
-      return {
-        ...oldPage,
-        messages: newMessages,
-      };
-    }
-  );
+  queryClient.setQueryData<MessagePage>(cacheKey(conversationId), (oldPage) => {
+    if (!oldPage) return { messages: [], nextCursor: null };
+    const newMessages = (oldPage.messages || []).filter((m) => !predicate(m));
+    return {
+      ...oldPage,
+      messages: newMessages,
+    };
+  });
 }
 
 /* ---------------------------
@@ -72,7 +79,7 @@ export const useGetMessagesByConversationId = (conversationId: number) =>
     // 👇 listByConversation must return { messages, nextCursor }
     queryFn: () =>
       messageApi.listByConversation(conversationId) as Promise<MessagePage>,
-    staleTime: 300_000,
+    staleTime: STALE_TIME,
     enabled: !!conversationId,
   });
 
@@ -112,19 +119,19 @@ export const useCreateMessages = (conversationId: number) => {
           if (m.id !== id) return m;
           const firstPart =
             (m.parts?.[0] as MessagePartRequest) ??
-            ({ type: "text", text: "" } as any);
+            ({ type: MESSAGE_PART_TYPES.TEXT, text: EMPTY_STRING } as any);
 
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-            ({
-              ...(p as any),
-              type: (p as any)?.type ?? "text",
-            } as MessagePartRequest)
+              ({
+                ...(p as any),
+                type: (p as any)?.type ?? MESSAGE_PART_TYPES.TEXT,
+              } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
-            { ...firstPart, type: "text", text: nextText },
+            { ...firstPart, type: MESSAGE_PART_TYPES.TEXT, text: nextText },
             ...restParts,
           ];
           return { ...m, parts: newParts } as MessageView;
@@ -141,7 +148,7 @@ export const useCreateMessages = (conversationId: number) => {
       if (!chatRequestBody.messages?.length)
         throw new Error("Missing chatRequestBody.messages.length");
 
-      const isConsensus = chatRequestBody.mode === "consensus";
+      const isConsensus = chatRequestBody.mode === CHAT_MODES.CONSENSUS;
       if (!isConsensus) {
         if (!chatRequestBody.routes?.length) {
           throw new Error("Missing chatRequestBody.routes for multi-model run");
@@ -156,14 +163,20 @@ export const useCreateMessages = (conversationId: number) => {
       let messageParts: MessagePartRequest[] = [];
 
       chatRequestBody.messages[0]?.content.map((item) => {
-        if (item.type === "input_text") {
+        if (item.type === CONTENT_INPUT_TYPES.INPUT_TEXT) {
           // userText = item.text;
-          messageParts.push({ type: "text", text: item.text });
-        } else if (item.type === "input_image") {
-          messageParts.push({ type: "image", mimeType: "image/jpeg" });
+          messageParts.push({ type: MESSAGE_PART_TYPES.TEXT, text: item.text });
+        } else if (item.type === CONTENT_INPUT_TYPES.INPUT_IMAGE) {
+          messageParts.push({
+            type: MESSAGE_PART_TYPES.IMAGE,
+            mimeType: MIME_TYPES.JPEG,
+          });
           console.log("Image Type", item.type);
-        } else if (item.type === "input_file") {
-          messageParts.push({ type: "file", mimeType: "application/pdf" });
+        } else if (item.type === CONTENT_INPUT_TYPES.INPUT_FILE) {
+          messageParts.push({
+            type: MESSAGE_PART_TYPES.FILE,
+            mimeType: MIME_TYPES.PDF,
+          });
           console.log("File Type", item.type);
         } else {
           throw new Error("Invalid Input Type");
@@ -175,7 +188,7 @@ export const useCreateMessages = (conversationId: number) => {
       const tempUser: MessageView = {
         id: tempUserId,
         conversationId,
-        role: "user",
+        role: ROLES.USER,
         authorId: "user-123",
         parts: messageParts,
       } as any;
@@ -190,10 +203,10 @@ export const useCreateMessages = (conversationId: number) => {
         const tempAssistant: MessageView = {
           id: tid,
           conversationId,
-          role: "assistant",
+          role: ROLES.ASSISTANT,
           authorId: modelId,
           model: modelId,
-          parts: [{ type: "text", text: "" }],
+          parts: [{ type: MESSAGE_PART_TYPES.TEXT, text: EMPTY_STRING }],
           createdAt: new Date(),
         } as any;
         pushMessage(tempAssistant);
@@ -201,7 +214,7 @@ export const useCreateMessages = (conversationId: number) => {
       };
 
       if (isConsensus) {
-        addAssistantPlaceholder("consensus");
+        addAssistantPlaceholder(CHAT_MODES.CONSENSUS);
       } else {
         for (const r of chatRequestBody.routes!) {
           addAssistantPlaceholder(r.model);
@@ -214,18 +227,20 @@ export const useCreateMessages = (conversationId: number) => {
       const expectedStreams = isConsensus ? 1 : chatRequestBody.routes!.length;
 
       dispatch(startStreaming());
+      console.log("ConversationId in mutationFn:", conversationId);
 
       await streamChat(
+        conversationId,
         chatRequestBody,
         (event) => {
           const name = event.event;
           const data = event.data || {};
 
-          if (name === "chat.response.created") {
+          if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_CREATED) {
             return;
           }
 
-          if (name === "chat.response.delta") {
+          if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_DELTA) {
             const modelId: string = data.model || "unknown";
             const chunk: string = data.delta?.text || "";
             if (!chunk) return;
@@ -246,7 +261,7 @@ export const useCreateMessages = (conversationId: number) => {
             return;
           }
 
-          if (name === "chat.response.completed") {
+          if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_COMPLETED) {
             completedCount += 1;
             if (completedCount >= expectedStreams) {
               dispatch(endStreaming());
@@ -254,13 +269,13 @@ export const useCreateMessages = (conversationId: number) => {
             return;
           }
 
-          if (name === "consensus") {
-            const modelId = "consensus";
-            const chunk: string = data?.delta?.text || "";
+          if (name === CHAT_STREAM_EVENT_TYPES.CONSENSUS) {
+            const modelId = CHAT_MODES.CONSENSUS;
+            const chunk: string = data?.delta?.text || EMPTY_STRING;
             if (chunk) {
               dispatch(concatenateDelta(modelId, chunk));
 
-              const prev = finalByModel.get(modelId) ?? "";
+              const prev = finalByModel.get(modelId) ?? EMPTY_STRING;
               const next = prev + chunk;
               finalByModel.set(modelId, next);
 
@@ -283,7 +298,7 @@ export const useCreateMessages = (conversationId: number) => {
 
       // user
       bodies.push({
-        role: "user",
+        role: ROLES.USER,
         mode: chatRequestBody.mode,
         authorId: "user-123",
         parts: messageParts,
@@ -293,7 +308,7 @@ export const useCreateMessages = (conversationId: number) => {
       if (finalByModel.size > 0) {
         for (const [modelId, text] of finalByModel.entries()) {
           bodies.push({
-            role: "assistant",
+            role: ROLES.ASSISTANT,
             authorId: modelId,
             model: modelId,
             mode: chatRequestBody.mode,
@@ -304,10 +319,10 @@ export const useCreateMessages = (conversationId: number) => {
         // fall back to temps if no deltas came through
         for (const [, t] of tempsByModel) {
           bodies.push({
-            role: "assistant",
+            role: ROLES.ASSISTANT,
             mode: chatRequestBody.mode,
             authorId: t.modelId,
-            parts: [{ type: "text", text: t.text }],
+            parts: [{ type: MESSAGE_PART_TYPES.TEXT, text: t.text }],
           });
         }
       }
@@ -348,7 +363,10 @@ export const useCreateMessages = (conversationId: number) => {
   });
 };
 
-export const useUpdateMessages = (conversationId: number, editedMessageId: number) => {
+export const useUpdateMessages = (
+  conversationId: number,
+  editedMessageId: number
+) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
 
@@ -381,19 +399,19 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
           if (m.id !== id) return m;
           const firstPart =
             (m.parts?.[0] as MessagePartRequest) ??
-            ({ type: "text", text: "" } as any);
+            ({ type: MESSAGE_PART_TYPES.TEXT, text: EMPTY_STRING } as any);
 
           // Normalize the remaining parts to MessagePartRequest and ensure `type` is defined
           const restParts: MessagePartRequest[] = (m.parts?.slice(1) ?? []).map(
             (p) =>
-            ({
-              ...(p as any),
-              type: (p as any)?.type ?? "text",
-            } as MessagePartRequest)
+              ({
+                ...(p as any),
+                type: (p as any)?.type ?? MESSAGE_PART_TYPES.TEXT,
+              } as MessagePartRequest)
           );
 
           const newParts: MessagePartRequest[] = [
-            { ...firstPart, type: "text", text: nextText },
+            { ...firstPart, type: MESSAGE_PART_TYPES.TEXT, text: nextText },
             ...restParts,
           ];
           return { ...m, parts: newParts } as MessageView;
@@ -431,14 +449,14 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
       let messageParts: MessagePartRequest[] = [];
 
       chatRequestBody.messages[0]?.content.map((item) => {
-        if (item.type === "input_text") {
+        if (item.type === CONTENT_INPUT_TYPES.INPUT_TEXT) {
           // userText = item.text;
-          messageParts.push({ type: "text", text: item.text });
-        } else if (item.type === "input_image") {
-          messageParts.push({ type: item.type, mimeType: "image/jpeg" });
+          messageParts.push({ type: MESSAGE_PART_TYPES.TEXT, text: item.text });
+        } else if (item.type === CONTENT_INPUT_TYPES.INPUT_IMAGE) {
+          messageParts.push({ type: item.type, mimeType: MIME_TYPES.JPEG });
           console.log("Image Type", item.type);
-        } else if (item.type === "input_file") {
-          messageParts.push({ type: item.type, mimeType: "application/pdf" });
+        } else if (item.type === CONTENT_INPUT_TYPES.INPUT_FILE) {
+          messageParts.push({ type: item.type, mimeType: MIME_TYPES.PDF });
           console.log("File Type", item.type);
         } else {
           throw new Error("Invalid Input Type");
@@ -448,7 +466,7 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
       const tempUser: MessageView = {
         id: tempUserId,
         conversationId,
-        role: "user",
+        role: ROLES.USER,
         authorId: "user-123",
         parts: messageParts,
       } as any;
@@ -463,18 +481,18 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
         const tempAssistant: MessageView = {
           id: tid,
           conversationId,
-          role: "assistant",
+          role: ROLES.ASSISTANT,
           authorId: modelId,
           model: modelId,
-          parts: [{ type: "text", text: "" }],
+          parts: [{ type: MESSAGE_PART_TYPES.TEXT, text: EMPTY_STRING }],
           createdAt: new Date(),
         } as any;
         pushMessage(tempAssistant);
-        tempsByModel.set(modelId, { id: tid, modelId, text: "" });
+        tempsByModel.set(modelId, { id: tid, modelId, text: EMPTY_STRING });
       };
 
       if (isConsensus) {
-        addAssistantPlaceholder("consensus");
+        addAssistantPlaceholder(CHAT_MODES.CONSENSUS);
       } else {
         for (const r of chatRequestBody.routes!) {
           addAssistantPlaceholder(r.model);
@@ -489,25 +507,26 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
       dispatch(startStreaming());
 
       await streamChat(
+        conversationId,
         chatRequestBody,
         (event) => {
           const name = event.event;
           const data = event.data || {};
 
-          if (name === "chat.response.created") {
+          if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_CREATED) {
             return;
           }
 
-          if (name === "chat.response.delta") {
+          if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_DELTA) {
             const modelId: string = data.model || "unknown";
-            const chunk: string = data.delta?.text || "";
+            const chunk: string = data.delta?.text || EMPTY_STRING;
             if (!chunk) return;
 
             // 1) UI live (Redux-driven columns)
             dispatch(concatenateDelta(modelId, chunk));
 
             // 2) Cache live (update placeholder text)
-            const prev = finalByModel.get(modelId) ?? "";
+            const prev = finalByModel.get(modelId) ?? EMPTY_STRING;
             const next = prev + chunk;
             finalByModel.set(modelId, next);
 
@@ -519,7 +538,7 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
             return;
           }
 
-          if (name === "chat.response.completed") {
+          if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_COMPLETED) {
             completedCount += 1;
             if (completedCount >= expectedStreams) {
               dispatch(endStreaming());
@@ -527,13 +546,13 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
             return;
           }
 
-          if (name === "consensus") {
-            const modelId = "consensus";
-            const chunk: string = data?.delta?.text || "";
+          if (name === CHAT_STREAM_EVENT_TYPES.CONSENSUS) {
+            const modelId = CHAT_MODES.CONSENSUS;
+            const chunk: string = data?.delta?.text || EMPTY_STRING;
             if (chunk) {
               dispatch(concatenateDelta(modelId, chunk));
 
-              const prev = finalByModel.get(modelId) ?? "";
+              const prev = finalByModel.get(modelId) ?? EMPTY_STRING;
               const next = prev + chunk;
               finalByModel.set(modelId, next);
 
@@ -556,7 +575,7 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
 
       // user
       bodies.push({
-        role: "user",
+        role: ROLES.USER,
         mode: chatRequestBody.mode,
         authorId: "user-123",
         parts: messageParts as MessagePartRequest[],
@@ -566,21 +585,21 @@ export const useUpdateMessages = (conversationId: number, editedMessageId: numbe
       if (finalByModel.size > 0) {
         for (const [modelId, text] of finalByModel.entries()) {
           bodies.push({
-            role: "assistant",
+            role: ROLES.ASSISTANT,
             authorId: modelId,
             model: modelId,
             mode: chatRequestBody.mode,
-            parts: [{ type: "text", text }],
+            parts: [{ type: MESSAGE_PART_TYPES.TEXT, text }],
           });
         }
       } else {
         // fall back to temps if no deltas came through
         for (const [, t] of tempsByModel) {
           bodies.push({
-            role: "assistant",
+            role: ROLES.ASSISTANT,
             mode: chatRequestBody.mode,
             authorId: t.modelId,
-            parts: [{ type: "text", text: t.text }],
+            parts: [{ type: MESSAGE_PART_TYPES.TEXT, text: t.text }],
           });
         }
       }
@@ -630,12 +649,15 @@ export const useDeleteForAllModels = (conversationId: number) => {
   console.log("Delete for all conversation", conversationId);
 
   return useMutation({
-    mutationFn: (id: number) => messageApi.removeForAllModel(id, conversationId),
+    mutationFn: (id: number) =>
+      messageApi.removeForAllModel(id, conversationId),
 
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: cacheKey(conversationId) });
       // Correctly get the previous state as a MessagePage object
-      const prev = queryClient.getQueryData<MessagePage>(cacheKey(conversationId));
+      const prev = queryClient.getQueryData<MessagePage>(
+        cacheKey(conversationId)
+      );
 
       remove(queryClient, conversationId, (m) => m.id === id);
 
@@ -648,7 +670,6 @@ export const useDeleteForAllModels = (conversationId: number) => {
       queryClient.setQueryData(cacheKey(conversationId), ctx.prev);
     },
 
-
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
     },
@@ -656,22 +677,15 @@ export const useDeleteForAllModels = (conversationId: number) => {
     onSuccess: () => {
       toast.success("Message deleted successfully.");
     },
-
   });
 };
-
 
 export const useDeleteForSingleModel = (conversationId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      messageId,
-      model,
-    }: {
-      messageId: number;
-      model: string;
-    }) => messageApi.removeForSingleModel(messageId, conversationId, model),
+    mutationFn: ({ messageId, model }: { messageId: number; model: string }) =>
+      messageApi.removeForSingleModel(messageId, conversationId, model),
 
     onMutate: async ({ messageId }) => {
       await queryClient.cancelQueries({ queryKey: cacheKey(conversationId) });
@@ -697,5 +711,4 @@ export const useDeleteForSingleModel = (conversationId: number) => {
       toast.success("Message deleted successfully for this model.");
     },
   });
-
-}
+};

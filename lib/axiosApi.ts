@@ -1,19 +1,30 @@
 import axios from "axios";
 import { API_BASE } from "./http";
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./auth";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
+} from "./auth";
 import { AuthService } from "./services/AuthService";
+import {
+  APPLICATION_JSON,
+  AUTHORIZATION,
+  BEARER,
+  CONTENT_TYPE,
+} from "@/types/constants";
 
 const authenticatedApi = axios.create({
   baseURL: API_BASE, // Environment-specific base URL
   headers: {
-    "Content-Type": "application/json",
+    [CONTENT_TYPE]: APPLICATION_JSON,
   },
 });
 
 const api = axios.create({
   baseURL: API_BASE, // Environment-specific base URL
   headers: {
-    "Content-Type": "application/json",
+    [CONTENT_TYPE]: APPLICATION_JSON,
   },
 });
 
@@ -22,7 +33,7 @@ authenticatedApi.interceptors.request.use((config) => {
   const token = getAccessToken();
   console.log("Token:", token);
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `${BEARER} ${token}`;
   }
   return config;
 });
@@ -41,26 +52,27 @@ authenticatedApi.interceptors.response.use(
       if (!refreshToken) {
         // No refresh token available, redirect to login
         clearTokens();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(error);
       }
 
       try {
         // Call the refresh token endpoint
-        const { accessToken, refreshToken: newRefreshToken } = await AuthService.refreshToken({ refreshToken });
+        const { accessToken, refreshToken: newRefreshToken } =
+          await AuthService.refreshToken({ refreshToken });
 
         // Store the new tokens
         setTokens(accessToken, newRefreshToken);
 
         // Update the Authorization header for the original request
-        originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
+        originalRequest.headers[AUTHORIZATION] = `${BEARER} ${accessToken}`;
 
         // Retry the original request
         return authenticatedApi(originalRequest);
       } catch (refreshError) {
         // Refresh token failed (e.g., it's also expired)
         clearTokens();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }

@@ -7,6 +7,7 @@ import {
   getConversationByConvoTypeApi,
 } from "@/lib/conversationApi";
 import { queryKey } from "../query/keys";
+import { CONVERSATION_TYPES } from "@/types/constants";
 
 // Custom hooks for CRUD operations
 export const useCreateConversationApi = () => {
@@ -28,18 +29,18 @@ export const useGetConversationsApi = () =>
 export const useGetConversationsForChat = () => {
   return useQuery({
     queryKey: [...queryKey.conversations(), "chat"],
-    queryFn: () => getConversationByConvoTypeApi("chat"),
+    queryFn: () => getConversationByConvoTypeApi(CONVERSATION_TYPES.CHAT),
     staleTime: 300_000, // 👈 1 minute
   });
-}
+};
 
 export const useGetConversationsForImage = () => {
   return useQuery({
     queryKey: [...queryKey.conversations(), "image"],
-    queryFn: () => getConversationByConvoTypeApi("image"),
+    queryFn: () => getConversationByConvoTypeApi(CONVERSATION_TYPES.IMAGE),
     staleTime: 300_000, // 👈 1 minute
   });
-}
+};
 
 export const useUpdateConversationApi = () => {
   const queryClient = useQueryClient();
