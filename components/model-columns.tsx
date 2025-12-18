@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { X, ExternalLink } from "lucide-react";
 import type { AIModel, ModelProvider, RouteSel } from "@/types/models";
-import { ChatArea } from "@/components/chat-area";
+import { ChatArea } from "@/components/chat-area-2";
 import { useDispatch, useSelector } from "react-redux";
-import { removeModel } from "@/redux/chat-interface-reducer";
+import { removeModel } from "@/redux/chat-interface-slice";
 
 export function ModelColumns() {
   const { providers, selectedModels } = useSelector(
@@ -17,7 +17,7 @@ export function ModelColumns() {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
     for (const provider of providers) {
-      const model = provider.models.find((m) => m.id === modelId);
+      const model = provider.models.find((m: any) => m.id === modelId);
       if (model) return { model, provider };
     }
     return null;

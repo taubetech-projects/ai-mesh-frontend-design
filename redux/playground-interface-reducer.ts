@@ -12,7 +12,6 @@ import {
   CONCAT_JSON,
   CONCAT_JSON2,
 } from "./constants";
-import { de } from "date-fns/locale";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -171,8 +170,8 @@ interface ChatInterfaceState {
 }
 
 const initialSelectedModels: RouteSel[] = [
-  { provider: "Google", model: "gemini-2.5-flash-lite" },
-  { provider: "DeepSeek", model: "deepseek-chat" },
+  { provider: "gemini", model: "gemini-2.5-flash-lite" },
+  { provider: "deepseek", model: "deepseek-chat" },
 ];
 
 const initialState: ChatInterfaceState = {
@@ -252,20 +251,13 @@ export function playgroundInterfaceReducer(
       ];
       console.log("newMessages json", newMessages);
       return { ...state, jsonMessages: newMessages };
-
-
-      const updatedMessages = [...modelMessages, content];
-      newMessages[modelId] = updatedMessages;
-      // return {...state};
-      return { ...state, jsonMessages: newMessages };
     }
 
     case CONCAT_JSON2: {
-      const {content } = action.payload;
+      const { content } = action.payload;
       // console.log("CONCAT_JSON", modelId, content);
       // console.log("JSON Message State", content);
       const newMessages = { ...state.jsonMessages };
-
 
       for (const selectedModel of state.selectedModels) {
         const modelId = selectedModel.model;
