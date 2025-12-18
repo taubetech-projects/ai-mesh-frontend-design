@@ -81,6 +81,8 @@ export enum CHAT_STREAM_EVENT_TYPES {
   CHAT_RESPONSE_DELTA = "chat.response.delta",
   CHAT_RESPONSE_COMPLETED = "chat.response.completed",
   CONSENSUS = "consensus",
+  CONVERSATION_INVALIDATE = "conversation.invalidate",
+  CONVERSATION_SAVE_FAILED = "conversation.save.failed",
 }
 
 export const BACKEND_BASE_URL = "http://localhost:8080/";

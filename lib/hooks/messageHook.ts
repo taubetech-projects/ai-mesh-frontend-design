@@ -268,6 +268,15 @@ export const useCreateMessages = (conversationId: number) => {
             }
             return;
           }
+          if (data.type === CHAT_STREAM_EVENT_TYPES.CONVERSATION_INVALIDATE) {
+            console.log(
+              "Invalidating conversation",
+              data.payload.conversationId
+            );
+            queryClient.invalidateQueries({
+              queryKey: cacheKey(data.payload.conversationId),
+            });
+          }
 
           if (name === CHAT_STREAM_EVENT_TYPES.CONSENSUS) {
             const modelId = CHAT_MODES.CONSENSUS;
@@ -330,8 +339,9 @@ export const useCreateMessages = (conversationId: number) => {
       // const saved = await messageApi.createBatch(conversationId, bodies);
 
       // We could replace temp ids with saved ids; simplest is to revalidate:
-      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
+      // queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
 
+      // return saved;
       return null;
     },
 
