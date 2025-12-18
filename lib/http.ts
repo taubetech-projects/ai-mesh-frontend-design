@@ -1,20 +1,26 @@
+import {
+  API_PATHS,
+  APPLICATION_JSON,
+  BACKEND_BASE_URL,
+  CACHE_NO_STORE,
+  CONTENT_TYPE,
+} from "@/types/constants";
 import { authHeader } from "./auth";
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
+export const API_BASE = BACKEND_BASE_URL;
 
 export async function apiFetch(path: string, init: RequestInit = {}) {
   const headers = {
-    "Content-Type": "application/json",
+    [CONTENT_TYPE]: APPLICATION_JSON,
     ...(init.headers || {}),
     ...authHeader(),
   };
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers,
-    cache: init.cache ?? "no-store",
+    cache: init.cache ?? CACHE_NO_STORE,
   });
   if (!res.ok) throw new Error(await res.text());
-  return res.headers.get("content-type")?.includes("application/json")
+  return res.headers.get(CONTENT_TYPE)?.includes(APPLICATION_JSON)
     ? res.json()
     : res.text();
 }
@@ -27,7 +33,7 @@ export async function apiSSE(
   console.log("SSE request", path, body);
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
+    headers: { [CONTENT_TYPE]: APPLICATION_JSON, ...authHeader() },
     body: JSON.stringify(body),
   });
   const reader = res.body?.getReader();

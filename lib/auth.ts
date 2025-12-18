@@ -1,21 +1,50 @@
-// Minimal API key storage (client-side)
-const KEY = "AI_MESH_API_KEY";
+import {
+  ACCESS_TOKEN_KEY,
+  EMPTY_STRING,
+  REFRESH_TOKEN_KEY,
+  UNDEFINED,
+} from "@/types/constants";
 
-export function getApiKey(): string {
-  if (typeof window === "undefined")
-    return (
-      process.env.NEXT_PUBLIC_DEFAULT_API_KEY ||
-      "amk_live_dev_1f3b2c9a.$2a$12$d6rQGxp8lQo1TyhdR4Qq7uPb4knRJhLKF47pea4j0ilI/TS1HarHS"
-    );
-  return localStorage.getItem(KEY) || "";
+const defaultApiKey = process.env.NEXT_PUBLIC_DEFAULT_API_KEY || "";
+
+export function getAccessToken(): string {
+  if (typeof window === UNDEFINED) {
+    return EMPTY_STRING; // No user-specific access token on the server
+  }
+  return localStorage.getItem(ACCESS_TOKEN_KEY) || "";
 }
 
-export function setApiKey(v: string) {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, v.trim());
+export function getRefreshToken(): string {
+  if (typeof window === UNDEFINED) {
+    return EMPTY_STRING;
+  }
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || "";
+}
+
+export function setTokens(accessToken: string, refreshToken: string) {
+  if (typeof window !== UNDEFINED) {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken.trim());
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken.trim());
+  }
+}
+
+export function clearTokens() {
+  if (typeof window !== UNDEFINED) {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
 }
 
 export function authHeader(): Record<string, string> {
-  const k = getApiKey();
-  // console.log(k);
+  const k = getAccessToken();
   return k ? { Authorization: `Bearer ${k}` } : {};
+}
+
+export function ensureAuthenticatedClient() {
+  const token = getAccessToken();
+  if (!token) {
+    clearTokens();
+    window.location.href = "/login";
+    throw new Error("Unauthorized access — no token found.");
+  }
 }
