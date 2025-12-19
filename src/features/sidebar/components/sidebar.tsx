@@ -253,7 +253,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
               </Button>
             </div>
             {!isChatHistoryCollapsed && (
-              <div className="flex-1 overflow-y-auto no-scrollbar">
+              <div className="flex-1 overflow-y-auto gpt-scrollbar">
                 {isChatPending && <div>Loading...</div>}
                 {isChatError && <div>Error</div>}
                 {chatHistory?.map((conversation: any) => (
@@ -361,7 +361,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
               </Button>
             </div>
             {!isImageHistoryCollapsed && (
-              <div className="flex-1 overflow-y-auto no-scrollbar">
+              <div className="flex-1 overflow-y-auto gpt-scrollbar">
                 {isImagePending && <div>Loading...</div>}
                 {isImageError && <div>Error</div>}
                 {imageHistory?.map((conversation: any) => (
