@@ -3,11 +3,15 @@
 import { Button } from "@/shared/components/ui/button";
 import { Switch } from "@/shared/components/ui/switch";
 import { X, ExternalLink } from "lucide-react";
-import type { AIModel, ModelProvider, RouteSel } from "@/types/models";
+import type {
+  AIModel,
+  ModelProvider,
+  RouteSel,
+} from "@/features/chat/types/models";
 import { ChatArea } from "@/features/chat/components/chat-area-2";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-import { removeModel } from "@/redux/image-generation-slice";
+import { RootState } from "@/lib/store/store";
+import { removeModel } from "@/features/chat/store/image-generation-slice";
 import { ImageDisplayArea } from "./image-display-area";
 
 export function ImageDisplayColumns() {

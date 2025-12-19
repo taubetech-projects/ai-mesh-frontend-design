@@ -3,7 +3,7 @@ import {
   EMPTY_STRING,
   REFRESH_TOKEN_KEY,
   UNDEFINED,
-} from "@/types/constants";
+} from "@/shared/constants/constants";
 
 const defaultApiKey = process.env.NEXT_PUBLIC_DEFAULT_API_KEY || "";
 

@@ -1,6 +1,10 @@
 "use client";
 import { useSelector } from "react-redux";
-import { ChatAreaProps, MessagePage, MessageView } from "@/types/models";
+import {
+  ChatAreaProps,
+  MessagePage,
+  MessageView,
+} from "@/features/chat/types/models";
 import {
   useGetMessagesByConversationId,
   useDeleteForAllModels,

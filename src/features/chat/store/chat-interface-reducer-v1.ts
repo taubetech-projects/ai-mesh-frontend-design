@@ -1,4 +1,9 @@
-import { AIModel, Message, ModelProvider, RouteSel } from "@/types/models";
+import {
+  AIModel,
+  Message,
+  ModelProvider,
+  RouteSel,
+} from "@/features/chat/types/models";
 import {
   ADD_MESSAGES,
   ADD_MODEL,
@@ -8,7 +13,7 @@ import {
   START_STREAM,
   TOGGLE_MODEL_SELECTOR,
   UPDATE_INPUT,
-} from "./constants";
+} from "../../../shared/constants/store-constants";
 import { de } from "date-fns/locale";
 
 const defaultProviders: ModelProvider[] = [

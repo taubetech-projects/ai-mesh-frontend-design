@@ -1,4 +1,4 @@
-import { CONVERSATION_TYPES } from "@/types/constants";
+import { CONVERSATION_TYPES } from "@/shared/constants/constants";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type InterfaceType = CONVERSATION_TYPES.CHAT | CONVERSATION_TYPES.IMAGE;

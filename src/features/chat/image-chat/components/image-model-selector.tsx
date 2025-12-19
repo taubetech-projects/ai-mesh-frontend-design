@@ -3,7 +3,7 @@
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { ModelProvider, RouteSel } from "@/types/models";
+import { ModelProvider, RouteSel } from "@/features/chat/types/models";
 import { useLanguage } from "@/shared/contexts/language-context";
 import { X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,8 +11,8 @@ import {
   addModel,
   removeModel,
   toggleModelSelector,
-} from "@/redux/image-generation-slice";
-import { RootState } from "@/redux/store";
+} from "@/features/chat/store/image-generation-slice";
+import { RootState } from "@/lib/store/store";
 
 interface ModelSelectorProps {}
 

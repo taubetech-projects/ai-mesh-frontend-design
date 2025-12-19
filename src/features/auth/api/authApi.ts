@@ -10,7 +10,7 @@ import {
   SignupResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
-} from "@/types/authModels";
+} from "@/features/auth/types/authModels";
 import { clear } from "console";
 import { da } from "date-fns/locale";
 import { clearTokens } from "../utils/auth";

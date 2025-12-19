@@ -3,10 +3,10 @@
 import { Button } from "@/shared/components/ui/button";
 import { Switch } from "@/shared/components/ui/switch";
 import { X, ExternalLink } from "lucide-react";
-import type { ModelProvider, RouteSel } from "@/types/models";
+import type { ModelProvider, RouteSel } from "@/features/chat/types/models";
 import { ChatArea } from "./_chat-area";
 import { useDispatch, useSelector } from "react-redux";
-import { removeModel } from "@/redux/playground-interface-slice";
+import { removeModel } from "@/features/playground/store/playground-interface-slice";
 
 interface ModelColumnsProps {
   // setSelectedModels: (models: RouteSel[]) => void;

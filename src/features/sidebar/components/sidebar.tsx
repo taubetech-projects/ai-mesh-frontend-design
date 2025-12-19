@@ -18,7 +18,7 @@ import {
 import { ImageIcon } from "lucide-react"; // New import for image icon
 import { LanguageSelector } from "@/shared/components/language-selector";
 import { useLanguage } from "@/shared/contexts/language-context";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeToggle } from "../../../shared/components/theme-toggle";
 import { useEffect, useState } from "react";
 import {
   useDeleteConversationApi,
@@ -28,9 +28,9 @@ import {
   useUpdateConversationApi,
 } from "@/features/conversation/hooks/conversationHook";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelectedConvId } from "@/redux/conversation-slice";
-import { clearChatState } from "@/redux/chat-interface-slice";
-import { setActiveInterface as setGlobalActiveInterface } from "@/redux/ui-slice"; // Renamed import
+import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
+import { clearChatState } from "@/features/chat/store/chat-interface-slice";
+import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import Link from "next/link";
 import {
   DropdownMenu,

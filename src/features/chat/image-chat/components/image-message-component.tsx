@@ -1,4 +1,4 @@
-import { MessageView } from "@/types/models";
+import { MessageView } from "@/features/chat/types/models";
 import React, { useEffect, useState } from "react";
 import ImageUserMessageComponent from "./image-user-message-component";
 import ImageAssistantMessageComponent from "./image-assistant-message-component";
@@ -8,7 +8,10 @@ interface MessageComponentProps {
   onDelete: (messageId: number) => void;
 }
 
-function ImageMessageComponent({ messageGroup, onDelete }: MessageComponentProps) {
+function ImageMessageComponent({
+  messageGroup,
+  onDelete,
+}: MessageComponentProps) {
   // split once per render (keep it simple)
   const userMessages = messageGroup.filter((m) => m.role === "user");
   const assistantMessages = messageGroup.filter((m) => m.role === "assistant");
@@ -28,7 +31,6 @@ function ImageMessageComponent({ messageGroup, onDelete }: MessageComponentProps
   const assistantMessage = assistantMessages[displayedIndex];
   console.log("userMessage", userMessage);
   console.log("assistantMessage", assistantMessage);
-
 
   const handleVersionChange = (direction: "next" | "prev") => {
     if (len === 0) return;

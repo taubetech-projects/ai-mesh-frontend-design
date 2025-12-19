@@ -1,5 +1,10 @@
-import { EMPTY_STRING, ROLES } from "@/types/constants";
-import { AIModel, Message, ModelProvider, RouteSel } from "@/types/models";
+import { EMPTY_STRING, ROLES } from "@/shared/constants/constants";
+import {
+  AIModel,
+  Message,
+  ModelProvider,
+  RouteSel,
+} from "@/features/chat/types/models";
 
 import { createSlice } from "@reduxjs/toolkit";
 

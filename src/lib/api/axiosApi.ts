@@ -12,7 +12,7 @@ import {
   AUTHORIZATION,
   BEARER,
   CONTENT_TYPE,
-} from "@/types/constants";
+} from "@/shared/constants/constants";
 
 const authenticatedApi = axios.create({
   baseURL: API_BASE, // Environment-specific base URL

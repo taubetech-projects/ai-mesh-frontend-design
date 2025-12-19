@@ -2,7 +2,10 @@
 
 import PublicRoute from "@/shared/components/public-route";
 import { AuthService } from "@/features/auth/api/authApi";
-import { ErrorResponse, ResendEmailRequest } from "@/types/authModels";
+import {
+  ErrorResponse,
+  ResendEmailRequest,
+} from "@/features/auth/types/authModels";
 import { MailIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";

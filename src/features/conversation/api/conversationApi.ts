@@ -1,6 +1,6 @@
 import { authenticatedApi } from "@/lib/api/axiosApi";
-import { CreateConversationDto } from "@/types/CreateConversationDto";
-import { API_PATHS, HTTP_METHODS } from "@/types/constants";
+import { CreateConversationDto } from "@/features/conversation/types/CreateConversationDto";
+import { API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
 
 // Error handler function to standardize error messages
 export const handleApiError = (error: any): never => {

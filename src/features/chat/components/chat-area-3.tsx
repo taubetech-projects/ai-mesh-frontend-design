@@ -18,7 +18,7 @@ import {
   MessagePage,
   MessageView,
   SaveMessageRequest,
-} from "@/types/models";
+} from "@/features/chat/types/models";
 import {
   useCreateMessages,
   useGetMessagesByConversationId,
@@ -29,7 +29,7 @@ import {
   setEditMessageId,
   triggerParentSend,
   updateInputMessage,
-} from "@/redux/chat-interface-slice";
+} from "@/features/chat/store/chat-interface-slice";
 
 export function CopyButton({ code }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);

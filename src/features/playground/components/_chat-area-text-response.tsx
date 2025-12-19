@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/types/models";
+import { Message } from "@/features/chat/types/models";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -80,7 +80,7 @@ export function formatLLMContent(provider: string, content: string): string {
         try {
           const obj = JSON.parse(formatted);
           formatted = "```json\n" + JSON.stringify(obj, null, 2) + "\n```";
-        } catch (_) { }
+        } catch (_) {}
       }
       break;
   }
@@ -118,13 +118,15 @@ export function ChatAreaTextResponse({ modelMessages }: TextAreaProps) {
           return (
             <div
               key={index}
-              className={`p-3 ${message.role === "user" ? "bg-muted rounded-lg border" : ""
-                }`}
+              className={`p-3 ${
+                message.role === "user" ? "bg-muted rounded-lg border" : ""
+              }`}
             >
               {/* Label (Question / Answer) */}
               <div
-                className={`text-xs font-medium mb-1 ${message.role === "user" ? "text-blue-300" : "text-emerald-300"
-                  }`}
+                className={`text-xs font-medium mb-1 ${
+                  message.role === "user" ? "text-blue-300" : "text-emerald-300"
+                }`}
               >
                 {message.role === "user" ? "Question" : ""}
               </div>

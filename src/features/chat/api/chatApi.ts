@@ -1,4 +1,4 @@
-import { ChatStreamBody } from "@/types/models";
+import { ChatStreamBody } from "@/features/chat/types/models";
 import { API_BASE } from "@/lib/api/http";
 import { authHeader } from "@/features/auth/utils/auth";
 import {
@@ -11,7 +11,7 @@ import {
   EVENT_DATA_START_WITH,
   EVENT_NAME_SLICE_START,
   EVENT_NAME_START_WITH,
-} from "@/types/constants";
+} from "@/shared/constants/constants";
 
 export async function fetchProviders() {
   const res = await fetch(`${API_BASE}/v1/providers`, {

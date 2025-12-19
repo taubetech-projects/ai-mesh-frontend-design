@@ -8,14 +8,14 @@ import {
   MessagePartRequest,
   MessagePage,
   ChatRequestBody,
-} from "@/types/models";
+} from "@/features/chat/types/models";
 import { streamChat } from "@/features/chat/api/chatApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
   concatenateDelta,
   endStreaming,
   startStreaming,
-} from "@/redux/chat-interface-slice";
+} from "@/features/chat/store/chat-interface-slice";
 import {
   CHAT_MODES,
   CHAT_STREAM_EVENT_TYPES,
@@ -25,7 +25,7 @@ import {
   MIME_TYPES,
   ROLES,
   STALE_TIME,
-} from "@/types/constants";
+} from "@/shared/constants/constants";
 
 /* ---------------------------
  * Cache helpers

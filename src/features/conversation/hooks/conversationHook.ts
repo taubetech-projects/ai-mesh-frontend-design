@@ -7,7 +7,7 @@ import {
   getConversationByConvoTypeApi,
 } from "@/features/conversation/api/conversationApi";
 import { queryKey } from "../../../lib/react-query/keys";
-import { CONVERSATION_TYPES } from "@/types/constants";
+import { CONVERSATION_TYPES } from "@/shared/constants/constants";
 
 // Custom hooks for CRUD operations
 export const useCreateConversationApi = () => {

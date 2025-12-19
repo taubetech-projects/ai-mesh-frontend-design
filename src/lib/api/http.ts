@@ -4,7 +4,7 @@ import {
   BACKEND_BASE_URL,
   CACHE_NO_STORE,
   CONTENT_TYPE,
-} from "@/types/constants";
+} from "@/shared/constants/constants";
 import { authHeader } from "@/features/auth/utils/auth";
 export const API_BASE = BACKEND_BASE_URL;
 

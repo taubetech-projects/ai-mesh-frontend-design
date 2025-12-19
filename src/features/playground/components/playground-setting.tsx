@@ -28,8 +28,8 @@ import {
   UPDATE_TEMPERATURE,
   PLAYGROUND_IS_STREAMING,
   UPDATE_PROVIDER_SPECIFIC,
-} from "@/redux/playground-reducer";
-import { ModelProvider } from "@/types/models";
+} from "@/features/playground/store/playground-reducer";
+import { ModelProvider } from "@/features/chat/types/models";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { X } from "lucide-react";
@@ -46,7 +46,7 @@ import {
   updateReasoningEffort,
   updatePlaygroundIsStreaming,
   updateProviderSpecific,
-} from "@/redux/playground-interface-slice";
+} from "@/features/playground/store/playground-interface-slice";
 import { te } from "date-fns/locale";
 
 export function PlaygroundSettings() {

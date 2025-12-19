@@ -3,7 +3,7 @@
 import { Button } from "@/shared/components/ui/button";
 import { Switch } from "@/shared/components/ui/switch";
 import { X } from "lucide-react";
-import type { ModelProvider } from "@/types/models";
+import type { ModelProvider } from "@/features/chat/types/models";
 
 interface ModelTabsProps {
   providers: ModelProvider[];

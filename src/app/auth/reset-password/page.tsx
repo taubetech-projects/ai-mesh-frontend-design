@@ -1,6 +1,6 @@
 "use client";
 import { AuthService } from "@/features/auth/api/authApi";
-import { ErrorResponse } from "@/types/authModels";
+import { ErrorResponse } from "@/features/auth/types/authModels";
 import { LockIcon, MailIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState, Suspense } from "react";

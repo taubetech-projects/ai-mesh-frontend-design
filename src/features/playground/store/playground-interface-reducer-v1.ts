@@ -1,4 +1,9 @@
-import { AIModel, Message, ModelProvider, RouteSel } from "@/types/models";
+import {
+  AIModel,
+  Message,
+  ModelProvider,
+  RouteSel,
+} from "@/features/chat/types/models";
 import {
   ADD_MESSAGES,
   ADD_MODEL,
@@ -11,7 +16,7 @@ import {
   UPDATE_INPUT,
   CONCAT_JSON,
   CONCAT_JSON2,
-} from "./constants";
+} from "../../../shared/constants/store-constants";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -250,6 +255,11 @@ export function playgroundInterfaceReducer(
         { role: "assistant", content: content },
       ];
       console.log("newMessages json", newMessages);
+      return { ...state, jsonMessages: newMessages };
+
+      const updatedMessages = [...modelMessages, content];
+      newMessages[modelId] = updatedMessages;
+      // return {...state};
       return { ...state, jsonMessages: newMessages };
     }
 

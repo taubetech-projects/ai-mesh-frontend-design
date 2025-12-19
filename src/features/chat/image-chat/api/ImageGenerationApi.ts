@@ -1,12 +1,15 @@
-import { ImageRequestBody, MultiImageResponse } from "@/types/imageModels";
-import { api, authenticatedApi } from "../api/axiosApi";
+import {
+  ImageRequestBody,
+  MultiImageResponse,
+} from "@/features/chat/types/imageModels";
+import { api, authenticatedApi } from "../../../../lib/api/axiosApi";
 
 export const ImageGenerationService = {
   generateImage: async (
     data: ImageRequestBody
   ): Promise<MultiImageResponse> => {
     const res = await authenticatedApi.post<MultiImageResponse>(
-      "/v1/images/generations",
+      "/v1/api/chat/images/generations",
       data
     );
     console.log("Image generation response:", res.data);

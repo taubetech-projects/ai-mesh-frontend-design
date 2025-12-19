@@ -2,14 +2,14 @@
 
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { ModelColumns } from "@/shared/components/model-columns-2";
+import { ModelColumns } from "@/features/chat/components/model-columns-2";
 import { ModelSelector } from "@/features/chat/components/chat-model-selector";
 import {
   ChatRequestBody,
   ContentItem,
   FileUploadItem,
   RouteSel,
-} from "@/types/models";
+} from "@/features/chat/types/models";
 import {
   Send,
   Mic,
@@ -32,18 +32,18 @@ import {
   triggerFileUploading,
   startRecorder,
   stopRecorder,
-} from "@/redux/chat-interface-slice";
+} from "@/features/chat/store/chat-interface-slice";
 import {
   useCreateMessages,
   useUpdateMessages,
 } from "@/features/chat/text-chat/hooks/messageHook";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
-import { AudioRecorderModal } from "@/shared/components/audio-recorder-model";
+import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
 import { authHeader } from "@/features/auth/utils/auth";
 import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
-import { setSelectedConvId } from "@/redux/conversation-slice";
-import { RootState } from "@/redux/store";
+import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
+import { RootState } from "@/lib/store/store";
 
 export function ChatInterface() {
   const {

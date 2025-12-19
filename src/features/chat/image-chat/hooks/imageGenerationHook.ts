@@ -1,11 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
-import { ImageGenerationService } from "../../../../lib/services/ImageGenerationApi";
-import { ImageRequestBody, MultiImageResponse } from "@/types/imageModels";
+import { ImageGenerationService } from "../api/ImageGenerationApi";
+import {
+  ImageRequestBody,
+  MultiImageResponse,
+} from "@/features/chat/types/imageModels";
 import {
   AttachmentRequest,
   MessagePartRequest,
   SaveMessageRequest,
-} from "@/types/models";
+} from "@/features/chat/types/models";
 import { messageApi } from "../../text-chat/api/messageApi";
 import {
   CHAT_MODES,
@@ -13,7 +16,7 @@ import {
   MIME_TYPES,
   ROLES,
   STORAGE_TYPES,
-} from "@/types/constants";
+} from "@/shared/constants/constants";
 
 export const useImageGenerationApi = () => {
   return useMutation({

@@ -3,7 +3,7 @@ import {
   CONTENT_INPUT_TYPES,
   MIME_TYPES,
   CHAT_MODES,
-} from "./constants";
+} from "@/shared/constants/constants";
 
 export interface AIModel {
   id: string;

@@ -12,7 +12,11 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { useSelector } from "react-redux";
-import { ChatAreaProps, CopyButtonProps, Message } from "@/types/models";
+import {
+  ChatAreaProps,
+  CopyButtonProps,
+  Message,
+} from "@/features/chat/types/models";
 
 export function CopyButton({ code }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);

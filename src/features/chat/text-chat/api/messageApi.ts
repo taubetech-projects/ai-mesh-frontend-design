@@ -1,7 +1,11 @@
-import { SaveMessageRequest, MessageView, MessagePage } from "@/types/models";
+import {
+  SaveMessageRequest,
+  MessageView,
+  MessagePage,
+} from "@/features/chat/types/models";
 import { authenticatedApi } from "@/lib/api/axiosApi";
 import type { AxiosError, AxiosRequestConfig } from "axios";
-import { API_PATHS, HTTP_METHODS } from "@/types/constants";
+import { API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
 
 /* ---------------------------
  * Error handling

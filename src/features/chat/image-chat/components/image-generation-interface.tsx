@@ -13,16 +13,19 @@ import {
   removeUploadedImage,
   clearUploadedImages,
   setIsGenerating,
-} from "@/redux/image-generation-slice";
-import { setSelectedConvId } from "@/redux/conversation-slice";
+} from "@/features/chat/store/image-generation-slice";
+import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
 import { useRef } from "react";
 import { ImageDisplayColumns } from "./image-display-columns";
-import { RootState } from "@/redux/store";
+import { RootState } from "@/lib/store/store";
 import {
   useAddImageMessage,
   useImageGenerationApi,
 } from "@/features/chat/image-chat/hooks/imageGenerationHook";
-import { ImageInput, ImageRequestBody } from "@/types/imageModels";
+import {
+  ImageInput,
+  ImageRequestBody,
+} from "@/features/chat/types/imageModels";
 import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
 import { ImageModelSelector } from "./image-model-selector";
 

@@ -2,7 +2,7 @@
 
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import type { RouteSel } from "@/types/models";
+import type { RouteSel } from "@/features/chat/types/models";
 import { Send, Mic, Paperclip, Settings, Beaker } from "lucide-react";
 import { useLanguage } from "@/shared/contexts/language-context";
 import { streamChat } from "@/features/chat/api/chatApi";
@@ -23,7 +23,7 @@ import {
   toggleModelSelector,
   togglePlaygroundSettings,
   updateInputMessage,
-} from "@/redux/playground-interface-slice";
+} from "@/features/playground/store/playground-interface-slice";
 
 var count = 0;
 

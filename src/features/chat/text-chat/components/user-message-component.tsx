@@ -1,4 +1,4 @@
-import { MessageView } from "@/types/models";
+import { MessageView } from "@/features/chat/types/models";
 import React, { use, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -16,7 +16,7 @@ import {
   setEditMessageId,
   triggerParentSend,
   updateInputMessage,
-} from "@/redux/chat-interface-slice";
+} from "@/features/chat/store/chat-interface-slice";
 
 interface UserMessageProps {
   message: MessageView;

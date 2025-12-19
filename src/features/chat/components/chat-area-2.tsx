@@ -6,7 +6,7 @@ import {
   CopyButtonProps,
   MessagePage,
   MessageView,
-} from "@/types/models";
+} from "@/features/chat/types/models";
 import {
   useGetMessagesByConversationId,
   useDeleteForAllModels,

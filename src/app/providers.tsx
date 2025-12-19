@@ -7,7 +7,7 @@ import { LanguageProvider } from "@/shared/contexts/language-context";
 import { Suspense, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { Provider } from "react-redux";
-import store from "@/redux/store";
+import store from "@/lib/store/store";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

@@ -1,4 +1,4 @@
-import { MessageView } from "@/types/models";
+import { MessageView } from "@/features/chat/types/models";
 import React, { useEffect, useState } from "react";
 import AssistantMessageComponent from "./assistant-message-component";
 import UserMessageComponent from "./user-message-component";

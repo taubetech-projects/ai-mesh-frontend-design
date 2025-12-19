@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/types/models";
+import { Message } from "@/features/chat/types/models";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";

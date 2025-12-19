@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { authenticatedApi } from "@/lib/api/axiosApi";
 import { setTokens } from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
-import { ErrorResponse } from "@/types/authModels";
+import { ErrorResponse } from "@/features/auth/types/authModels";
 import { toast } from "sonner";
 
 // --- SVG Icons ---
