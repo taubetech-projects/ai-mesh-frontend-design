@@ -81,32 +81,33 @@ export enum CHAT_STREAM_EVENT_TYPES {
   CHAT_RESPONSE_DELTA = "chat.response.delta",
   CHAT_RESPONSE_COMPLETED = "chat.response.completed",
   CONSENSUS = "consensus",
-  CONVERSATION_INVALIDATE = "conversation.invalidate",
+  CONVERSATION_SAVE_SUCCESS = "conversation.save.success",
   CONVERSATION_SAVE_FAILED = "conversation.save.failed",
 }
 
 export const BACKEND_BASE_URL = "http://localhost:8080/";
 
 export const API_VERSION_V1 = "v1";
+export const CHAT_API_STEM = "api/chat";
 
 export const API_PATHS = {
   CONVERSATIONS: {
-    BASE: `${API_VERSION_V1}/api/chat/conversations`,
+    BASE: `${API_VERSION_V1}/${CHAT_API_STEM}/conversations`,
     BY_ID: (id: string | number) =>
-      `${API_VERSION_V1}/api/chat/conversations/${id}`,
+      `${API_VERSION_V1}/${CHAT_API_STEM}/conversations/${id}`,
     BY_TYPE: (type: string) =>
-      `${API_VERSION_V1}/api/chat/conversations/type/${type}`,
+      `${API_VERSION_V1}/${CHAT_API_STEM}/conversations/type/${type}`,
     MESSAGES: {
       BASE: (conversationId: string | number) =>
-        `${API_VERSION_V1}/api/chat/conversations/${conversationId}/messages`,
+        `${API_VERSION_V1}/${CHAT_API_STEM}/conversations/${conversationId}/messages`,
       BY_ID: (conversationId: string | number, messageId: string | number) =>
-        `${API_VERSION_V1}/api/chat/conversations/${conversationId}/messages/${messageId}`,
+        `${API_VERSION_V1}/${CHAT_API_STEM}/conversations/${conversationId}/messages/${messageId}`,
     },
     COMPLETIONS: (conversationId: string | number) =>
-      `${API_VERSION_V1}/api/chat/completions/streaming-and-non-streaming/${conversationId}`,
+      `${API_VERSION_V1}/${CHAT_API_STEM}/completions/streaming-and-non-streaming/${conversationId}`,
   },
   USERS: {
-    BASE: `${API_VERSION_V1}/api/chat/users`,
+    BASE: `${API_VERSION_V1}/${CHAT_API_STEM}/users`,
   },
 } as const;
 

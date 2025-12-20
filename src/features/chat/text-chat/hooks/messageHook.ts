@@ -268,7 +268,7 @@ export const useCreateMessages = (conversationId: number) => {
             }
             return;
           }
-          if (name === CHAT_STREAM_EVENT_TYPES.CONVERSATION_INVALIDATE) {
+          if (name === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS) {
             dispatch(endStreaming());
             console.log(
               "Invalidating conversation",
