@@ -33,8 +33,8 @@ import {
   startRecorder,
   stopRecorder,
 } from "@/features/chat/store/chat-interface-slice";
-import { useUpdateMessages } from "@/features/chat/text-chat/hooks/messageHook";
 import { useCreateMessages } from "@/features/chat/text-chat/hooks/useCreateMessages";
+import { useUpdateMessages } from "@/features/chat/text-chat/hooks/useUpdateMessages";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
@@ -61,9 +61,8 @@ export function ChatInterface() {
   );
   const dispatch = useDispatch();
   const createMessages = useCreateMessages(selectedConvId); // Will get convId at time of mutation
-  const updateMessages = useUpdateMessages(selectedConvId, editedMessageId);
+  const updateMessages = useUpdateMessages(selectedConvId);
   const createConversation = useCreateConversationApi();
-  // const updateMessages = useUpdateMessages(selectedConvId);
 
   // 🔹 File handling
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
