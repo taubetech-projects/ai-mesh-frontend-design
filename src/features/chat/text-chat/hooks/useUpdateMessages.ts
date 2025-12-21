@@ -14,6 +14,10 @@ import {
 import { createStreamEventHandler } from "@/features/chat/text-chat/utils/streamHandlers";
 
 import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
+import { queryKey } from "@/lib/react-query/keys";
+import { endStreaming } from "@/features/chat/store/chat-interface-slice";
+
+const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
 
 export const useUpdateMessages = (conversationId: number) => {
   const queryClient = useQueryClient();
@@ -29,6 +33,11 @@ export const useUpdateMessages = (conversationId: number) => {
       messageId: number | null;
       chatRequestBody: ChatRequestBody;
     }) => {
+      // ✅ FIX: Prevent in-flight fetch from overwriting optimistic cache
+      await queryClient.cancelQueries({
+        queryKey: cacheKey(conversationId),
+      });
+
       const { isConsensus } = validateChatRequest(
         conversationId,
         chatRequestBody
@@ -60,11 +69,17 @@ export const useUpdateMessages = (conversationId: number) => {
       await cacheOps.streamChat(
         conversationId,
         messageId,
-        chatRequestBody, // This was the issue, it was expecting a different type
+        chatRequestBody,
         onEvent
       );
 
       return null;
+    },
+
+    onSettled: () => {
+      // ✅ Fallback: ensure UI always re-syncs with backend even if event is missed
+      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
+      dispatch(endStreaming());
     },
   });
 };
