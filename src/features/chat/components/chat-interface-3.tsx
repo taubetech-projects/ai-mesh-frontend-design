@@ -33,10 +33,8 @@ import {
   startRecorder,
   stopRecorder,
 } from "@/features/chat/store/chat-interface-slice";
-import {
-  useCreateMessages,
-  useUpdateMessages,
-} from "@/features/chat/text-chat/hooks/messageHook";
+import { useUpdateMessages } from "@/features/chat/text-chat/hooks/messageHook";
+import { useCreateMessages } from "@/features/chat/text-chat/hooks/useCreateMessages";
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
@@ -44,6 +42,7 @@ import { authHeader } from "@/features/auth/utils/auth";
 import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
 import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
 import { RootState } from "@/lib/store/store";
+import { CONTENT_INPUT_TYPES, ROLES } from "@/shared/constants/constants";
 
 export function ChatInterface() {
   const {
@@ -328,7 +327,7 @@ export function ChatInterface() {
 
       // Step 3: Add user message text
       contentItems.push({
-        type: "input_text",
+        type: CONTENT_INPUT_TYPES.INPUT_TEXT,
         text: userMessage,
       });
 
@@ -338,7 +337,7 @@ export function ChatInterface() {
         routes: bodyRoutes.length > 0 ? bodyRoutes : null,
         messages: [
           {
-            role: "user",
+            role: ROLES.USER,
             content: contentItems,
           },
         ],
@@ -346,23 +345,8 @@ export function ChatInterface() {
         provider_response: false,
       };
 
-      console.log("Final request body:", chatRequestBody);
-
-      // const ac = new AbortController();        // console.log("Selected mode: ", modeSelection());
-
-      // const chatRequestBody: ChatRequestBody = {
-      //     mode: modeSelection(),
-      //     routes: bodyRoutes.length > 0 ? bodyRoutes : null,
-      //     messages: [
-      //         {
-      //             role: "user",
-      //             content: userMessage,
-      //         },
-      //     ],
-      //     stream: true,
-      //     provider_response: false,
-      // };
-      console.log("editedMessageId", editedMessageId);
+      // console.log("Final request body:", chatRequestBody);
+      // console.log("editedMessageId", editedMessageId);
       if (editedMessageId) {
         await updateMessages.mutateAsync({
           messageId: editedMessageId,

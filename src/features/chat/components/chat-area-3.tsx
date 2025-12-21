@@ -1,6 +1,5 @@
 "use client";
 
-import { useLanguage } from "@/shared/contexts/language-context";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -17,14 +16,8 @@ import {
   CopyButtonProps,
   MessagePage,
   MessageView,
-  SaveMessageRequest,
 } from "@/features/chat/types/models";
-import {
-  useCreateMessages,
-  useGetMessagesByConversationId,
-  useUpdateMessages,
-} from "@/features/chat/text-chat/hooks/messageHook";
-import { fi, se } from "date-fns/locale";
+import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
 import {
   setEditMessageId,
   triggerParentSend,
