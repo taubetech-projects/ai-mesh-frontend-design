@@ -14,6 +14,9 @@ import {
   Pencil,
   Archive,
   Trash2,
+  User,
+  Sparkles,
+  LogOut,
 } from "lucide-react";
 import { ImageIcon } from "lucide-react"; // New import for image icon
 import { LanguageSelector } from "@/shared/components/language-selector";
@@ -32,6 +35,7 @@ import { setSelectedConvId } from "@/features/conversation/store/conversation-sl
 import { clearChatState } from "@/features/chat/store/chat-interface-slice";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +58,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeInterface }: SidebarProps) {
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isChatHistoryCollapsed, setIsChatHistoryCollapsed] = useState(false);
   const [isImageHistoryCollapsed, setIsImageHistoryCollapsed] = useState(false);
@@ -115,6 +120,10 @@ export function Sidebar({ activeInterface }: SidebarProps) {
       setRenamingConvId(null);
       setNewTitle("");
     }
+  };
+
+  const handleUpgradePlan = () => {
+    router.push("/pricing");
   };
 
   const handleGenerateImage = () => {
@@ -462,26 +471,67 @@ export function Sidebar({ activeInterface }: SidebarProps) {
           {!isCollapsed && "Generate Image"}
         </Button>
 
-        {/* Settings */}
-        <div
-          className={`flex ${
-            isCollapsed ? "flex-col gap-2" : "items-center justify-between"
-          }`}
-        >
-          <ThemeToggle />
-
-          <Link href="/setting" passHref legacyBehavior>
-            <Button
-              variant="ghost"
-              className={`${
-                isCollapsed ? "h-8 w-8 p-0" : "flex-1 justify-start gap-2 ml-2"
-              } text-sidebar-foreground hover:bg-sidebar-accent`}
+        {/* User Profile Section */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div
+              className={`flex items-center ${
+                isCollapsed ? "justify-center" : "justify-between gap-2"
+              } p-2 rounded-lg hover:bg-sidebar-accent cursor-pointer transition-colors border border-transparent hover:border-sidebar-border`}
             >
-              <Settings className="w-4 h-4" />
-              {!isCollapsed && t.nav.settings}
-            </Button>
-          </Link>
-        </div>
+              <div className="h-8 w-8 rounded-full bg-sidebar-primary/10 flex items-center justify-center border border-sidebar-border text-sidebar-foreground shrink-0">
+                <User className="h-5 w-5" />
+              </div>
+              {!isCollapsed && (
+                <>
+                  <div className="flex flex-col flex-1 min-w-0 text-left">
+                    <span className="text-sm font-medium text-sidebar-foreground truncate">
+                      User Name
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      Free Plan
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUpgradePlan}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className="h-6 text-[10px] px-2 rounded-full bg-sidebar-ring/10 text-sidebar-ring border-sidebar-ring/20 hover:bg-sidebar-ring/20"
+                  >
+                    Upgrade
+                  </Button>
+                </>
+              )}
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-60">
+            <Link href="/pricing" passHref legacyBehavior>
+              <DropdownMenuItem>
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span>Upgrade Plan</span>
+              </DropdownMenuItem>
+            </Link>
+            <Link href="/setting" passHref legacyBehavior>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{t.nav.settings}</span>
+              </DropdownMenuItem>
+            </Link>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <div className="flex items-center justify-between w-full">
+                <span>Change Theme</span>
+                <ThemeToggle />
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-red-500 focus:text-red-500">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Delete Confirmation Dialog */}
