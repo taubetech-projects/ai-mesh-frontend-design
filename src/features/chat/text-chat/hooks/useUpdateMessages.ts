@@ -33,12 +33,12 @@ export const useUpdateMessages = (conversationId: number) => {
       messageId: number | null;
       chatRequestBody: ChatRequestBody;
     }) => {
-      // ✅ FIX: Prevent in-flight fetch from overwriting optimistic cache
+      // ✅ Prevent in-flight fetch from overwriting optimistic cache
       await queryClient.cancelQueries({
         queryKey: cacheKey(conversationId),
       });
 
-      const { isConsensus } = validateChatRequest(
+      const { includeConsensus } = validateChatRequest(
         conversationId,
         chatRequestBody
       );
@@ -48,8 +48,8 @@ export const useUpdateMessages = (conversationId: number) => {
         createOptimisticUserMessage({ conversationId, chatRequestBody })
       );
 
-      // 2) Optimistic assistant placeholders (and map for streaming updates)
-      const modelIds = getModelIds(isConsensus, chatRequestBody);
+      // 2) Optimistic assistant placeholders
+      const modelIds = getModelIds(includeConsensus, chatRequestBody);
       const tempsByModel = createAssistantPlaceholderTemps({
         conversationId,
         modelIds,
@@ -57,7 +57,11 @@ export const useUpdateMessages = (conversationId: number) => {
       });
 
       // 3) Stream
-      const expectedStreams = getExpectedStreams(isConsensus, chatRequestBody);
+      const expectedStreams = getExpectedStreams(
+        includeConsensus,
+        chatRequestBody
+      );
+
       const onEvent = createStreamEventHandler({
         dispatch,
         expectedStreams,
@@ -77,9 +81,11 @@ export const useUpdateMessages = (conversationId: number) => {
     },
 
     onSettled: () => {
-      // ✅ Fallback: ensure UI always re-syncs with backend even if event is missed
-      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
-      dispatch(endStreaming());
+      // ✅ Fallback: re-sync with backend if invalidate event is missed
+      queryClient.invalidateQueries({
+        queryKey: cacheKey(conversationId),
+      });
+      // ❌ DO NOT endStreaming here
     },
   });
 };

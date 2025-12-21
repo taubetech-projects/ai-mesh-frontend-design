@@ -6,23 +6,27 @@ export const validateChatRequest = (
   body: ChatRequestBody
 ) => {
   if (!conversationId) throw new Error("Missing conversationId");
-  if (!body) throw new Error("Missing chatRequestBody");
-  if (!body.messages?.length)
-    throw new Error("Missing chatRequestBody.messages.length");
+  if (!body?.messages?.length)
+    throw new Error("Missing chatRequestBody.messages");
 
-  const isConsensus = body.mode === CHAT_MODES.CONSENSUS;
+  const includeConsensus = body.mode === CHAT_MODES.CONSENSUS;
 
-  if (!isConsensus && !body.routes?.length) {
-    throw new Error("Missing chatRequestBody.routes for multi-model run");
+  if (!body.routes?.length) {
+    throw new Error("Missing routes");
   }
 
-  return { isConsensus };
+  return { includeConsensus };
+};
+
+export const getModelIds = (
+  includeConsensus: boolean,
+  body: ChatRequestBody
+) => {
+  const models = body.routes!.map((r) => r.model);
+  return includeConsensus ? [...models, CHAT_MODES.CONSENSUS] : models;
 };
 
 export const getExpectedStreams = (
-  isConsensus: boolean,
+  includeConsensus: boolean,
   body: ChatRequestBody
-) => (isConsensus ? 1 : body.routes!.length);
-
-export const getModelIds = (isConsensus: boolean, body: ChatRequestBody) =>
-  isConsensus ? [CHAT_MODES.CONSENSUS] : body.routes!.map((r) => r.model);
+) => (body.routes?.length ?? 0) + (includeConsensus ? 1 : 0);

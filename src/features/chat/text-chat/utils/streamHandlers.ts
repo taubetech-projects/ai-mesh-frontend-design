@@ -2,7 +2,6 @@ import type { TempInfo } from "./optimisticMessages";
 import {
   CHAT_MODES,
   CHAT_STREAM_EVENT_TYPES,
-  EMPTY_STRING,
 } from "@/shared/constants/constants"; // adjust
 
 import {
@@ -11,31 +10,28 @@ import {
   concatenateDelta,
 } from "@/features/chat/store/chat-interface-slice"; // adjust
 
-export const createStreamEventHandler = (args: {
+export const createStreamEventHandler = ({
+  dispatch,
+  expectedStreams,
+  tempsByModel,
+  updateMessageTextById,
+  invalidateConversation,
+}: {
   dispatch: any;
   expectedStreams: number;
   tempsByModel: Map<string, TempInfo>;
-  updateMessageTextById: (id: number, nextText: string) => void;
+  updateMessageTextById: (id: number, text: string) => void;
   invalidateConversation: (conversationId: number) => void;
 }) => {
-  const {
-    dispatch,
-    expectedStreams,
-    tempsByModel,
-    updateMessageTextById,
-    invalidateConversation,
-  } = args;
-
   const finalByModel = new Map<string, string>();
   let completedCount = 0;
 
-  const appendChunk = (modelId: string, chunk: string) => {
+  const append = (modelId: string, chunk: string) => {
     if (!chunk) return;
 
     dispatch(concatenateDelta(modelId, chunk));
 
-    const prev = finalByModel.get(modelId) ?? "";
-    const next = prev + chunk;
+    const next = (finalByModel.get(modelId) ?? "") + chunk;
     finalByModel.set(modelId, next);
 
     const temp = tempsByModel.get(modelId);
@@ -51,32 +47,48 @@ export const createStreamEventHandler = (args: {
     const name = event.event;
     const data = event.data || {};
 
-    if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_CREATED) return;
-
+    // ─────────────────────────────────────────────
+    // Normal model delta
     if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_DELTA) {
-      const modelId: string = data.model || "unknown";
-      const chunk: string = data.delta?.text || "";
-      appendChunk(modelId, chunk);
+      append(data.model, data.delta?.text ?? "");
       return;
     }
 
+    // Normal model completion
     if (name === CHAT_STREAM_EVENT_TYPES.CHAT_RESPONSE_COMPLETED) {
       completedCount += 1;
-      if (completedCount >= expectedStreams) dispatch(endStreaming());
+      if (completedCount >= expectedStreams) {
+        dispatch(endStreaming());
+      }
       return;
     }
 
-    if (data.type === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS) {
-      invalidateConversation(data.payload.conversationId);
-      return;
-    }
-
-    // Your original: consensus is last and ends immediately
-    if (name === CHAT_STREAM_EVENT_TYPES.CONSENSUS) {
+    // ─────────────────────────────────────────────
+    // ✅ CONSENSUS TAIL EVENT (backend emits ONLY this)
+    if (name === "consensus") {
       const modelId = CHAT_MODES.CONSENSUS;
-      const chunk: string = data?.delta?.text || EMPTY_STRING;
-      appendChunk(modelId, chunk);
-      dispatch(endStreaming());
+
+      // winner StreamEvent → extract text
+      const text =
+        data?.delta?.text ?? data?.payload?.delta?.text ?? data?.text ?? "";
+
+      append(modelId, text);
+
+      // ✅ mark consensus as completed
+      completedCount += 1;
+      if (completedCount >= expectedStreams) {
+        dispatch(endStreaming());
+      }
+      return;
+    }
+
+    // ─────────────────────────────────────────────
+    // Backend persistence confirmation
+    if (
+      name === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS ||
+      data?.type === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS
+    ) {
+      invalidateConversation(data.payload.conversationId);
       return;
     }
   };

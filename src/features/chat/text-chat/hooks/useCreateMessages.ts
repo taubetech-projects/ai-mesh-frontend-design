@@ -27,31 +27,32 @@ export const useCreateMessages = (conversationId: number) => {
 
   return useMutation({
     mutationFn: async (chatRequestBody: ChatRequestBody) => {
-      // ✅ FIX: Prevent in-flight fetch from overwriting optimistic cache
+      // ✅ Prevent in-flight overwrite of optimistic cache
       await queryClient.cancelQueries({
         queryKey: cacheKey(conversationId),
       });
 
-      const { isConsensus } = validateChatRequest(
+      const { includeConsensus } = validateChatRequest(
         conversationId,
         chatRequestBody
       );
 
-      // 1) Optimistic user message
       cacheOps.pushMessage(
         createOptimisticUserMessage({ conversationId, chatRequestBody })
       );
 
-      // 2) Optimistic assistant placeholders (and map for streaming updates)
-      const modelIds = getModelIds(isConsensus, chatRequestBody);
+      const modelIds = getModelIds(includeConsensus, chatRequestBody);
       const tempsByModel = createAssistantPlaceholderTemps({
         conversationId,
         modelIds,
         pushMessage: cacheOps.pushMessage,
       });
 
-      // 3) Stream
-      const expectedStreams = getExpectedStreams(isConsensus, chatRequestBody);
+      const expectedStreams = getExpectedStreams(
+        includeConsensus,
+        chatRequestBody
+      );
+
       const onEvent = createStreamEventHandler({
         dispatch,
         expectedStreams,
