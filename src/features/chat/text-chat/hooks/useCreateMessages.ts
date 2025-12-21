@@ -51,7 +51,7 @@ export const useCreateMessages = (conversationId: number) => {
         invalidateConversation: cacheOps.invalidateConversation,
       });
 
-      await cacheOps.streamChat(conversationId, chatRequestBody, onEvent);
+      await cacheOps.streamChat(conversationId, null, chatRequestBody, onEvent);
 
       return null;
     },

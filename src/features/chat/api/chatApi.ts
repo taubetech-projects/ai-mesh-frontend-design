@@ -33,13 +33,14 @@ export async function fetchModels(providerId: string) {
 /** Basic SSE reader. Calls onEvent({event, data}) for each frame. */
 export function streamChat(
   conversationId: number,
+  editedMessageId: number | null,
   // body: ChatStreamBody,
   body: any,
 
   onEvent: (evt: { event: string; data: any }) => void,
   signal?: AbortSignal
 ) {
-  return fetch(API_BASE + API_PATHS.CONVERSATIONS.COMPLETIONS(conversationId), {
+  return fetch(API_BASE + API_PATHS.CONVERSATIONS.COMPLETIONS(conversationId, editedMessageId), {
     method: "POST",
     headers: {
       ...authHeader(),

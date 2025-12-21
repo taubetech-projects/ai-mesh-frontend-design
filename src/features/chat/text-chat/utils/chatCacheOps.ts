@@ -49,11 +49,13 @@ export const createMessageCacheOps = (
   // Keep streamChat “behind” cacheOps so the hook stays tiny
   const stream = async (
     conversationId: number,
+    editedMessageId: number | null,
     chatRequestBody: any,
     onEvent: (event: any) => void
   ) => {
     await streamChat(
       conversationId,
+      editedMessageId,
       chatRequestBody,
       onEvent,
       new AbortController().signal

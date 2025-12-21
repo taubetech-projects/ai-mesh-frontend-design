@@ -103,8 +103,16 @@ export const API_PATHS = {
       BY_ID: (conversationId: string | number, messageId: string | number) =>
         `${API_VERSION_V1}/${CHAT_API_STEM}/conversations/${conversationId}/messages/${messageId}`,
     },
-    COMPLETIONS: (conversationId: string | number) =>
-      `${API_VERSION_V1}/${CHAT_API_STEM}/completions/streaming-and-non-streaming/${conversationId}`,
+    COMPLETIONS: (
+      conversationId: string | number,
+      editedMessageId: number | null
+    ) => {
+      if (editedMessageId !== null) {
+        return `${API_VERSION_V1}/${CHAT_API_STEM}/completions/streaming-and-non-streaming/${conversationId}?editedMessageId=${editedMessageId}`;
+      } else {
+        return `${API_VERSION_V1}/${CHAT_API_STEM}/completions/streaming-and-non-streaming/${conversationId}`;
+      }
+    },
   },
   USERS: {
     BASE: `${API_VERSION_V1}/${CHAT_API_STEM}/users`,

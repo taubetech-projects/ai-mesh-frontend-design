@@ -170,7 +170,7 @@ interface ChatInterfaceState {
 
 const initialSelectedModels: RouteSel[] = [
   { provider: "openai", model: "gpt-5-nano" },
-  { provider: "deepseek", model: "deepseek-chat" },
+  { provider: "gemini", model: "gemini-2.5-flash-lite" },
 ];
 
 const initialState: ChatInterfaceState = {

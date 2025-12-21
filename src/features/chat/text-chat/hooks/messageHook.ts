@@ -205,6 +205,7 @@ export const useUpdateMessages = (
 
       await streamChat(
         conversationId,
+        messageId,
         chatRequestBody,
         (event) => {
           const name = event.event;
