@@ -52,6 +52,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog";
+import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/utils/auth";
+import { AuthService } from "@/features/auth/api/authApi";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
@@ -125,6 +127,22 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   const handleUpgradePlan = () => {
     router.push("/pricing");
   };
+
+    async function handleLogout() {
+      console.log("Response Token before log out:", getRefreshToken() ?? "");
+      const response = await AuthService.logout({
+        refreshToken: getRefreshToken() ?? "",
+      });
+      console.log("Response Token :", getRefreshToken() ?? "");
+      console.log("Logout response:", response);
+      if (response === "200") {
+        // setApiKey(response.accessToken);
+        clearTokens();
+        router.push("/auth/login");
+      } else {
+        alert("Logout failed. Please try again.");
+      }
+    }
 
   const handleGenerateImage = () => {
     dispatch(setSelectedConvId(null));
@@ -486,10 +504,10 @@ export function Sidebar({ activeInterface }: SidebarProps) {
                 <>
                   <div className="flex flex-col flex-1 min-w-0 text-left">
                     <span className="text-sm font-medium text-sidebar-foreground truncate">
-                      User Name
+                      {getUserDetails()?.username || "User"}
                     </span>
                     <span className="text-xs text-muted-foreground truncate">
-                      Free Plan
+                      {getUserDetails()?.roles || "Free User"}
                     </span>
                   </div>
                   <Button
@@ -526,7 +544,10 @@ export function Sidebar({ activeInterface }: SidebarProps) {
                 <ThemeToggle />
               </div>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500 focus:text-red-500">
+            <DropdownMenuItem
+              onSelect={handleLogout}
+              className="text-red-500 focus:text-red-500"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>

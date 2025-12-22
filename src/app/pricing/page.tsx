@@ -10,110 +10,15 @@ import {
   Building2,
 } from "lucide-react";
 import Link from "next/link";
-
-// --- Types ---
-type PlanFeature = string;
-
-interface Plan {
-  name: string;
-  price: string;
-  period?: string;
-  description: string;
-  features: PlanFeature[];
-  cta: string;
-  popular?: boolean;
-  highlighted?: boolean;
-}
-
-// --- Data Configuration ---
-const personalPlans: Plan[] = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "/ month",
-    description: "See what AI can do",
-    cta: "Your current plan",
-    features: [
-      "Get simple explanations",
-      "Have short chats for common questions",
-      "Try out image generation",
-      "Save limited memory and context",
-    ],
-  },
-  {
-    name: "Essential",
-    price: "$20",
-    period: "/ month",
-    description: "Unlock the full experience",
-    cta: "Get Essential",
-    popular: true,
-    highlighted: true, // This triggers the purple styling
-    features: [
-      "Solve complex problems",
-      "Have long chats over multiple sessions",
-      "Create more images, faster",
-      "Remember goals and past conversations",
-    ],
-  },
-  {
-    name: "Pro",
-    price: "$200",
-    period: "/ month",
-    description: "Maximize your productivity",
-    cta: "Get Pro",
-    features: [
-      "Master advanced tasks and topics",
-      "Tackle big projects with unlimited messages",
-      "Create high-quality images at any scale",
-      "Keep full context with maximum memory",
-    ],
-  },
-];
-
-const businessPlans: Plan[] = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "/ month",
-    description: "Collaborate with your team",
-    cta: "Start Free",
-    features: [
-      "Get simple explanations",
-      "Have short chats for common questions",
-      "Try out image generation",
-      "Save limited memory and context",
-    ],
-  },
-  {
-    name: "Shared",
-    price: "$200",
-    period: "/ month",
-    description: "Collaborate with your team",
-    cta: "Start Shared",
-    features: [
-      "Shared team workspace",
-      "Basic admin controls",
-      "Standard support",
-      "Limited shared history",
-    ],
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    description: "Scale your organization",
-    cta: "Contact Sales",
-    highlighted: true,
-    features: [
-      "Unlimited workspaces",
-      "SSO & Advanced Security",
-      "Dedicated Success Manager",
-      "Audit logs & Analytics",
-      "Private model deployment",
-    ],
-  },
-];
-
-// --- Sub-Components ---
+import { usePlans } from "@/features/pricing/hooks/usePlans";
+import { usePurchasePlan } from "@/features/pricing/hooks/usePurchasePlans";
+import { Subscription } from "node_modules/react-hook-form/dist/utils/createSubject";
+import { SubscriptionPlan } from "@/features/pricing/types/subscriptionPlans";
+import {
+  BillingInterval,
+  BillingKind,
+  BillingProvider,
+} from "@/features/pricing/types/billing";
 
 // 1. The Toggle Switch
 const PlanTypeToggle = ({
@@ -150,8 +55,21 @@ const PlanTypeToggle = ({
 );
 
 // 2. The Pricing Card
-const PricingCard = ({ plan }: { plan: Plan }) => {
-  const isHighlighted = plan.highlighted;
+const PricingCard = ({
+  plan,
+  onPurchase,
+  isLoading,
+}: {
+  plan: SubscriptionPlan;
+  onPurchase: (plan: SubscriptionPlan) => void;
+  isLoading: boolean;
+}) => {
+  const isHighlighted = plan.code == "ESSENTIAL" || plan.code == "PRO";
+  const isFree = plan.monthlyPriceCents === 0;
+  const price =
+    plan.monthlyPriceCents === 0
+      ? "$0"
+      : `$${(plan.monthlyPriceCents / 100).toFixed(0)}`;
 
   return (
     <div
@@ -164,9 +82,9 @@ const PricingCard = ({ plan }: { plan: Plan }) => {
         }
       `}
     >
-      {plan.popular && (
+      {plan.badgeText !== null && (
         <span className="absolute top-4 right-4 px-3 py-1 text-xs font-semibold text-indigo-300 bg-indigo-500/20 rounded-full border border-indigo-500/30">
-          POPULAR
+          {plan.badgeText}
         </span>
       )}
 
@@ -175,18 +93,19 @@ const PricingCard = ({ plan }: { plan: Plan }) => {
         <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
         <div className="flex items-baseline gap-1">
           <span className="text-4xl font-bold text-white tracking-tight">
-            {plan.price}
+            {price}
           </span>
-          {plan.period && (
-            <span className="text-zinc-400 text-sm">{plan.period}</span>
-          )}
+          <span className="text-zinc-400 text-sm">/month</span>
         </div>
         <p className="mt-4 text-zinc-400 text-sm h-10">{plan.description}</p>
       </div>
 
       {/* Action Button */}
-      <button
-        className={`
+      {isFree ? null : (
+        <button
+          onClick={() => onPurchase(plan)}
+          disabled={isLoading}
+          className={`
           w-full py-3 px-4 rounded-lg font-medium transition-colors mb-8
           ${
             isHighlighted
@@ -194,33 +113,39 @@ const PricingCard = ({ plan }: { plan: Plan }) => {
               : "bg-zinc-800 hover:bg-zinc-700 text-white"
           }
         `}
-      >
-        {plan.cta}
-      </button>
+        >
+          Get Plan
+        </button>
+      )}
 
       {/* Features List */}
       <div className="flex-grow">
         <ul className="space-y-4">
-          {plan.features.map((feature, idx) => (
-            <li
-              key={idx}
-              className="flex items-start gap-3 text-sm text-zinc-300"
-            >
-              {/* Dynamic Icon Selection based on context or just generic check */}
-              <div
-                className={`mt-0.5 ${
-                  isHighlighted ? "text-indigo-400" : "text-zinc-500"
-                }`}
+          {plan.features[0]
+            ?.replace(/^\[|\]$/g, "")
+            .split(",")
+            .map((feature, idx) => (
+              <li
+                key={idx}
+                className="flex items-start gap-3 text-sm text-zinc-300"
               >
-                {idx === 0 && isHighlighted ? (
-                  <Sparkles size={16} />
-                ) : (
-                  <Check size={16} />
-                )}
-              </div>
-              <span className="leading-tight">{feature}</span>
-            </li>
-          ))}
+                {/* Dynamic Icon Selection based on context or just generic check */}
+                <div
+                  className={`mt-0.5 ${
+                    isHighlighted ? "text-indigo-400" : "text-zinc-500"
+                  }`}
+                >
+                  {idx === 0 && isHighlighted ? (
+                    <Sparkles size={16} />
+                  ) : (
+                    <Check size={16} />
+                  )}
+                </div>
+                <span className="leading-tight">
+                  {feature.trim().replace(/^"|"$/g, "")}
+                </span>
+              </li>
+            ))}
         </ul>
       </div>
     </div>
@@ -229,9 +154,35 @@ const PricingCard = ({ plan }: { plan: Plan }) => {
 
 // --- Main Page Component ---
 export default function PricingPage() {
+  const { data: pricingPlans, isLoading } = usePlans();
+  const purchasePlan = usePurchasePlan();
   const [activeTab, setActiveTab] = useState<"personal" | "business">(
     "personal"
   );
+
+  const personalPlans: SubscriptionPlan[] = [];
+  const businessPlans: SubscriptionPlan[] = [];
+
+  pricingPlans?.map((plan) => {
+    if (plan.planType === "PERSONAL") {
+      personalPlans.push(plan);
+    } else {
+      businessPlans.push(plan);
+    }
+  });
+
+  const handlePurchase = (plan: SubscriptionPlan) => {
+    purchasePlan.mutate({
+      planId: plan.id,
+      provider: BillingProvider.STRIPE,
+      kind: BillingKind.SUBSCRIPTION,
+      interval: BillingInterval.MONTHLY,
+    });
+  };
+
+  if (isLoading) {
+    return <div className="text-center">Loading plans...</div>;
+  }
 
   const plans = activeTab === "personal" ? personalPlans : businessPlans;
 
@@ -263,7 +214,12 @@ export default function PricingPage() {
       `}
       >
         {plans.map((plan, index) => (
-          <PricingCard key={index} plan={plan} />
+          <PricingCard
+            key={plan.id}
+            plan={plan}
+            onPurchase={handlePurchase}
+            isLoading={purchasePlan.isPending}
+          />
         ))}
       </div>
     </div>

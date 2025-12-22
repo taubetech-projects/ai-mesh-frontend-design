@@ -72,7 +72,7 @@ authenticatedApi.interceptors.response.use(
       } catch (refreshError) {
         // Refresh token failed (e.g., it's also expired)
         clearTokens();
-        window.location.href = "/login";
+        window.location.href = "/auth/login";
         return Promise.reject(refreshError);
       }
     }
