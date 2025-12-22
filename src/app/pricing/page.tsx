@@ -121,31 +121,28 @@ const PricingCard = ({
       {/* Features List */}
       <div className="flex-grow">
         <ul className="space-y-4">
-          {plan.features[0]
-            ?.replace(/^\[|\]$/g, "")
-            .split(",")
-            .map((feature, idx) => (
-              <li
-                key={idx}
-                className="flex items-start gap-3 text-sm text-zinc-300"
+          {plan.features.map((feature, idx) => (
+            <li
+              key={idx}
+              className="flex items-start gap-3 text-sm text-zinc-300"
+            >
+              {/* Dynamic Icon Selection based on context or just generic check */}
+              <div
+                className={`mt-0.5 ${
+                  isHighlighted ? "text-indigo-400" : "text-zinc-500"
+                }`}
               >
-                {/* Dynamic Icon Selection based on context or just generic check */}
-                <div
-                  className={`mt-0.5 ${
-                    isHighlighted ? "text-indigo-400" : "text-zinc-500"
-                  }`}
-                >
-                  {idx === 0 && isHighlighted ? (
-                    <Sparkles size={16} />
-                  ) : (
-                    <Check size={16} />
-                  )}
-                </div>
-                <span className="leading-tight">
-                  {feature.trim().replace(/^"|"$/g, "")}
-                </span>
-              </li>
-            ))}
+                {idx === 0 && isHighlighted ? (
+                  <Sparkles size={16} />
+                ) : (
+                  <Check size={16} />
+                )}
+              </div>
+              <span className="leading-tight">
+                {feature.trim().replace(/^"|"$/g, "")}
+              </span>
+            </li>
+          ))}
         </ul>
       </div>
     </div>
