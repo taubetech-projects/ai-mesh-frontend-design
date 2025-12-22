@@ -14,6 +14,10 @@ import {
 import { createStreamEventHandler } from "@/features/chat/text-chat/utils/streamHandlers";
 
 import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
+import { queryKey } from "@/lib/react-query/keys";
+import { endStreaming } from "@/features/chat/store/chat-interface-slice";
+
+const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
 
 export const useCreateMessages = (conversationId: number) => {
   const queryClient = useQueryClient();
@@ -23,26 +27,32 @@ export const useCreateMessages = (conversationId: number) => {
 
   return useMutation({
     mutationFn: async (chatRequestBody: ChatRequestBody) => {
-      const { isConsensus } = validateChatRequest(
+      // ✅ Prevent in-flight overwrite of optimistic cache
+      await queryClient.cancelQueries({
+        queryKey: cacheKey(conversationId),
+      });
+
+      const { includeConsensus } = validateChatRequest(
         conversationId,
         chatRequestBody
       );
 
-      // 1) Optimistic user message
       cacheOps.pushMessage(
         createOptimisticUserMessage({ conversationId, chatRequestBody })
       );
 
-      // 2) Optimistic assistant placeholders (and map for streaming updates)
-      const modelIds = getModelIds(isConsensus, chatRequestBody);
+      const modelIds = getModelIds(includeConsensus, chatRequestBody);
       const tempsByModel = createAssistantPlaceholderTemps({
         conversationId,
         modelIds,
         pushMessage: cacheOps.pushMessage,
       });
 
-      // 3) Stream
-      const expectedStreams = getExpectedStreams(isConsensus, chatRequestBody);
+      const expectedStreams = getExpectedStreams(
+        includeConsensus,
+        chatRequestBody
+      );
+
       const onEvent = createStreamEventHandler({
         dispatch,
         expectedStreams,
@@ -54,6 +64,12 @@ export const useCreateMessages = (conversationId: number) => {
       await cacheOps.streamChat(conversationId, null, chatRequestBody, onEvent);
 
       return null;
+    },
+
+    onSettled: () => {
+      // ✅ Fallback: ensure UI always re-syncs with backend even if event is missed
+      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
+      dispatch(endStreaming());
     },
   });
 };

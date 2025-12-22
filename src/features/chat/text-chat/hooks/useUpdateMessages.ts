@@ -14,6 +14,10 @@ import {
 import { createStreamEventHandler } from "@/features/chat/text-chat/utils/streamHandlers";
 
 import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
+import { queryKey } from "@/lib/react-query/keys";
+import { endStreaming } from "@/features/chat/store/chat-interface-slice";
+
+const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
 
 export const useUpdateMessages = (conversationId: number) => {
   const queryClient = useQueryClient();
@@ -29,7 +33,12 @@ export const useUpdateMessages = (conversationId: number) => {
       messageId: number | null;
       chatRequestBody: ChatRequestBody;
     }) => {
-      const { isConsensus } = validateChatRequest(
+      // ✅ Prevent in-flight fetch from overwriting optimistic cache
+      await queryClient.cancelQueries({
+        queryKey: cacheKey(conversationId),
+      });
+
+      const { includeConsensus } = validateChatRequest(
         conversationId,
         chatRequestBody
       );
@@ -39,8 +48,8 @@ export const useUpdateMessages = (conversationId: number) => {
         createOptimisticUserMessage({ conversationId, chatRequestBody })
       );
 
-      // 2) Optimistic assistant placeholders (and map for streaming updates)
-      const modelIds = getModelIds(isConsensus, chatRequestBody);
+      // 2) Optimistic assistant placeholders
+      const modelIds = getModelIds(includeConsensus, chatRequestBody);
       const tempsByModel = createAssistantPlaceholderTemps({
         conversationId,
         modelIds,
@@ -48,7 +57,11 @@ export const useUpdateMessages = (conversationId: number) => {
       });
 
       // 3) Stream
-      const expectedStreams = getExpectedStreams(isConsensus, chatRequestBody);
+      const expectedStreams = getExpectedStreams(
+        includeConsensus,
+        chatRequestBody
+      );
+
       const onEvent = createStreamEventHandler({
         dispatch,
         expectedStreams,
@@ -60,11 +73,19 @@ export const useUpdateMessages = (conversationId: number) => {
       await cacheOps.streamChat(
         conversationId,
         messageId,
-        chatRequestBody, // This was the issue, it was expecting a different type
+        chatRequestBody,
         onEvent
       );
 
       return null;
+    },
+
+    onSettled: () => {
+      // ✅ Fallback: re-sync with backend if invalidate event is missed
+      queryClient.invalidateQueries({
+        queryKey: cacheKey(conversationId),
+      });
+      // ❌ DO NOT endStreaming here
     },
   });
 };
