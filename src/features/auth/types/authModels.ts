@@ -12,6 +12,14 @@ export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
   tokenType: string; // defaults to "Bearer" in backend
+  user: UserGrantsView;
+}
+
+export interface UserGrantsView {
+  username: string;
+  email: string;
+  roles: string[];
+  authorities: string[];
 }
 
 export interface SignupRequest {

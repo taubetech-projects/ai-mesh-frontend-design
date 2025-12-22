@@ -4,7 +4,7 @@ import Link from "next/link";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authenticatedApi } from "@/lib/api/axiosApi";
-import { setTokens } from "@/features/auth/utils/auth";
+import { setTokens, setUserDetails } from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
 import { ErrorResponse } from "@/features/auth/types/authModels";
 import { toast } from "sonner";
@@ -146,6 +146,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
       console.log("Login response:", response);
       if (response && response.accessToken) {
         setTokens(response.accessToken, response.refreshToken);
+        setUserDetails(response.user);
         toast.success("Login successful! Welcome to our platform...");
         setTimeout(() => {
           router.push("/home");

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/shared/contexts/theme-context";
 import { LanguageSelector } from "@/shared/components/language-selector";
-import { clearTokens, getRefreshToken } from "@/features/auth/utils/auth";
+import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
 import { get } from "http";
 import ProtectedRoute from "@/shared/components/protected-route";
@@ -130,14 +130,14 @@ export default function SettingsPage() {
                 label="Email"
                 id="email"
                 type="email"
-                value="tahsinahmed.iit@gmail.com"
+                value={getUserDetails()?.email ?? "no email"}
                 disabled
               />
               <FormInput
                 label="Full name"
                 id="full-name"
                 type="text"
-                value="Mir Mohammad Tahasin"
+                value={getUserDetails()?.username ?? "no name"}
               />
               <FormPhoneInput />
               <LanguageSelector />

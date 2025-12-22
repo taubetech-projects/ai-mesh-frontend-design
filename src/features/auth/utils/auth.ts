@@ -4,6 +4,7 @@ import {
   REFRESH_TOKEN_KEY,
   UNDEFINED,
 } from "@/shared/constants/constants";
+import { UserGrantsView } from "../types/authModels";
 
 const defaultApiKey = process.env.NEXT_PUBLIC_DEFAULT_API_KEY || "";
 
@@ -28,10 +29,31 @@ export function setTokens(accessToken: string, refreshToken: string) {
   }
 }
 
+export function setUserDetails(user: UserGrantsView) {
+  if (typeof window !== UNDEFINED) {
+    localStorage.setItem("user", JSON.stringify(user));
+  }
+}
+
+export function getUserDetails(): UserGrantsView | null {
+  if (typeof window === UNDEFINED) {
+    return null;
+  }
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+}
+
+export function clearUserDetails() {
+  if (typeof window !== UNDEFINED) {
+    localStorage.removeItem("user");
+  }
+}
+
 export function clearTokens() {
   if (typeof window !== UNDEFINED) {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem("user");
   }
 }
 
