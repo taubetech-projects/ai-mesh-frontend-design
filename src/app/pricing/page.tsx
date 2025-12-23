@@ -21,6 +21,7 @@ import {
   BillingProvider,
 } from "@/features/pricing/types/billing";
 import { useCurrentSubscription } from "@/features/pricing/hooks/useCurrentSubscription";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 // 1. The Toggle Switch
 const PlanTypeToggle = ({
@@ -207,7 +208,7 @@ export default function PricingPage() {
       {/* Header Section */}
       <div className="max-w-3xl mx-auto text-center mb-10">
         <Link
-          href="/home"
+          href={APP_ROUTES.CHAT}
           className="font-medium text-gray-400 hover:underline mb-6 inline-block"
         >
           &larr; Back to Home

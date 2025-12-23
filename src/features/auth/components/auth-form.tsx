@@ -8,6 +8,7 @@ import { setTokens, setUserDetails } from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
 import { ErrorResponse } from "@/features/auth/types/authModels";
 import { toast } from "sonner";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 // --- SVG Icons ---
 const UserIcon = ({ className }: { className: string }) => (
@@ -136,7 +137,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
   const router = useRouter();
 
   const handleGoogleSignIn = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href = APP_ROUTES.GOOGLE_SIGNIN;
   };
 
   const handleLogin = async () => {
@@ -149,7 +150,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
         setUserDetails(response.user);
         toast.success("Login successful! Welcome to our platform...");
         setTimeout(() => {
-          router.push("/home");
+          router.push(APP_ROUTES.CHAT);
         }, 1000);
       } else {
         setError("Login failed: No token received.");
@@ -193,7 +194,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
           "Signup successful! Please check your email for verification."
         );
         router.push(
-          `auth/signup/verify-email?email=${encodeURIComponent(response.email)}`
+          `${APP_ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(response.email)}`
         );
         // toast.success("Signup successful! Redirecting to login...");
         // setTimeout(() => {

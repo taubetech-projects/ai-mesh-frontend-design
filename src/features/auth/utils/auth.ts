@@ -5,6 +5,7 @@ import {
   UNDEFINED,
 } from "@/shared/constants/constants";
 import { UserGrantsView } from "../types/authModels";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 const defaultApiKey = process.env.NEXT_PUBLIC_DEFAULT_API_KEY || "";
 
@@ -66,7 +67,7 @@ export function ensureAuthenticatedClient() {
   const token = getAccessToken();
   if (!token) {
     clearTokens();
-    window.location.href = "/login";
+    window.location.href = APP_ROUTES.SIGNIN;
     throw new Error("Unauthorized access — no token found.");
   }
 }

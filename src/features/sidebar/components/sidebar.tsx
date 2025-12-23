@@ -56,6 +56,7 @@ import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/ut
 import { AuthService } from "@/features/auth/api/authApi";
 import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
 import { MessageView } from "@/features/chat/types/models";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
@@ -144,7 +145,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   };
 
   const handleUpgradePlan = () => {
-    router.push("/pricing");
+    router.push(APP_ROUTES.PRICING);
   };
 
     async function handleLogout() {
@@ -157,7 +158,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
       if (response === "200") {
         // setApiKey(response.accessToken);
         clearTokens();
-        router.push("/auth/login");
+        router.push(APP_ROUTES.SIGNIN);
       } else {
         alert("Logout failed. Please try again.");
       }
@@ -545,13 +546,13 @@ export function Sidebar({ activeInterface }: SidebarProps) {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" className="w-60">
-            <Link href="/pricing" passHref legacyBehavior>
+            <Link href={APP_ROUTES.PRICING} passHref legacyBehavior>
               <DropdownMenuItem>
                 <Sparkles className="mr-2 h-4 w-4" />
                 <span>Upgrade Plan</span>
               </DropdownMenuItem>
             </Link>
-            <Link href="/setting" passHref legacyBehavior>
+            <Link href={APP_ROUTES.SETTINGS} passHref legacyBehavior>
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>{t.nav.settings}</span>

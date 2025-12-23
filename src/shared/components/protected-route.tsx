@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken } from "@/features/auth/utils/auth";
+import { APP_ROUTES } from "../constants/routingConstants";
 
 export default function ProtectedRoute({
   children,
@@ -16,7 +17,7 @@ export default function ProtectedRoute({
   useEffect(() => {
     const token = getAccessToken();
     if (!token) {
-      router.replace("/auth/login");
+      router.replace(APP_ROUTES.SIGNIN);
     } else {
       setIsAuth(true);
     }

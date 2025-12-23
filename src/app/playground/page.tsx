@@ -8,7 +8,7 @@ export default function PlaygroundPage() {
   return (
     <div className="flex h-screen bg-background">
       <Provider store={store}>
-        <Sidebar />
+        <Sidebar activeInterface={"CHAT"} />
         <ChatInterface />
       </Provider>
     </div>

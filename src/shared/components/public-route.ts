@@ -2,6 +2,7 @@
 import { getAccessToken } from "@/features/auth/utils/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { APP_ROUTES } from "../constants/routingConstants";
 
 export default function PublicRoute({
   children,
@@ -15,7 +16,7 @@ export default function PublicRoute({
     const token = getAccessToken();
     if (token) {
       setIsAuth(true);
-      router.replace("/home");
+      router.replace(APP_ROUTES.CHAT);
     } else {
       setIsAuth(false);
     }
