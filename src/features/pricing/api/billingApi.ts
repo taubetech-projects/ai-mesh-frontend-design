@@ -1,5 +1,5 @@
 import { api, authenticatedApi } from "@/lib/api/axiosApi";
-import { SubscriptionPlan } from "../types/subscriptionPlans";
+import { currentSubscriptionResponse, SubscriptionPlan } from "../types/subscriptionPlans";
 import { BillingRediretResponse, CreateBillingRequest } from "../types/billing";
 
 export const BillingService = {
@@ -17,6 +17,15 @@ export const BillingService = {
     );
     return res.data;
   },
+
+  getCurrentSubscription: async (): Promise<currentSubscriptionResponse> => {
+    const res = await authenticatedApi.get<currentSubscriptionResponse>(
+      "/v1/api/chat/subscription/current"
+    );
+    return res.data;
+  },
+
+  
 };
 
 export default BillingService;

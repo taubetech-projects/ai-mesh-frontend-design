@@ -12,3 +12,14 @@ export interface SubscriptionPlan {
   monthlyTokens: number;
   maxSharedInvites: number;
 }
+
+export interface currentSubscriptionResponse{
+  id: string;
+  planId: string;
+  planCode: "FREE" | "ENTERPRISE" | "ESSENTIAL" | "PRO" | "SHARED";
+  planName: string;
+  status: "active" | "canceled" | "past_due" | "unpaid";
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+}

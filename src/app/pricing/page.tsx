@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import {
   Check,
   Sparkles,
@@ -19,6 +19,7 @@ import {
   BillingKind,
   BillingProvider,
 } from "@/features/pricing/types/billing";
+import { useCurrentSubscription } from "@/features/pricing/hooks/useCurrentSubscription";
 
 // 1. The Toggle Switch
 const PlanTypeToggle = ({
@@ -59,11 +60,15 @@ const PricingCard = ({
   plan,
   onPurchase,
   isLoading,
+  isCurrentSubscription,
 }: {
   plan: SubscriptionPlan;
   onPurchase: (plan: SubscriptionPlan) => void;
   isLoading: boolean;
+  isCurrentSubscription: boolean;
 }) => {
+  console.log("Plan: ", plan);
+  console.log("Is Current Subscription: ", isCurrentSubscription);
   const isHighlighted = plan.code == "ESSENTIAL" || plan.code == "PRO";
   const isFree = plan.monthlyPriceCents === 0;
   const price =
@@ -104,9 +109,9 @@ const PricingCard = ({
       {isFree ? null : (
         <button
           onClick={() => onPurchase(plan)}
-          disabled={isLoading}
+          disabled={isLoading || isCurrentSubscription}
           className={`
-          w-full py-3 px-4 rounded-lg font-medium transition-colors mb-8
+          w-full py-3 px-4 rounded-lg font-medium transition-colors mb-8 disabled:opacity-50 disabled:cursor-not-allowed
           ${
             isHighlighted
               ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20"
@@ -114,7 +119,7 @@ const PricingCard = ({
           }
         `}
         >
-          Get Plan
+          {isCurrentSubscription ? "Your Current Plan" : "Subscribe"}
         </button>
       )}
 
@@ -153,6 +158,10 @@ const PricingCard = ({
 export default function PricingPage() {
   const { data: pricingPlans, isLoading } = usePlans();
   const purchasePlan = usePurchasePlan();
+  const { data: currentSubscription, isLoading: isLoadingSubscription } =
+    useCurrentSubscription();
+  console.log("Current Subscription :", currentSubscription);
+
   const [activeTab, setActiveTab] = useState<"personal" | "business">(
     "personal"
   );
@@ -216,6 +225,7 @@ export default function PricingPage() {
             plan={plan}
             onPurchase={handlePurchase}
             isLoading={purchasePlan.isPending}
+            isCurrentSubscription={plan.id === currentSubscription?.planId}
           />
         ))}
       </div>
