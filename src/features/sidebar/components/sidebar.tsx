@@ -32,7 +32,7 @@ import {
 } from "@/features/conversation/hooks/conversationHook";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
-import { clearChatState } from "@/features/chat/store/chat-interface-slice";
+import { clearChatState, setSelectedModels, setInitialSelectedModels } from "@/features/chat/store/chat-interface-slice";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -54,6 +54,8 @@ import {
 } from "@/shared/components/ui/alert-dialog";
 import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
+import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
+import { MessageView } from "@/features/chat/types/models";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
@@ -94,10 +96,27 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   } = useGetConversationsForImage();
   console.log("Chat History: ", chatHistory, "Image History: ", imageHistory);
 
+  const { data: conversationMessages } = useGetMessagesByConversationId(selectedConvId);
+
+  useEffect(() => {
+    if (conversationMessages?.messages) {
+      const uniqueModels = Array.from(
+        new Set(
+          conversationMessages.messages
+            .map((message: MessageView) => message.model)
+            .filter((model: any) => model)
+        )
+      );
+      const conversationModels = uniqueModels.map((model) => ({ model }));
+      dispatch(setSelectedModels(conversationModels));
+    }
+  }, [conversationMessages, dispatch]);
+
   const handleNewChat = () => {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
     dispatch(setGlobalActiveInterface("CHAT")); // Ensure chat interface is active
+    dispatch(setInitialSelectedModels());
   };
 
   const handleDeleteConversation = () => {
