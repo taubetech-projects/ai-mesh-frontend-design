@@ -4,12 +4,30 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { AuthService } from "@/features/auth/api/authApi";
+import { getRefreshToken, setTokens } from "@/features/auth/utils/auth";
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
+    const refreshSession = async () => {
+      try {
+        const currentRefreshToken = getRefreshToken();
+        if (currentRefreshToken) {
+          const tokens = await AuthService.refreshToken({
+            refreshToken: currentRefreshToken,
+          });
+          setTokens(tokens.accessToken, tokens.refreshToken);
+        }
+      } catch (error) {
+        console.error("Failed to refresh tokens:", error);
+      }
+    };
+
+    refreshSession();
+
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {

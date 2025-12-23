@@ -8,6 +8,7 @@ import {
   LayoutGrid,
   Users,
   Building2,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePlans } from "@/features/pricing/hooks/usePlans";
@@ -111,7 +112,7 @@ const PricingCard = ({
           onClick={() => onPurchase(plan)}
           disabled={isLoading || isCurrentSubscription}
           className={`
-          w-full py-3 px-4 rounded-lg font-medium transition-colors mb-8 disabled:opacity-50 disabled:cursor-not-allowed
+          w-full py-3 px-4 rounded-lg font-medium transition-colors mb-8 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2
           ${
             isHighlighted
               ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20"
@@ -119,7 +120,16 @@ const PricingCard = ({
           }
         `}
         >
-          {isCurrentSubscription ? "Your Current Plan" : "Subscribe"}
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              Processing...
+            </>
+          ) : isCurrentSubscription ? (
+            "Your Current Plan"
+          ) : (
+            "Subscribe"
+          )}
         </button>
       )}
 
@@ -224,7 +234,10 @@ export default function PricingPage() {
             key={plan.id}
             plan={plan}
             onPurchase={handlePurchase}
-            isLoading={purchasePlan.isPending}
+            isLoading={
+              purchasePlan.isPending &&
+              purchasePlan.variables?.planId === plan.id
+            }
             isCurrentSubscription={plan.id === currentSubscription?.planId}
           />
         ))}
