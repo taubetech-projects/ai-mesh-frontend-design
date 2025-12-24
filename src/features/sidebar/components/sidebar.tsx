@@ -184,6 +184,13 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.IMAGE)); // Ensure image interface is active
   };
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div
       className={`${
@@ -335,33 +342,16 @@ export function Sidebar({ activeInterface }: SidebarProps) {
                             className="flex-1 truncate"
                             onClick={() => {
                               dispatch(
-                                setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)
+                                setGlobalActiveInterface(
+                                  CONVERSATION_TYPES.CHAT
+                                )
                               );
                               dispatch(clearChatState());
-                              dispatch(setSelectedConvId(conversation.id));
-                              router.push(
-                                APP_ROUTES.CHAT + `/${conversation.id}`
-                              );
                             }}
                           >
                             {conversation.title}
                           </span>
                         </Link>
-                        {/* <span
-                          className="flex-1 truncate"
-                          onClick={() => {
-                            dispatch(
-                              setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)
-                            );
-                            dispatch(clearChatState());
-                            dispatch(setSelectedConvId(conversation.id));
-                            router.push(
-                              APP_ROUTES.CHAT + `/${conversation.id}`
-                            );
-                          }}
-                        >
-                          {conversation.title}
-                        </span> */}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button

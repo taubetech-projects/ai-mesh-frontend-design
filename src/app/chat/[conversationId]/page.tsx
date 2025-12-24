@@ -1,16 +1,12 @@
 "use client";
 import { ChatInterface } from "@/features/chat/components/chat-interface";
 import { ImageGenerationInterface } from "@/features/chat/image-chat/components/image-generation-interface";
+import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
 import store, { RootState } from "@/lib/store/store";
 import ProtectedRoute from "@/shared/components/protected-route";
-import { useSelector, Provider } from "react-redux";
-
-// app/chat/[conversationId]/page.tsx
-interface ChatPageProps {
-  params: {
-    conversationId: string;
-  };
-}
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
+import { useSelector, Provider, useDispatch } from "react-redux";
 
 // export default async function ChatPage({ params }: ChatPageProps) {
 //   const { conversationId } = params;
@@ -43,12 +39,20 @@ function HomeContent2() {
   );
 }
 
-export default function ChatPage() {
+export default function ConversationPage() {
+  const params = useParams();
+  const dispatch = useDispatch();
+  const conversationId = params.conversationId as string;
+
+  useEffect(() => {
+    if (conversationId) {
+      dispatch(setSelectedConvId(conversationId));
+    }
+  }, [conversationId, dispatch]);
+
   return (
     <ProtectedRoute>
-      <Provider store={store}>
-        <HomeContent2 />
-      </Provider>
+      <HomeContent2 />
     </ProtectedRoute>
   );
 }

@@ -6,6 +6,7 @@ import { ChatInterface } from "@/features/chat/components/chat-interface"; // As
 import { ImageGenerationInterface } from "../../features/chat/image-chat/components/image-generation-interface"; // New import
 import store, { RootState } from "@/lib/store/store";
 import ProtectedRoute from "@/shared/components/protected-route";
+import { HomeChatInterface } from "@/features/chat/components/home-chat-interface";
 
 export type RouteSel = { provider: string; model: string };
 
@@ -16,7 +17,7 @@ function HomeContent() {
     <div className="flex h-screen bg-background">
       {/* <Sidebar activeInterface={activeInterface} /> */}
       {activeInterface === "CHAT" ? (
-        <ChatInterface />
+        <HomeChatInterface />
       ) : (
         <ImageGenerationInterface />
       )}
@@ -27,13 +28,7 @@ function HomeContent() {
 export default function HomePage() {
   return (
     <ProtectedRoute>
-      {/* <div>
-        <h2>New Conversation</h2>
-        <p>Start typing to begin a new chat.</p>
-      </div> */}
-      <Provider store={store}>
-        <HomeContent />
-      </Provider>
+      <HomeContent />
     </ProtectedRoute>
   );
 }

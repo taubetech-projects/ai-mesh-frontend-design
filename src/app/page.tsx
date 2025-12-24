@@ -2,6 +2,9 @@
 import React from "react";
 import Link from "next/link";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { Provider } from "react-redux";
+import store, { RootState } from "@/lib/store/store";
+
 
 // --- Navbar Component ---
 const Navbar = () => {
@@ -142,7 +145,9 @@ export default function HomePage() {
         <Navbar />
         <main>
           <>
-            <HeroSection />
+            <Provider store={store}>
+              <HeroSection />
+            </Provider>
             {/* You can add more homepage sections here */}
           </>
         </main>
