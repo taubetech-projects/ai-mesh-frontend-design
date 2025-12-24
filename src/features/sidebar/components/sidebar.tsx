@@ -32,7 +32,11 @@ import {
 } from "@/features/conversation/hooks/conversationHook";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
-import { clearChatState, setSelectedModels, setInitialSelectedModels } from "@/features/chat/store/chat-interface-slice";
+import {
+  clearChatState,
+  setSelectedModels,
+  setInitialSelectedModels,
+} from "@/features/chat/store/chat-interface-slice";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -52,11 +56,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog";
-import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/utils/auth";
+import {
+  clearTokens,
+  getRefreshToken,
+  getUserDetails,
+} from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
 import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
 import { MessageView } from "@/features/chat/types/models";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import {
+  CONVERSATION_TYPES,
+  INTERFACE_TYPES,
+} from "@/shared/constants/constants";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
@@ -97,7 +109,8 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   } = useGetConversationsForImage();
   console.log("Chat History: ", chatHistory, "Image History: ", imageHistory);
 
-  const { data: conversationMessages } = useGetMessagesByConversationId(selectedConvId);
+  const { data: conversationMessages } =
+    useGetMessagesByConversationId(selectedConvId);
 
   useEffect(() => {
     if (conversationMessages?.messages) {
@@ -116,8 +129,9 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   const handleNewChat = () => {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
-    dispatch(setGlobalActiveInterface("CHAT")); // Ensure chat interface is active
+    dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
     dispatch(setInitialSelectedModels());
+    router.push(APP_ROUTES.CHAT);
   };
 
   const handleDeleteConversation = () => {
@@ -148,35 +162,27 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     router.push(APP_ROUTES.PRICING);
   };
 
-    async function handleLogout() {
-      console.log("Response Token before log out:", getRefreshToken() ?? "");
-      const response = await AuthService.logout({
-        refreshToken: getRefreshToken() ?? "",
-      });
-      console.log("Response Token :", getRefreshToken() ?? "");
-      console.log("Logout response:", response);
-      if (response === "200") {
-        // setApiKey(response.accessToken);
-        clearTokens();
-        router.push(APP_ROUTES.SIGNIN);
-      } else {
-        alert("Logout failed. Please try again.");
-      }
+  async function handleLogout() {
+    console.log("Response Token before log out:", getRefreshToken() ?? "");
+    const response = await AuthService.logout({
+      refreshToken: getRefreshToken() ?? "",
+    });
+    console.log("Response Token :", getRefreshToken() ?? "");
+    console.log("Logout response:", response);
+    if (response === "200") {
+      // setApiKey(response.accessToken);
+      clearTokens();
+      router.push(APP_ROUTES.SIGNIN);
+    } else {
+      alert("Logout failed. Please try again.");
     }
+  }
 
   const handleGenerateImage = () => {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
-    dispatch(setGlobalActiveInterface("IMAGE")); // Ensure image interface is active
+    dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.IMAGE)); // Ensure image interface is active
   };
-
-  // 👇 When conversations load, select the last one automatically
-  // useEffect(() => {
-  //   if (conversations && conversations.length > 0 && !selectedConvId) {
-  //     const last = conversations[0];
-  //     dispatch(setSelectedConvId(last.id));
-  //   }
-  // }, [conversations, selectedConvId]);
 
   return (
     <div
@@ -324,16 +330,38 @@ export function Sidebar({ activeInterface }: SidebarProps) {
                       />
                     ) : (
                       <>
-                        <span
+                        <Link href={APP_ROUTES.CHAT + `/${conversation.id}`}>
+                          <span
+                            className="flex-1 truncate"
+                            onClick={() => {
+                              dispatch(
+                                setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)
+                              );
+                              dispatch(clearChatState());
+                              dispatch(setSelectedConvId(conversation.id));
+                              router.push(
+                                APP_ROUTES.CHAT + `/${conversation.id}`
+                              );
+                            }}
+                          >
+                            {conversation.title}
+                          </span>
+                        </Link>
+                        {/* <span
                           className="flex-1 truncate"
                           onClick={() => {
-                            dispatch(setGlobalActiveInterface("CHAT"));
+                            dispatch(
+                              setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)
+                            );
                             dispatch(clearChatState());
                             dispatch(setSelectedConvId(conversation.id));
+                            router.push(
+                              APP_ROUTES.CHAT + `/${conversation.id}`
+                            );
                           }}
                         >
                           {conversation.title}
-                        </span>
+                        </span> */}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -435,7 +463,9 @@ export function Sidebar({ activeInterface }: SidebarProps) {
                         <span
                           className="flex-1 truncate"
                           onClick={() => {
-                            dispatch(setGlobalActiveInterface("IMAGE")); // Set to image interface
+                            dispatch(
+                              setGlobalActiveInterface(CONVERSATION_TYPES.IMAGE)
+                            ); // Set to image interface
                             dispatch(clearChatState());
                             dispatch(setSelectedConvId(conversation.id));
                           }}

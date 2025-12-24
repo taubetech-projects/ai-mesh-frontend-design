@@ -8,7 +8,7 @@ import type {
   ModelProvider,
   RouteSel,
 } from "@/features/chat/types/models";
-import { ChatArea } from "@/features/chat/components/chat-area-2";
+import { ChatArea } from "@/features/chat/components/chat-area";
 import { useDispatch, useSelector } from "react-redux";
 import { removeModel } from "@/features/chat/store/chat-interface-slice";
 
@@ -21,7 +21,7 @@ export function ModelColumns() {
   // Get model details for selected models
   const getModelDetails = (modelId: string) => {
     for (const provider of providers) {
-      const model = provider.models.find((m: any) => m.id === modelId);
+      const model = provider.models.find((m) => m.id === modelId);
       if (model) return { model, provider };
     }
     return null;

@@ -8,7 +8,7 @@ import type {
   ModelProvider,
   RouteSel,
 } from "@/features/chat/types/models";
-import { ChatArea } from "@/features/chat/components/chat-area-2";
+import { ChatArea } from "@/features/chat/components/chat-area";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store/store";
 import { removeModel } from "@/features/chat/store/image-generation-slice";

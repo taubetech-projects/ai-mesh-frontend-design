@@ -1,271 +1,204 @@
 "use client";
-
-import { useLanguage } from "@/shared/contexts/language-context";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { tomorrow } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { Check, Copy } from "lucide-react"; // or any icon lib
-import { useState } from "react";
-
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypeRaw from "rehype-raw";
 import { useSelector } from "react-redux";
 import {
   ChatAreaProps,
   CopyButtonProps,
-  Message,
+  MessagePage,
+  MessageView,
 } from "@/features/chat/types/models";
+import {
+  useGetMessagesByConversationId,
+  useDeleteForAllModels,
+  useDeleteForSingleModel,
+} from "@/features/chat/text-chat/hooks/messageHook";
 
-export function CopyButton({ code }: CopyButtonProps) {
-  const [copied, setCopied] = useState(false);
+import MessageComponent from "@/features/chat/text-chat/components/message-component";
+import { useState } from "react";
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error("Failed to copy:", err);
+const getModelMessages = (
+  activeModel: string,
+  messagePage?: MessagePage
+): MessageView[] => {
+  if (!messagePage?.messages?.length) return [];
+
+  const messages = messagePage.messages;
+  const result: MessageView[] = [];
+
+  let lastUserMessage: MessageView | undefined;
+
+  for (const msg of messages) {
+    if (msg.role === "user") {
+      lastUserMessage = msg;
+    } else if (
+      msg.role === "assistant" &&
+      msg.model === activeModel &&
+      lastUserMessage
+    ) {
+      result.push(lastUserMessage, msg);
     }
-  };
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="absolute top-2 right-2 p-1 rounded-md bg-white/10 hover:bg-white/20 transition"
-      title="Copy code"
-    >
-      {copied ? (
-        <Check size={16} className="text-green-400" />
-      ) : (
-        <Copy size={16} className="text-white" />
-      )}
-    </button>
-  );
-}
-
-// utils/formatLLMContent.ts
-export function formatLLMContent(provider: string, content: string): string {
-  if (!content) return "";
-
-  let formatted = content;
-
-  switch (provider.toLowerCase()) {
-    case "claude":
-      // Convert triple single quotes to code fences
-      formatted = formatted.replace(
-        /'''(\w+)?\n([\s\S]*?)'''/g,
-        "```$1\n$2```"
-      );
-      break;
-
-    case "gemini":
-      // Sometimes Gemini returns incomplete lists or extra spaces, quick fix
-      formatted = formatted.replace(/\n-\s+/g, "\n- ");
-      break;
-
-    case "perplexity":
-      // Citations like [1] or (source)
-      // You can later render citations at the bottom if metadata is provided
-      break;
-
-    case "grok":
-      // If plain text JSON is returned, try to prettify it
-      if (formatted.startsWith("{") || formatted.startsWith("[")) {
-        try {
-          const obj = JSON.parse(formatted);
-          formatted = "```json\n" + JSON.stringify(obj, null, 2) + "\n```";
-        } catch (_) {}
-      }
-      break;
   }
 
-  return formatted.trim();
-}
+  return result;
+};
+
+const getModelGrouppedMessages = (
+  activeModel: string,
+  messagePage?: MessagePage
+): Map<string, Map<string, MessageView[]>> => {
+  if (!messagePage?.messages?.length) return new Map();
+
+  const result = new Map<string, Map<string, MessageView[]>>();
+  let lastUserMsg: MessageView | undefined;
+
+  for (const msg of messagePage.messages) {
+    if (msg.role === "user") {
+      lastUserMsg = msg;
+      continue;
+    }
+    // Suppose you have model and groupId:
+    const model = msg.model;
+    const groupId = String(msg.groupId);
+
+    // Only group assistant messages for the active model and only if we have a preceding user
+    if (msg.role === "assistant" && msg.model === activeModel && lastUserMsg) {
+      if (!result.has(model)) {
+        result.set(model, new Map());
+      }
+      const groupMap = result.get(model)!;
+
+      if (!groupMap.has(groupId)) {
+        groupMap.set(groupId, []);
+      }
+      groupMap.get(groupId)!.push(lastUserMsg, msg);
+    }
+  }
+
+  return result;
+};
 
 export function ChatArea({ activeModel }: ChatAreaProps) {
-  const { messages } = useSelector((store: any) => store.chatInterface);
-  const { t } = useLanguage();
+  const { selectedConvId } = useSelector(
+    (store: any) => store.conversationSlice
+  );
 
-  const getModelDisplayName = (modelId: string) => {
-    const modelNames: Record<string, string> = {
-      "gpt-4": "GPT-4",
-      "claude-3": "Claude 3",
-      "gemini-pro": "Gemini Pro",
-      "deepseek-chat": "DeepSeek Chat",
-      "gpt-3.5-turbo": "GPT-3.5 Turbo",
-      "claude-2": "Claude 2",
-      "palm-2": "PaLM 2",
-      "deepseek-coder": "DeepSeek Coder",
-      "gemini-2.5-flash-lite": "Gemini-2.5 Flash",
-    };
-    return modelNames[modelId] || modelId;
+  const { isPending, data, isError } =
+    useGetMessagesByConversationId(selectedConvId);
+  const { mutate: deleteForAll, isPending: isDeletingForAll } =
+    useDeleteForAllModels(selectedConvId);
+  const { mutate: deleteForModel, isPending: isDeletingForModel } =
+    useDeleteForSingleModel(selectedConvId);
+
+  const isDeleting = isDeletingForAll || isDeletingForModel;
+  console.log("Selected Conversations Data : ", data);
+
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    messageId: number | null;
+  }>({ isOpen: false, messageId: null });
+
+  const openDeleteDialog = (messageId: number) => {
+    setDeleteDialog({ isOpen: true, messageId });
   };
 
-  const getModelIcon = (modelId: string) => {
-    return (
-      <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-        <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center">
-          <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
-        </div>
-      </div>
-    );
+  const closeDeleteDialog = () => {
+    setDeleteDialog({ isOpen: false, messageId: null });
   };
 
-  const modelMessages = messages[activeModel];
-  if (modelMessages === undefined) return null;
+  // The deleteMessage hook's mutate function might need to be updated
+  // to accept an object like { messageId, modelName } for model-specific deletion.
+
+  const groupedMessagesMap = getModelGrouppedMessages(activeModel, data);
+  // console.log("groupedMessagesMap", groupedMessagesMap);
+
+  const messageGroups = Array.from(
+    groupedMessagesMap.get(activeModel)?.values() ?? []
+  );
+  console.log(
+    `[ChatArea] Rendering for model "${activeModel}". Found ${messageGroups.length} message groups.`,
+    messageGroups
+  );
+
+  // if (isPending) {
+  //   return <div className="flex-1 p-4 text-center">Loading messages...</div>;
+  // }
 
   return (
-    <div className="flex flex-col h-full ">
-      {/* Header 
-      <div className="flex flex-col items-center justify-center py-8 text-center flex-shrink-0">
-        {getModelIcon(activeModel)}
-        <h2 className="text-xl font-semibold text-foreground mb-2">
-          {modelDisplayName}
-        </h2>
-        <p className="text-muted-foreground mb-1">
-          {t.chat.readyToChat} {modelDisplayName}
-        </p>
-        <p className="text-sm text-muted-foreground">{t.chat.sendMessage}</p>
-      </div>
-      */}
-
-      {/* Messages */}
+    <div className="flex flex-col h-full">
       <div
         className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-auto gpt-scrollbar"
         style={{ minHeight: 0, minWidth: 0 }} // important
       >
-        {modelMessages.map((message: Message, index: number) => {
-          const contentToRender =
-            message.role === "assistant" && message.meta
-              ? formatLLMContent(message.meta.provider, message.content)
-              : message.content;
-
+        {messageGroups.map((group, index) => {
+          if (group.length === 0) return null;
           return (
-            <div
-              key={index}
-              className={`p-3 ${
-                message.role === "user" ? "bg-muted rounded-lg border" : ""
-              }`}
-            >
-              {/* Label (Question / Answer) */}
-              <div
-                className={`text-xs font-medium mb-1 ${
-                  message.role === "user" ? "text-blue-300" : "text-emerald-300"
-                }`}
-              >
-                {message.role === "user" ? "Question" : ""}
-              </div>
-
-              {/* Markdown Rendering */}
-              <div className="prose prose-invert max-w-none text-sm leading-relaxed text-primary prose-ul:list-disc prose-ul:pl-5 prose-li:marker:text-blue-400 break-words">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeRaw, rehypeKatex]}
-                  components={{
-                    ul: ({ children }) => (
-                      <ul className="list-disc pl-5 my-2">{children}</ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal pl-5 my-2">{children}</ol>
-                    ),
-                    li: ({ children }) => <li className="mb-1">{children}</li>,
-                    h1: ({ children }) => (
-                      <h1 className="text-2xl font-bold text-primary mt-4 mb-2">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-xl font-semibold text-primary mt-3 mb-2">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-lg font-semibold text-primary mt-3 mb-1">
-                        {children}
-                      </h3>
-                    ),
-                    h4: ({ children }) => (
-                      <h4 className="text-base font-semibold text-primary mt-2 mb-1">
-                        {children}
-                      </h4>
-                    ),
-                    h5: ({ children }) => (
-                      <h5 className="text-sm font-semibold text-primary mt-2 mb-1">
-                        {children}
-                      </h5>
-                    ),
-                    h6: ({ children }) => (
-                      <h6 className="text-xs font-semibold text-gray-300 mt-2 mb-1 uppercase">
-                        {children}
-                      </h6>
-                    ),
-                    table: ({ children }) => (
-                      <div className="overflow-x-auto my-2">
-                        <table className="min-w-full border border-gray-600 text-sm">
-                          {children}
-                        </table>
-                      </div>
-                    ),
-                    th: ({ children }) => (
-                      <th className="border border-gray-600 px-2 py-1 bg-gray-800 font-semibold">
-                        {children}
-                      </th>
-                    ),
-                    td: ({ children }) => (
-                      <td className="border border-gray-600 px-2 py-1">
-                        {children}
-                      </td>
-                    ),
-                    code({ inline, className, children, ...props }) {
-                      const match = /language-(\w+)/.exec(className || "");
-                      return !inline && match ? (
-                        <div
-                          style={{
-                            position: "relative",
-                          }}
-                        >
-                          <span className="absolute top-2 left-3 text-xs text-amber-600 select-none">
-                            {match[1]}
-                          </span>
-                          <CopyButton
-                            code={String(children).replace(/\n$/, "")}
-                          />
-                          <SyntaxHighlighter
-                            style={tomorrow}
-                            language={match[1]}
-                            PreTag="div"
-                            className="gpt-scrollbar bg-sidebar"
-                            customStyle={{
-                              overflowX: "auto",
-                              paddingTop: "2.5rem", // Make space for controls
-                              borderRadius: "0.7rem",
-                              fontSize: "0.9rem",
-                            }}
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, "")}
-                          </SyntaxHighlighter>
-                        </div>
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      );
-                    },
-                  }}
-                >
-                  {contentToRender}
-                </ReactMarkdown>
-              </div>
+            <div key={group[0].groupId ?? index}>
+              <MessageComponent
+                messageGroup={group}
+                onDelete={openDeleteDialog}
+              />
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent my-2"></div>
             </div>
           );
         })}
 
         <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent my-2"></div>
       </div>
+
+      {deleteDialog.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm border border-gray-700">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Delete Message
+            </h3>
+            <p className="text-gray-300 mb-6">
+              How would you like to delete this message?
+            </p>
+            <div className="flex flex-col space-y-3">
+              <button
+                disabled={isDeleting}
+                onClick={() => {
+                  if (deleteDialog.messageId) {
+                    deleteForModel({
+                      messageId: deleteDialog.messageId,
+                      model: activeModel,
+                    });
+                  }
+                  // We can close the dialog on success via the hook's onSettled/onSuccess
+                  // For now, let's keep it simple and close immediately.
+                  // If the API call fails, the user might want the dialog to stay open.
+                  // Let's close it after the click for now.
+                  if (!isDeleting) closeDeleteDialog();
+                }}
+                className="w-full px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeletingForModel
+                  ? "Deleting..."
+                  : `Delete for This Model (${activeModel})`}
+              </button>
+              <button
+                disabled={isDeleting}
+                onClick={() => {
+                  if (deleteDialog.messageId) {
+                    deleteForAll(deleteDialog.messageId);
+                  }
+                  if (!isDeleting) closeDeleteDialog();
+                }}
+                className="w-full px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeletingForAll ? "Deleting..." : "Delete for All Models"}
+              </button>
+              <button
+                onClick={closeDeleteDialog}
+                disabled={isDeleting}
+                className="w-full px-4 py-2 mt-2 rounded-md text-gray-300 hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { ModelColumns } from "@/features/chat/components/model-columns-2";
+import { ModelColumns } from "@/features/chat/components/model-columns";
 import { ModelSelector } from "@/features/chat/components/chat-model-selector";
 import {
   ChatRequestBody,
