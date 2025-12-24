@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setTokens } from "@/features/auth/utils/auth";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 export default function OAuthSuccess() {
   const router = useRouter();
@@ -13,12 +14,12 @@ export default function OAuthSuccess() {
     const refreshToken = searchParams.get("refreshToken");
 
     if (accessToken) {
-      setTokens(accessToken, refreshToken);
+      setTokens(accessToken, refreshToken?.trim() ?? "");
       // Redirect to a protected route, e.g., /home or /dashboard
-      router.push("/home");
+      router.push(APP_ROUTES.CHAT);
     } else {
       // Handle error or redirect to login if no token is present
-      router.push("/auth/login");
+      router.push(APP_ROUTES.SIGNIN);
     }
   }, [router, searchParams]);
 

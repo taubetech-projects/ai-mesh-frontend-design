@@ -9,6 +9,7 @@ import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/ut
 import { AuthService } from "@/features/auth/api/authApi";
 import { get } from "http";
 import ProtectedRoute from "@/shared/components/protected-route";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -95,11 +96,11 @@ export default function SettingsPage() {
     if (response === "200") {
       // setApiKey(response.accessToken);
       clearTokens();
-      router.push("/auth/login");
+      router.push(APP_ROUTES.SIGNIN);
     } else {
       alert("Logout failed: No token received.");
     }
-    router.push("/");
+    router.push(APP_ROUTES.HOME);
   }
 
   return (
@@ -107,7 +108,7 @@ export default function SettingsPage() {
       <div className="min-h-screen bg-gray-900 text-white pt-16">
         <div className="max-w-4xl mx-auto p-4 sm:p-8">
           <Link
-            href="/home"
+            href={APP_ROUTES.CHAT}
             className="font-medium text-gray-400 hover:underline mb-6 inline-block"
           >
             &larr; Back to Home

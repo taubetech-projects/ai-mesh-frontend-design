@@ -4,12 +4,31 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { AuthService } from "@/features/auth/api/authApi";
+import { getRefreshToken, setTokens } from "@/features/auth/utils/auth";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
+    const refreshSession = async () => {
+      try {
+        const currentRefreshToken = getRefreshToken();
+        if (currentRefreshToken) {
+          const tokens = await AuthService.refreshToken({
+            refreshToken: currentRefreshToken,
+          });
+          setTokens(tokens.accessToken, tokens.refreshToken);
+        }
+      } catch (error) {
+        console.error("Failed to refresh tokens:", error);
+      }
+    };
+
+    refreshSession();
+
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -21,7 +40,7 @@ export default function PaymentSuccessPage() {
     }, 1000);
 
     const redirect = setTimeout(() => {
-      router.push("/home");
+      router.push(APP_ROUTES.CHAT);
     }, 5000);
 
     return () => {
@@ -49,7 +68,7 @@ export default function PaymentSuccessPage() {
 
         <div className="space-y-4">
           <Link
-            href="/home"
+            href={APP_ROUTES.CHAT}
             className="block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
           >
             Go to Home <ArrowRight size={18} />

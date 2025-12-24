@@ -1,4 +1,4 @@
-import { ChatInterface } from "@/features/chat/components/chat-interface-3";
+import { ChatInterface } from "@/features/chat/components/chat-interface";
 import ProtectedRoute from "@/shared/components/protected-route";
 
 export default function HomePage() {

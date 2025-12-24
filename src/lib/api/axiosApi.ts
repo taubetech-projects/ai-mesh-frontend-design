@@ -13,6 +13,7 @@ import {
   BEARER,
   CONTENT_TYPE,
 } from "@/shared/constants/constants";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 const authenticatedApi = axios.create({
   baseURL: API_BASE, // Environment-specific base URL
@@ -52,7 +53,7 @@ authenticatedApi.interceptors.response.use(
       if (!refreshToken) {
         // No refresh token available, redirect to login
         clearTokens();
-        window.location.href = "/login";
+        window.location.href = APP_ROUTES.SIGNIN;
         return Promise.reject(error);
       }
 
@@ -72,7 +73,7 @@ authenticatedApi.interceptors.response.use(
       } catch (refreshError) {
         // Refresh token failed (e.g., it's also expired)
         clearTokens();
-        window.location.href = "/auth/login";
+        window.location.href = APP_ROUTES.SIGNIN;
         return Promise.reject(refreshError);
       }
     }

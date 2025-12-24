@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import {
   Check,
   Sparkles,
@@ -8,6 +8,7 @@ import {
   LayoutGrid,
   Users,
   Building2,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePlans } from "@/features/pricing/hooks/usePlans";
@@ -19,6 +20,8 @@ import {
   BillingKind,
   BillingProvider,
 } from "@/features/pricing/types/billing";
+import { useCurrentSubscription } from "@/features/pricing/hooks/useCurrentSubscription";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
 
 // 1. The Toggle Switch
 const PlanTypeToggle = ({
@@ -59,11 +62,15 @@ const PricingCard = ({
   plan,
   onPurchase,
   isLoading,
+  isCurrentSubscription,
 }: {
   plan: SubscriptionPlan;
   onPurchase: (plan: SubscriptionPlan) => void;
   isLoading: boolean;
+  isCurrentSubscription: boolean;
 }) => {
+  console.log("Plan: ", plan);
+  console.log("Is Current Subscription: ", isCurrentSubscription);
   const isHighlighted = plan.code == "ESSENTIAL" || plan.code == "PRO";
   const isFree = plan.monthlyPriceCents === 0;
   const price =
@@ -104,9 +111,9 @@ const PricingCard = ({
       {isFree ? null : (
         <button
           onClick={() => onPurchase(plan)}
-          disabled={isLoading}
+          disabled={isLoading || isCurrentSubscription}
           className={`
-          w-full py-3 px-4 rounded-lg font-medium transition-colors mb-8
+          w-full py-3 px-4 rounded-lg font-medium transition-colors mb-8 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2
           ${
             isHighlighted
               ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20"
@@ -114,7 +121,16 @@ const PricingCard = ({
           }
         `}
         >
-          Get Plan
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              Processing...
+            </>
+          ) : isCurrentSubscription ? (
+            "Your Current Plan"
+          ) : (
+            "Subscribe"
+          )}
         </button>
       )}
 
@@ -153,6 +169,10 @@ const PricingCard = ({
 export default function PricingPage() {
   const { data: pricingPlans, isLoading } = usePlans();
   const purchasePlan = usePurchasePlan();
+  const { data: currentSubscription, isLoading: isLoadingSubscription } =
+    useCurrentSubscription();
+  console.log("Current Subscription :", currentSubscription);
+
   const [activeTab, setActiveTab] = useState<"personal" | "business">(
     "personal"
   );
@@ -188,7 +208,7 @@ export default function PricingPage() {
       {/* Header Section */}
       <div className="max-w-3xl mx-auto text-center mb-10">
         <Link
-          href="/home"
+          href={APP_ROUTES.CHAT}
           className="font-medium text-gray-400 hover:underline mb-6 inline-block"
         >
           &larr; Back to Home
@@ -215,7 +235,11 @@ export default function PricingPage() {
             key={plan.id}
             plan={plan}
             onPurchase={handlePurchase}
-            isLoading={purchasePlan.isPending}
+            isLoading={
+              purchasePlan.isPending &&
+              purchasePlan.variables?.planId === plan.id
+            }
+            isCurrentSubscription={plan.id === currentSubscription?.planId}
           />
         ))}
       </div>
