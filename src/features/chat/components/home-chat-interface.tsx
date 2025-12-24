@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
 import { ModelColumns } from "@/features/chat/components/model-columns";
 import { ModelSelector } from "@/features/chat/components/chat-model-selector";
 import {
@@ -10,18 +8,6 @@ import {
   FileUploadItem,
   RouteSel,
 } from "@/features/chat/types/models";
-import {
-  Send,
-  Mic,
-  Paperclip,
-  Settings,
-  X,
-  File,
-  FileImage,
-  FileText,
-  FileAudio,
-  FileVideo,
-} from "lucide-react";
 import { useLanguage } from "@/shared/contexts/language-context";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -35,7 +21,7 @@ import {
 } from "@/features/chat/store/chat-interface-slice";
 import { useCreateMessages } from "@/features/chat/text-chat/hooks/useCreateMessages";
 import { useUpdateMessages } from "@/features/chat/text-chat/hooks/useUpdateMessages";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
 import { authHeader } from "@/features/auth/utils/auth";
@@ -44,6 +30,7 @@ import { setSelectedConvId } from "@/features/conversation/store/conversation-sl
 import { RootState } from "@/lib/store/store";
 import { CONTENT_INPUT_TYPES, ROLES } from "@/shared/constants/constants";
 import { useRouter } from "next/navigation";
+import { ChatInputArea } from "./chat-input-area";
 
 export function HomeChatInterface() {
   const {
@@ -69,7 +56,6 @@ export function HomeChatInterface() {
 
   // 🔹 File handling
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   interface UploadApiResponse {
     providers: {
@@ -79,19 +65,9 @@ export function HomeChatInterface() {
 
   //Handling Files here
 
-  const handleFileButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
+  const handleFilesSelected = (files: File[]) => {
     setSelectedFiles((prev) => [...prev, ...files]);
     console.log("Selected files:", files);
-
-    // Reset input so same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   // Remove a specific file
@@ -144,17 +120,6 @@ export function HomeChatInterface() {
     } finally {
       dispatch(triggerFileUploading(false));
     }
-  };
-
-  const isImageFile = (file: File): boolean => {
-    const imageTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-      "image/svg+xml",
-    ];
-    return imageTypes.includes(file.type);
   };
 
   const processUploadedFiles = (
@@ -406,30 +371,6 @@ export function HomeChatInterface() {
     dispatch(updateInputMessage(transcription));
   };
 
-  const getFileIcon = (fileType: string) => {
-    if (fileType.startsWith("image/")) {
-      return (
-        <FileImage className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-      );
-    }
-    if (fileType.startsWith("audio/")) {
-      return (
-        <FileAudio className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-      );
-    }
-    if (fileType.startsWith("video/")) {
-      return (
-        <FileVideo className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-      );
-    }
-    if (fileType === "application/pdf") {
-      return (
-        <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-      );
-    }
-    return <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
-  };
-
   return (
     <div className="flex-1 flex flex-col h-full bg-background relative">
       {/* ModelColumns is now always visible */}
@@ -439,7 +380,26 @@ export function HomeChatInterface() {
 
       <div className="flex-1 flex flex-col items-center z-10 pointer-events-none w-full">
         <div className="flex-1 w-full" />
+
+        {/* Greeting Heading */}
+        <div
+          className={`transition-all duration-500 ease-in-out ${
+            isAnimating ? "opacity-0 h-0 mb-0 overflow-hidden" : "opacity-100 mb-8"
+          }`}
+        >
+          <h1 className="text-3xl md:text-4xl font-medium text-foreground text-center tracking-tight">
+            Good to see you, Tahsin
+          </h1>
+        </div>
+
         <div className="w-full max-w-4xl p-4 pointer-events-auto relative">
+          {/* Gradient effect behind input box */}
+          <div
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[100%] bg-gradient-to-r from-teal-500/20 via-purple-500/20 to-pink-500/20 blur-3xl -z-10 rounded-full pointer-events-none transition-opacity duration-500 ${
+              isAnimating ? "opacity-0" : "opacity-100"
+            }`}
+          />
+
           {/* Model Selector */}
           {showModelSelector && (
             <div
@@ -452,110 +412,23 @@ export function HomeChatInterface() {
             </div>
           )}
 
-          {/* Show selected files with preview */}
-          {selectedFiles.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {selectedFiles.map((file: File, index: number) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm"
-                >
-                  {getFileIcon(file.type)}
-                  <span className="text-foreground truncate max-w-[200px]">
-                    {file.name}
-                  </span>
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="text-muted-foreground hover:text-foreground"
-                    title="Remove file"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Input Field */}
-          <div className="relative">
-            <Input
-              value={inputMessage}
-              onChange={(e) => dispatch(updateInputMessage(e.target.value))}
-              onKeyPress={handleKeyPress}
-              placeholder={t.chat.askAnything}
-              className="pr-32 py-3 text-base bg-muted border-border text-primary placeholder:text-muted-foreground"
-              disabled={uploadingFiles || isStreaming}
-            />
-            {/* Hidden file input */}
-            <input
-              type="file"
-              multiple
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
-            />
-
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  dispatch(toggleModelSelector(!showModelSelector))
-                }
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                title="Select Models"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-
-              {/* 📎 File upload button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleFileButtonClick}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                title="Attach Files"
-                disabled={uploadingFiles || isStreaming}
-              >
-                <Paperclip className="w-4 h-4" />
-                {selectedFiles.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {selectedFiles.length}
-                  </span>
-                )}
-              </Button>
-
-              {/* 🎤 Microphone button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => dispatch(startRecorder())}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                disabled={uploadingFiles || isStreaming}
-                title="Voice Input"
-              >
-                <Mic className="w-4 h-4" />
-              </Button>
-
-              <Button
-                onClick={handleSendMessage}
-                size="icon"
-                className="h-8 w-8 bg-teal-500 hover:bg-teal-600 text-white"
-                disabled={
-                  (inputMessage !== undefined && !inputMessage.trim()) ||
-                  isStreaming ||
-                  uploadingFiles
-                }
-              >
-                {uploadingFiles ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-          </div>
+          <ChatInputArea
+            value={inputMessage || ""}
+            onChange={(val) => dispatch(updateInputMessage(val))}
+            onSend={handleSendMessage}
+            isStreaming={isStreaming}
+            isUploading={uploadingFiles}
+            selectedFiles={selectedFiles}
+            onFilesSelected={handleFilesSelected}
+            onFileRemove={removeFile}
+            showModelSelector={showModelSelector}
+            onToggleModelSelector={() =>
+              dispatch(toggleModelSelector(!showModelSelector))
+            }
+            onStartRecording={() => dispatch(startRecorder())}
+            placeholder={t.chat.askAnything}
+            disabled={uploadingFiles || isStreaming}
+          />
         </div>
         <div
           className={`w-full transition-all duration-500 ease-in-out ${
