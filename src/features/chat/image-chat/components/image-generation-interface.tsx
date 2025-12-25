@@ -45,7 +45,6 @@ export function ImageGenerationInterface() {
   const dispatch = useDispatch();
   const generateImage = useImageGenerationApi();
 
-
   // 🔹 File handling
   const handleFilesSelected = (files: File[]) => {
     if (files.length === 0) return;
@@ -111,7 +110,7 @@ export function ImageGenerationInterface() {
       );
       dispatch(setIsGenerating(true));
       const imageRequestBody: ImageRequestBody = {
-        mode: "image",
+        mode: "multi",
         routes: selectedModels,
         prompt: prompt,
         images: uploadedImages.length > 0 ? uploadedImages : null,
@@ -119,12 +118,15 @@ export function ImageGenerationInterface() {
         provider_response: false,
       };
       console.log("Image Request body:", imageRequestBody);
-      const response = await generateImage.mutateAsync(imageRequestBody);
-      saveImageMessage.mutate({
-        requestBody: imageRequestBody,
-        conversationId: currentConvId,
-        imageResponse: response,
+      const response = await generateImage.mutateAsync({
+        data: imageRequestBody,
+        conversationId: String(currentConvId),
       });
+      // saveImageMessage.mutate({
+      //   requestBody: imageRequestBody,
+      //   conversationId: currentConvId,
+      //   imageResponse: response,
+      // });
       dispatch(setIsGenerating(false));
 
       // Simulate API call

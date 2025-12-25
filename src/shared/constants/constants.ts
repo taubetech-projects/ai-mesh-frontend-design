@@ -117,6 +117,10 @@ export const API_PATHS = {
   USERS: {
     BASE: `${API_VERSION_V1}/${CHAT_API_STEM}/users`,
   },
+  IMAGE: {
+    BASE: (conversationId: string) =>
+      `${API_VERSION_V1}/${CHAT_API_STEM}/images/generations/${conversationId}`,
+  },
 } as const;
 
 export const DEFAULT_PAGE_SIZE = 20;

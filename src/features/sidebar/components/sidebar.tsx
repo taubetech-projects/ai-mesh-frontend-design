@@ -214,9 +214,10 @@ export function Sidebar({ activeInterface }: SidebarProps) {
             isError={isChatError}
             data={chatHistory}
             selectedConvId={selectedConvId}
-            onSelectConversation={() => {
+            onSelectConversation={(conversation) => {
               dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT));
               dispatch(clearChatState());
+              dispatch(setSelectedConvId(conversation.id));
             }}
             renamingConvId={renamingConvId}
             newTitle={newTitle}
@@ -256,6 +257,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
               setConversationIdToDelete(id);
               setShowDeleteDialog(true);
             }}
+            baseRoute={APP_ROUTES.CHAT}
           />
         </div>
       )}

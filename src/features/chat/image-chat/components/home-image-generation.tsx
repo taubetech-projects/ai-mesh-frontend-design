@@ -29,6 +29,7 @@ import { ChatActionChips } from "../../components/chat-action-chips";
 import { useState } from "react";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import { CONVERSATION_TYPES } from "@/shared/constants/constants";
+import  { useRouter } from "next/navigation";
 
 export function HomeImageGeneration() {
   const {
@@ -50,6 +51,8 @@ export function HomeImageGeneration() {
   const saveImageMessage = useAddImageMessage();
   const dispatch = useDispatch();
   const generateImage = useImageGenerationApi();
+    const router = useRouter();
+
 
   const [isImageGenSelected, setIsImageGenSelected] = useState(true);
   const [isWebSearchSelected, setIsWebSearchSelected] = useState(false);
@@ -97,6 +100,7 @@ export function HomeImageGeneration() {
     if (selectedModels.length === 0) return;
 
     setIsAnimating(true);
+    const startTime = Date.now();
 
     let currentConvId = selectedConvId;
 
@@ -129,7 +133,7 @@ export function HomeImageGeneration() {
       );
       dispatch(setIsGenerating(true));
       const imageRequestBody: ImageRequestBody = {
-        mode: "image",
+        mode: "multi",
         routes: selectedModels,
         prompt: prompt,
         images: uploadedImages.length > 0 ? uploadedImages : null,
@@ -137,13 +141,21 @@ export function HomeImageGeneration() {
         provider_response: false,
       };
       console.log("Image Request body:", imageRequestBody);
-      const response = await generateImage.mutateAsync(imageRequestBody);
-      saveImageMessage.mutate({
-        requestBody: imageRequestBody,
-        conversationId: currentConvId,
-        imageResponse: response,
+      const response = await generateImage.mutateAsync({
+        data: imageRequestBody,
+        conversationId: String(currentConvId),
       });
+      // saveImageMessage.mutate({
+      //   requestBody: imageRequestBody,
+      //   conversationId: currentConvId,
+      //   imageResponse: response,
+      // });
       dispatch(setIsGenerating(false));
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 500 - elapsedTime);
+      setTimeout(() => {
+        router.push(`/chat/${currentConvId}`);
+      }, remainingTime);
 
       // Simulate API call
       // setTimeout(() => {
@@ -216,15 +228,18 @@ export function HomeImageGeneration() {
             placeholder={t.chat.askAnything}
             disabled={isGenerating}
           />
-
-          <ChatActionChips
-            isImageGenSelected={isImageGenSelected}
-            onToggleImageGen={handleGenerateImageClick}
-            isWebSearchSelected={isWebSearchSelected}
-            onToggleWebSearch={handleWebSearchClick}
-            className="mt-3 justify-center"
-            disableWebSearch={true}
-          />
+          {
+            !isGenerating && (
+              <ChatActionChips
+                isImageGenSelected={isImageGenSelected}
+                onToggleImageGen={handleGenerateImageClick}
+                isWebSearchSelected={isWebSearchSelected}
+                onToggleWebSearch={handleWebSearchClick}
+                className="mt-3 justify-center"
+                disableWebSearch={true}
+              />
+            )
+          }
         </div>
         <div
           className={`w-full transition-all duration-500 ease-in-out ${

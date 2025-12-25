@@ -81,7 +81,9 @@ export function SidebarHistorySection({
             <div
               key={conversation.id}
               className={`group flex items-center justify-between text-sm text-sidebar-foreground cursor-pointer hover:bg-sidebar-accent p-2 rounded ${
-                selectedConvId === conversation.id ? "bg-sidebar-ring" : ""
+                String(selectedConvId) === String(conversation.id)
+                  ? "bg-sidebar-ring"
+                  : ""
               }`}
             >
               {renamingConvId === conversation.id ? (
@@ -97,7 +99,10 @@ export function SidebarHistorySection({
               ) : (
                 <>
                   {baseRoute ? (
-                    <Link href={baseRoute + `/${conversation.id}`} className="flex-1 truncate">
+                    <Link
+                      href={baseRoute + `/${conversation.id}`}
+                      className="flex-1 truncate"
+                    >
                       <span
                         className="flex-1 truncate"
                         onClick={() => onSelectConversation(conversation)}
