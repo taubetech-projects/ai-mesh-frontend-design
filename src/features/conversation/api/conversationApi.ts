@@ -1,6 +1,7 @@
 import { authenticatedApi } from "@/lib/api/axiosApi";
-import { CreateConversationDto } from "@/features/conversation/types/CreateConversationDto";
+import { CreateConversationDto } from "@/features/conversation/types/conversationTypes";
 import { API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
+import { ConversationResponse } from "../types/conversationTypes";
 
 // Error handler function to standardize error messages
 export const handleApiError = (error: any): never => {
@@ -43,6 +44,9 @@ export const createConversationApi = (conversation: CreateConversationDto) =>
 
 export const getConversationsApi = () =>
   apiCall<any>(HTTP_METHODS.GET, API_PATHS.CONVERSATIONS.BASE);
+
+export const getConversationByIdApi = (id: string) : Promise<ConversationResponse> =>
+  apiCall<ConversationResponse>(HTTP_METHODS.GET, API_PATHS.CONVERSATIONS.BY_ID(id));
 
 export const getConversationByConvoTypeApi = (convoType: string) =>
   apiCall<any>(HTTP_METHODS.GET, API_PATHS.CONVERSATIONS.BY_TYPE(convoType));
