@@ -8,21 +8,6 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useSelector, Provider, useDispatch } from "react-redux";
 
-// export default async function ChatPage({ params }: ChatPageProps) {
-//   const { conversationId } = params;
-
-//   // Example: fetch conversation
-//   // const conversation = await getConversation(conversationId);
-
-//   return (
-//     <div>
-//       <h2>Conversation ID: {conversationId}</h2>
-
-//       {/* Render messages here */}
-//       {/* conversation.messages.map(...) */}
-//     </div>
-//   );
-// }
 
 function HomeContent2() {
   const { activeInterface } = useSelector((state: RootState) => state.ui);

@@ -1,5 +1,6 @@
 "use client";
 
+import { ModelSelector } from "@/features/chat/components/chat-model-selector";
 import { useLanguage } from "@/shared/contexts/language-context";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -24,8 +25,12 @@ import {
 import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
 import { ImageModelSelector } from "./image-model-selector";
 import { ChatInputArea } from "../../components/chat-input-area";
+import { ChatActionChips } from "../../components/chat-action-chips";
+import { useState } from "react";
+import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
+import { CONVERSATION_TYPES } from "@/shared/constants/constants";
 
-export function ImageGenerationInterface() {
+export function HomeImageGeneration() {
   const {
     prompt,
     showModelSelector,
@@ -38,13 +43,26 @@ export function ImageGenerationInterface() {
     (store: any) => store.conversationSlice
   );
 
-  console.log("Image Generation Interface");
+  const { activeInterface } = useSelector((state: RootState) => state.ui);
+  console.log("Active interface:", activeInterface);
 
   const createConversation = useCreateConversationApi();
   const saveImageMessage = useAddImageMessage();
   const dispatch = useDispatch();
   const generateImage = useImageGenerationApi();
 
+  const [isImageGenSelected, setIsImageGenSelected] = useState(true);
+  const [isWebSearchSelected, setIsWebSearchSelected] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleGenerateImageClick = () => {
+    setIsImageGenSelected(!isImageGenSelected);
+    dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT));
+  };
+
+  const handleWebSearchClick = () => {
+    setIsWebSearchSelected(!isWebSearchSelected);
+  };
 
   // 🔹 File handling
   const handleFilesSelected = (files: File[]) => {
@@ -78,7 +96,7 @@ export function ImageGenerationInterface() {
   const handleSendMessage = async () => {
     if (selectedModels.length === 0) return;
 
-    // setIsAnimating(true);
+    setIsAnimating(true);
 
     let currentConvId = selectedConvId;
 
@@ -94,7 +112,7 @@ export function ImageGenerationInterface() {
         console.log("New conversation created and selected:", currentConvId);
       } catch (error) {
         console.error("Failed to create conversation:", error);
-        // setIsAnimating(false);
+        setIsAnimating(false);
         return; // Stop if conversation creation fails
       }
     }
@@ -138,49 +156,82 @@ export function ImageGenerationInterface() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background">
-      <div className="flex-1 relative h-full" style={{ minHeight: 0 }}>
+    <div className="flex-1 flex flex-col h-full bg-background relative">
+      <div className="absolute inset-0 z-0">
         <ImageDisplayColumns />
       </div>
 
-      <div className="sticky bottom-0 z-10 p-4 border-t border-border bg-background">
-        <div className="max-w-4xl mx-auto" />
+      <div className="flex-1 flex flex-col items-center z-10 pointer-events-none w-full">
+        <div className="flex-1 w-full" />
 
-        {/* Model Selector */}
-        {showModelSelector && (
+        {/* Greeting Heading */}
+        <div
+          className={`transition-all duration-500 ease-in-out ${
+            isAnimating
+              ? "opacity-0 h-0 mb-0 overflow-hidden"
+              : "opacity-100 mb-8"
+          }`}
+        >
+          <h1 className="text-3xl md:text-4xl font-medium text-foreground text-center tracking-tight">
+            Good to see you, Tahsin
+          </h1>
+        </div>
+
+        <div className="w-full max-w-4xl p-4 pointer-events-auto relative">
+          {/* Gradient effect behind input box */}
           <div
-            className="mb-4 absolute left-0 right-0 bottom-16 z-20 flex justify-center"
-            style={{ pointerEvents: "auto" }}
-          >
-            <div className="max-w-4xl w-full">
-              <ImageModelSelector />
-            </div>
-          </div>
-        )}
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[100%] bg-gradient-to-r from-teal-500/20 via-purple-500/20 to-pink-500/20 blur-3xl -z-10 rounded-full pointer-events-none transition-opacity duration-500 opacity-100`}
+          />
 
-        <ChatInputArea
-          value={prompt}
-          onChange={(val) => dispatch(updatePrompt(val))}
-          onSend={handleSendMessage}
-          isStreaming={isGenerating}
-          selectedFiles={uploadedImages.map(
-            (img) =>
-              ({
-                name: img.fileName,
-                type: img.mimeType || img.type,
-              } as File)
+          {/* Model Selector */}
+          {showModelSelector && (
+            <div
+              className="mb-4 absolute left-0 right-0 bottom-16 z-20 flex justify-center"
+              style={{ pointerEvents: "auto" }}
+            >
+              <div className="max-w-4xl w-full">
+                <ImageModelSelector />
+              </div>
+            </div>
           )}
-          onFilesSelected={handleFilesSelected}
-          onFileRemove={handleRemoveImage}
-          showModelSelector={showModelSelector}
-          onToggleModelSelector={() =>
-            dispatch(toggleModelSelector(!showModelSelector))
-          }
-          placeholder={t.chat.askAnything}
-          disabled={isGenerating}
+
+          <ChatInputArea
+            value={prompt}
+            onChange={(val) => dispatch(updatePrompt(val))}
+            onSend={handleSendMessage}
+            isStreaming={isGenerating}
+            selectedFiles={uploadedImages.map(
+              (img) =>
+                ({
+                  name: img.fileName,
+                  type: img.mimeType || img.type,
+                } as File)
+            )}
+            onFilesSelected={handleFilesSelected}
+            onFileRemove={handleRemoveImage}
+            showModelSelector={showModelSelector}
+            onToggleModelSelector={() =>
+              dispatch(toggleModelSelector(!showModelSelector))
+            }
+            placeholder={t.chat.askAnything}
+            disabled={isGenerating}
+          />
+
+          <ChatActionChips
+            isImageGenSelected={isImageGenSelected}
+            onToggleImageGen={handleGenerateImageClick}
+            isWebSearchSelected={isWebSearchSelected}
+            onToggleWebSearch={handleWebSearchClick}
+            className="mt-3 justify-center"
+            disableWebSearch={true}
+          />
+        </div>
+        <div
+          className={`w-full transition-all duration-500 ease-in-out ${
+            isAnimating ? "flex-none" : "flex-1"
+          }`}
         />
       </div>
     </div>
-    // </div>
   );
 }
