@@ -12,7 +12,8 @@ import {
   FileAudio,
   FileVideo,
 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { ChatActionChips } from "./chat-action-chips";
 
 interface ChatInputAreaProps {
   value: string;

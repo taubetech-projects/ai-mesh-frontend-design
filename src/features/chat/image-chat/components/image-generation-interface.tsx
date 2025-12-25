@@ -1,9 +1,6 @@
 "use client";
 
-import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
 import { ModelSelector } from "@/features/chat/components/chat-model-selector";
-import { Send, Paperclip, Settings, X } from "lucide-react";
 import { useLanguage } from "@/shared/contexts/language-context";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -15,7 +12,6 @@ import {
   setIsGenerating,
 } from "@/features/chat/store/image-generation-slice";
 import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
-import { useRef } from "react";
 import { ImageDisplayColumns } from "./image-display-columns";
 import { RootState } from "@/lib/store/store";
 import {
@@ -28,6 +24,11 @@ import {
 } from "@/features/chat/types/imageModels";
 import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
 import { ImageModelSelector } from "./image-model-selector";
+import { ChatInputArea } from "../../components/chat-input-area";
+import { ChatActionChips } from "../../components/chat-action-chips";
+import { useState } from "react";
+import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
+import { CONVERSATION_TYPES } from "@/shared/constants/constants";
 
 export function ImageGenerationInterface() {
   const {
@@ -41,20 +42,29 @@ export function ImageGenerationInterface() {
   const { selectedConvId } = useSelector(
     (store: any) => store.conversationSlice
   );
+
+  const { activeInterface } = useSelector((state: RootState) => state.ui);
+
   const createConversation = useCreateConversationApi();
   const saveImageMessage = useAddImageMessage();
   const dispatch = useDispatch();
   const generateImage = useImageGenerationApi();
 
-  // 🔹 File handling
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isImageGenSelected, setIsImageGenSelected] = useState(true);
+  const [isWebSearchSelected, setIsWebSearchSelected] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  const handleFileButtonClick = () => {
-    fileInputRef.current?.click();
+  const handleGenerateImageClick = () => {
+    setIsImageGenSelected(!isImageGenSelected);
+    dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
+  const handleWebSearchClick = () => {
+    setIsWebSearchSelected(!isWebSearchSelected);
+  };
+
+  // 🔹 File handling
+  const handleFilesSelected = (files: File[]) => {
     if (files.length === 0) return;
 
     files.forEach((file) => {
@@ -73,11 +83,6 @@ export function ImageGenerationInterface() {
       };
       reader.readAsDataURL(file);
     });
-
-    // Reset input so same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   // Remove a specific file
@@ -89,6 +94,8 @@ export function ImageGenerationInterface() {
 
   const handleSendMessage = async () => {
     if (selectedModels.length === 0) return;
+
+    setIsAnimating(true);
 
     let currentConvId = selectedConvId;
 
@@ -104,6 +111,7 @@ export function ImageGenerationInterface() {
         console.log("New conversation created and selected:", currentConvId);
       } catch (error) {
         console.error("Failed to create conversation:", error);
+        setIsAnimating(false);
         return; // Stop if conversation creation fails
       }
     }
@@ -146,21 +154,34 @@ export function ImageGenerationInterface() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   return (
-    <div className="flex-1 flex flex-col h-full bg-background">
-      <div className="flex-1 relative h-full" style={{ minHeight: 0 }}>
+    <div className="flex-1 flex flex-col h-full bg-background relative">
+      <div className="absolute inset-0 z-0">
         <ImageDisplayColumns />
       </div>
 
-      <div className="sticky bottom-0 z-10 p-4 border-t border-border bg-background">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 flex flex-col items-center z-10 pointer-events-none w-full">
+        <div className="flex-1 w-full" />
+
+        {/* Greeting Heading */}
+        <div
+          className={`transition-all duration-500 ease-in-out ${
+            isAnimating
+              ? "opacity-0 h-0 mb-0 overflow-hidden"
+              : "opacity-100 mb-8"
+          }`}
+        >
+          <h1 className="text-3xl md:text-4xl font-medium text-foreground text-center tracking-tight">
+            Good to see you, Tahsin
+          </h1>
+        </div>
+
+        <div className="w-full max-w-4xl p-4 pointer-events-auto relative">
+          {/* Gradient effect behind input box */}
+          <div
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[100%] bg-gradient-to-r from-teal-500/20 via-purple-500/20 to-pink-500/20 blur-3xl -z-10 rounded-full pointer-events-none transition-opacity duration-500 opacity-100`}
+          />
+
           {/* Model Selector */}
           {showModelSelector && (
             <div
@@ -173,97 +194,42 @@ export function ImageGenerationInterface() {
             </div>
           )}
 
-          {/* Show uploaded image previews */}
-          {uploadedImages.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {uploadedImages.map((imgeFile, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={imgeFile.base64}
-                    alt={`upload-preview-${index}`}
-                    className="h-16 w-16 object-cover rounded-md"
-                  />
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
-                    onClick={() => handleRemoveImage(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
+          <ChatInputArea
+            value={prompt}
+            onChange={(val) => dispatch(updatePrompt(val))}
+            onSend={handleSendMessage}
+            isStreaming={isGenerating}
+            selectedFiles={uploadedImages.map(
+              (img) =>
+                ({
+                  name: img.fileName,
+                  type: img.mimeType || img.type,
+                } as File)
+            )}
+            onFilesSelected={handleFilesSelected}
+            onFileRemove={handleRemoveImage}
+            showModelSelector={showModelSelector}
+            onToggleModelSelector={() =>
+              dispatch(toggleModelSelector(!showModelSelector))
+            }
+            placeholder={t.chat.askAnything}
+            disabled={isGenerating}
+          />
 
-          {/* Input Field */}
-          <div className="relative">
-            <Input
-              value={prompt}
-              onChange={(e) => dispatch(updatePrompt(e.target.value))}
-              onKeyPress={handleKeyPress}
-              placeholder={t.chat.askAnything}
-              className="pr-32 py-3 text-base bg-muted border-border text-primary placeholder:text-muted-foreground"
-              disabled={isGenerating}
-            />
-            {/* Hidden file input */}
-            <input
-              type="file"
-              multiple
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept="image/*"
-            />
-
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  dispatch(toggleModelSelector(!showModelSelector))
-                }
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                title="Select Models"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-
-              {/* 📎 File upload button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleFileButtonClick}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                title="Attach Files"
-                disabled={isGenerating}
-              >
-                <Paperclip className="w-4 h-4" />
-                {uploadedImages.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {uploadedImages.length}
-                  </span>
-                )}
-              </Button>
-
-              <Button
-                onClick={handleSendMessage}
-                size="icon"
-                className="h-8 w-8 bg-teal-500 hover:bg-teal-600 text-white"
-                disabled={
-                  (!prompt.trim() && uploadedImages.length === 0) ||
-                  isGenerating
-                }
-              >
-                {isGenerating ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-          </div>
+          <ChatActionChips
+            isImageGenSelected={isImageGenSelected}
+            onToggleImageGen={handleGenerateImageClick}
+            isWebSearchSelected={isWebSearchSelected}
+            onToggleWebSearch={handleWebSearchClick}
+            className="mt-3 justify-center"
+            disableWebSearch={true}
+          />
         </div>
+        <div
+          className={`w-full transition-all duration-500 ease-in-out ${
+            isAnimating ? "flex-none" : "flex-1"
+          }`}
+        />
       </div>
     </div>
   );

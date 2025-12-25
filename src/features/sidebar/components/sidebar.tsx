@@ -178,11 +178,11 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     }
   }
 
-  const handleGenerateImage = () => {
-    dispatch(setSelectedConvId(null));
-    dispatch(clearChatState());
-    dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.IMAGE)); // Ensure image interface is active
-  };
+  // const handleGenerateImage = () => {
+  //   dispatch(setSelectedConvId(null));
+  //   dispatch(clearChatState());
+  //   dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.IMAGE)); // Ensure image interface is active
+  // };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -516,7 +516,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
         )}
 
         {/* New: Generate Image Button */}
-        <Button
+        {/* <Button
           onClick={() => handleGenerateImage()}
           variant="ghost"
           className={`w-full justify-start gap-2 ${
@@ -527,7 +527,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
         >
           <ImageIcon className="w-4 h-4" />
           {!isCollapsed && "Generate Image"}
-        </Button>
+        </Button> */}
 
         {/* User Profile Section */}
         <DropdownMenu>
