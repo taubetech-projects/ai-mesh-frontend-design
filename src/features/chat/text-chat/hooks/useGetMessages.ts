@@ -1,5 +1,8 @@
 import { queryKey } from "@/lib/react-query/keys";
 import { useQuery } from "@tanstack/react-query";
+import { messageApi } from "../api/messageApi";
+import { STALE_TIME } from "@/shared/constants/constants";
+import { MessagePage } from "../../types/models";
 
 /* ---------------------------
  * Cache helpers

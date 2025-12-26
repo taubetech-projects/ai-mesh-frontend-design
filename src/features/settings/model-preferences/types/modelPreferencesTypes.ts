@@ -63,3 +63,10 @@ export interface ModelPreferenceResponse {
   updatedAt: string;           // ISO 8601 (OffsetDateTime)
 }
 
+export interface UpdateModelPreferenceRequest{
+  id: string;
+  modelId: string | null;
+  position: number | null;
+  isActive: boolean | null;
+}
+

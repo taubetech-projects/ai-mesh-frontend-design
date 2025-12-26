@@ -45,7 +45,7 @@ export const ModelPreferences = () => {
   const { mutate: deletePreference, isPending: isDeleting } =
     useDeleteModelPreferences();
 
-  const { mutate: savePreferences, isPending: isSaving } =
+  const { mutate: updatePreference, isPending: isUpdating } =
     useUpdateModelPreferences();
 
   // 2. Local State for Optimistic UI Updates
@@ -85,16 +85,16 @@ export const ModelPreferences = () => {
     }
   };
 
-  const handleToggle = (id: string, enabled: boolean) => {
+  const handleToggle = (id: string, isActive: boolean) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, enabled } : item))
+      prev.map((item) => (item.id === id ? { ...item, isActive } : item))
     );
   };
 
   const handleModelChange = (id: string, modelId: string) => {
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, selectedModelId: modelId } : item
+        item.id === id ? { ...item, modelId: modelId } : item
       )
     );
   };
@@ -120,15 +120,14 @@ export const ModelPreferences = () => {
     }
   };
 
-  const handleSave = () => {
-    // Transform UI state back to API payload format
+  const handleUpdatePreferences = () => {
     const payload = items.map((item, index) => ({
-      providerId: item.id,
-      enabled: item.isActive,
-      selectedModelId: item.modelId,
-      order: index,
+      id: item.id,
+      modelId: item.modelId,
+      position: index + 1,
+      isActive: item.isActive,
     }));
-    savePreferences(payload, {
+    updatePreference(payload, {
       onSuccess: () => toast.success("Preferences updated successfully"),
       onError: () => toast.error("Failed to update preferences"),
     });
@@ -200,17 +199,17 @@ export const ModelPreferences = () => {
 
       <div className="mt-4 flex justify-end gap-2 pt-6 border-t border-neutral-800">
         <button
-          onClick={handleSave}
-          disabled={isSaving}
+          onClick={handleUpdatePreferences}
+          disabled={isUpdating}
           className="flex items-center gap-2 bg-white text-black px-6 py-2.5 rounded-lg font-medium hover:bg-neutral-200 transition-colors disabled:opacity-70"
         >
-          {isSaving && <Loader2 size={16} className="animate-spin" />}
-          {isSaving ? "Saving..." : "Update preferences"}
+          {isUpdating && <Loader2 size={16} className="animate-spin" />}
+          {isUpdating ? "Saving..." : "Update preferences"}
         </button>
 
         <button
           onClick={handleAddNewPreference}
-          disabled={isSaving}
+          disabled={isUpdating}
           className="flex items-center gap-2 bg-gray-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-neutral-200 hover:text-black transition-colors disabled:opacity-70"
         >
           Add New Preference

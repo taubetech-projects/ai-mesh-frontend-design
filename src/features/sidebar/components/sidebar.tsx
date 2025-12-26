@@ -31,9 +31,11 @@ import {
   CONVERSATION_TYPES,
   INTERFACE_TYPES,
 } from "@/shared/constants/constants";
+import { useModelPreferences } from "@/features/settings/model-preferences/hooks/modelPreferencesHook";
 import { SidebarHeader } from "./sidebar-header";
 import { SidebarHistorySection } from "./sidebar-history-section";
 import { SidebarFooter } from "./sidebar-footer";
+import { UserModelPreference } from "@/features/settings/model-preferences/types/modelPreferencesTypes";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
@@ -59,6 +61,8 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   >(null);
   const [renamingConvId, setRenamingConvId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
+
+  const { data: modelPreferences } = useModelPreferences();
 
   // const { isPending, data: conversations, isError } = useGetConversationsApi();
   // Filter conversations into chat and image history
@@ -91,11 +95,37 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     }
   }, [conversationMessages, dispatch]);
 
+  // Initialize models from preferences on mount or update if no conversation is selected
+  useEffect(() => {
+    if (!selectedConvId && modelPreferences && modelPreferences.length > 0) {
+      const activePreferences = modelPreferences
+        .filter((p: UserModelPreference) => p.isActive)
+        .map((p: UserModelPreference) => ({ provider: p.provider, model: p.modelName }));
+
+      if (activePreferences.length > 0) {
+        dispatch(setSelectedModels(activePreferences));
+      }
+    }
+  }, [modelPreferences, selectedConvId, dispatch]);
+
   const handleNewChat = () => {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
-    dispatch(setInitialSelectedModels());
+
+    if (modelPreferences && modelPreferences.length > 0) {
+      const activePreferences = modelPreferences
+        .filter((p: any) => p.isActive)
+        .map((p: any) => ({ provider: p.provider, model: p.modelId }));
+
+      if (activePreferences.length > 0) {
+        dispatch(setSelectedModels(activePreferences));
+      } else {
+        dispatch(setInitialSelectedModels());
+      }
+    } else {
+      dispatch(setInitialSelectedModels());
+    }
     router.push(APP_ROUTES.CHAT);
   };
 
