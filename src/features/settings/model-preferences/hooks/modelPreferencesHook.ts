@@ -1,8 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  fetchModelSettings,
   modelPreferencesService,
-  updateModelSettings,
 } from "../api/modelPreferencesApi";
 
 export const useModelPreferences = () => {
@@ -37,13 +35,11 @@ export const useDeleteModelPreferences = () => {
 
 export const useUpdateModelPreferences = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: updateModelSettings,
+    mutationFn: modelPreferencesService.updatePreference,
     onSuccess: () => {
       // Invalidate query to refetch fresh data if needed, or update optimistically
       queryClient.invalidateQueries({ queryKey: ["model-preferences"] });
-      alert("Preferences updated successfully!");
     },
   });
 };
