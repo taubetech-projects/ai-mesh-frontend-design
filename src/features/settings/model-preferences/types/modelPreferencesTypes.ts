@@ -42,3 +42,24 @@ export interface UserModelPreference {
   createdAt: string; // ISO 8601 date-time string
   updatedAt: string; // ISO 8601 date-time string
 }
+
+export interface AddNewPreferenceRequest{
+  modelId: string;
+}
+
+export interface ModelPreferenceResponse {
+  id: string;                  // UUID
+  userId: string;              // UUID
+  modelId: string;             // UUID
+  modelName: string;
+  modelDisplayName: string;
+  provider: string;
+  providerDisplayName: string;
+  description: string;
+  isPremium: boolean;
+  position: number;
+  isActive: boolean;
+  createdAt: string;           // ISO 8601 (OffsetDateTime)
+  updatedAt: string;           // ISO 8601 (OffsetDateTime)
+}
+

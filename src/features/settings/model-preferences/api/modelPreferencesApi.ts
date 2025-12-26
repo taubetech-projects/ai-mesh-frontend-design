@@ -1,7 +1,7 @@
 // --- Mock Data (Replace with your actual API calls) ---
 
 import { authenticatedApi } from "@/lib/api/axiosApi";
-import { UserModelPreference } from "../types/modelPreferencesTypes";
+import { AddNewPreferenceRequest, UserModelPreference } from "../types/modelPreferencesTypes";
 
 const MOCK_PROVIDERS = [
   {
@@ -91,6 +91,14 @@ export const modelPreferencesService = {
   getPreferences: async (): Promise<UserModelPreference[]> => {
     const res = await authenticatedApi.get<UserModelPreference[]>(
       "/v1/api/chat/model-preferences"
+    );
+    return res.data;
+  },
+
+  addPreference: async (preference: AddNewPreferenceRequest) => {
+    const res = await authenticatedApi.post<AddNewPreferenceRequest>(
+      "/v1/api/chat/model-preferences",
+      preference
     );
     return res.data;
   },

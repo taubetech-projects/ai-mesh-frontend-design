@@ -17,8 +17,10 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import {
+  useAddModelPreferences,
   useModelPreferences,
   useUpdateModelPreferences,
 } from "../hooks/modelPreferencesHook";
@@ -33,12 +35,19 @@ export const ModelPreferences = () => {
   // 1. Fetch Data
   const { data: initialData, isLoading } = useModelPreferences();
   const { data: modelsData, isLoading: isModelLoading } = useModels();
+  const {
+    mutate: addPreference,
+    isPending,
+    error: addModelError,
+  } = useAddModelPreferences();
 
   const { mutate: savePreferences, isPending: isSaving } =
     useUpdateModelPreferences();
 
   // 2. Local State for Optimistic UI Updates
   const [items, setItems] = useState<UserModelPreference[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedNewModelId, setSelectedNewModelId] = useState("");
 
   // Sync local state when data fetches
   useEffect(() => {
@@ -90,7 +99,31 @@ export const ModelPreferences = () => {
       selectedModelId: item.modelId,
       order: index,
     }));
-    savePreferences(payload);
+    savePreferences(payload, {
+      onSuccess: () => toast.success("Preferences updated successfully"),
+      onError: () => toast.error("Failed to update preferences"),
+    });
+  };
+
+  const handleAddNewPreference = () => {
+    setIsAddModalOpen(true);
+    if (modelsData && modelsData.length > 0) {
+      setSelectedNewModelId(modelsData[0].id);
+    }
+  };
+
+  const handleConfirmAdd = () => {
+    // TODO: Call your API hook here with selectedNewModelId
+    addPreference(
+      { modelId: selectedNewModelId },
+      {
+        onSuccess: () => {
+          toast.success("Preference added successfully");
+          setIsAddModalOpen(false);
+        },
+        onError: () => toast.error("Failed to add preference"+ addModelError?.message),
+      }
+    );
   };
 
   if (isLoading)
@@ -134,7 +167,7 @@ export const ModelPreferences = () => {
         </SortableContext>
       </DndContext>
 
-      <div className="mt-4 flex justify-end pt-6 border-t border-neutral-800">
+      <div className="mt-4 flex justify-end gap-2 pt-6 border-t border-neutral-800">
         <button
           onClick={handleSave}
           disabled={isSaving}
@@ -143,7 +176,58 @@ export const ModelPreferences = () => {
           {isSaving && <Loader2 size={16} className="animate-spin" />}
           {isSaving ? "Saving..." : "Update preferences"}
         </button>
+
+        <button
+          onClick={handleAddNewPreference}
+          disabled={isSaving}
+          className="flex items-center gap-2 bg-gray-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-neutral-200 hover:text-black transition-colors disabled:opacity-70"
+        >
+          Add New Preference
+        </button>
       </div>
+
+      {/* Add New Preference Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#121212] border border-neutral-800 p-6 rounded-xl w-full max-w-md shadow-2xl">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Add New Model Preference
+            </h3>
+
+            <div className="mb-6">
+              <label className="block text-sm text-neutral-400 mb-2">
+                Select Model
+              </label>
+              <select
+                value={selectedNewModelId}
+                onChange={(e) => setSelectedNewModelId(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-800 text-white rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                {modelsData?.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="px-4 py-2 text-neutral-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmAdd}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
