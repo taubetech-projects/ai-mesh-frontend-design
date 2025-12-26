@@ -25,3 +25,20 @@ export interface ModelUIState extends AIProvider {
   enabled: boolean;
   selectedModelId: string;
 }
+
+
+export interface UserModelPreference {
+  id: string;
+  userId: string;
+  modelId: string;
+  modelName: string;
+  modelDisplayName: string;
+  provider: string;
+  providerDisplayName: string,
+  description: string;
+  isPremium: boolean;
+  position: number;
+  isActive: boolean;
+  createdAt: string; // ISO 8601 date-time string
+  updatedAt: string; // ISO 8601 date-time string
+}
