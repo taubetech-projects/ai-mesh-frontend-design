@@ -20,10 +20,17 @@ import {
 
 export const useImageGenerationApi = () => {
   return useMutation({
-    mutationFn: (data: ImageRequestBody) =>
-      ImageGenerationService.generateImage(data),
+    mutationFn: ({
+      data,
+      conversationId,
+    }: {
+      data: ImageRequestBody;
+      conversationId: string;
+    }) =>
+      ImageGenerationService.generateImage(data, conversationId),
   });
 };
+
 
 export const useAddImageMessage = () => {
   return useMutation({

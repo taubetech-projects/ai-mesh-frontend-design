@@ -5,11 +5,12 @@ import {
 import { api, authenticatedApi } from "../../../../lib/api/axiosApi";
 
 export const ImageGenerationService = {
+
   generateImage: async (
-    data: ImageRequestBody
+    data: ImageRequestBody, conversationId: string
   ): Promise<MultiImageResponse> => {
     const res = await authenticatedApi.post<MultiImageResponse>(
-      "/v1/api/chat/images/generations",
+      "/v1/api/chat/images/generations/" + conversationId,
       data
     );
     console.log("Image generation response:", res.data);

@@ -18,6 +18,7 @@ import {
   triggerFileUploading,
   startRecorder,
   stopRecorder,
+  clearChatState,
 } from "@/features/chat/store/chat-interface-slice";
 import { useCreateMessages } from "@/features/chat/text-chat/hooks/useCreateMessages";
 import { useUpdateMessages } from "@/features/chat/text-chat/hooks/useUpdateMessages";
@@ -28,9 +29,12 @@ import { authHeader } from "@/features/auth/utils/auth";
 import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
 import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
 import { RootState } from "@/lib/store/store";
-import { CONTENT_INPUT_TYPES, ROLES } from "@/shared/constants/constants";
+import { CONTENT_INPUT_TYPES, CONVERSATION_TYPES, ROLES } from "@/shared/constants/constants";
 import { useRouter } from "next/navigation";
 import { ChatInputArea } from "./chat-input-area";
+import { ChatActionChips } from "./chat-action-chips";
+import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
+
 
 export function HomeChatInterface() {
   const {
@@ -56,6 +60,20 @@ export function HomeChatInterface() {
 
   // 🔹 File handling
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isImageGenSelected, setIsImageGenSelected] = useState(false);
+  const [isWebSearchSelected, setIsWebSearchSelected] = useState(false);
+
+  const handleGenerateImageClick = () => {
+    setIsImageGenSelected(!isImageGenSelected);
+    dispatch(setSelectedConvId(null));
+    dispatch(clearChatState());
+    dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.IMAGE));
+    isImageGenSelected ? setIsImageGenSelected(false) : setIsImageGenSelected(true);
+  };
+
+  const handleWebSearchClick = () => {
+    setIsWebSearchSelected(!isWebSearchSelected);
+  };
 
   interface UploadApiResponse {
     providers: {
@@ -384,7 +402,9 @@ export function HomeChatInterface() {
         {/* Greeting Heading */}
         <div
           className={`transition-all duration-500 ease-in-out ${
-            isAnimating ? "opacity-0 h-0 mb-0 overflow-hidden" : "opacity-100 mb-8"
+            isAnimating
+              ? "opacity-0 h-0 mb-0 overflow-hidden"
+              : "opacity-100 mb-8"
           }`}
         >
           <h1 className="text-3xl md:text-4xl font-medium text-foreground text-center tracking-tight">
@@ -428,6 +448,15 @@ export function HomeChatInterface() {
             onStartRecording={() => dispatch(startRecorder())}
             placeholder={t.chat.askAnything}
             disabled={uploadingFiles || isStreaming}
+          />
+
+          {/* Chip Buttons */}
+          <ChatActionChips
+            isImageGenSelected={isImageGenSelected}
+            onToggleImageGen={handleGenerateImageClick}
+            isWebSearchSelected={isWebSearchSelected}
+            onToggleWebSearch={handleWebSearchClick}
+            className="mt-3 justify-center"
           />
         </div>
         <div

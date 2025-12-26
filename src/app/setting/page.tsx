@@ -1,106 +1,40 @@
 "use client";
 
-import { ChevronDownIcon, LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
+import { LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/shared/contexts/theme-context";
 import { LanguageSelector } from "@/shared/components/language-selector";
-import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/utils/auth";
+import {
+  clearTokens,
+  getRefreshToken,
+  getUserDetails,
+} from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
-import { get } from "http";
 import ProtectedRoute from "@/shared/components/protected-route";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { ModelPreferences } from "@/features/settings/model-preferences/components/ModelPreferences";
+import { FormInput } from "@/features/settings/components/FormInput";
+import { PhoneInput } from "@/features/settings/components/PhoneInput";
+// import { FormInput } from "@/shared/components/ui/form-input";
+// import { PhoneInput } from "@/shared/components/ui/phone-input";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
-  const FormInput = ({ label, id, type = "text", value, disabled = false }) => (
-    <div className="mb-4">
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-gray-300 mb-2"
-      >
-        {label}
-      </label>
-      <input
-        type={type}
-        id={id}
-        defaultValue={value}
-        disabled={disabled}
-        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-      />
-    </div>
-  );
-
-  const FormSelect = ({ label, id, children }) => (
-    <div className="mb-4">
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-gray-300 mb-2"
-      >
-        {label}
-      </label>
-      <div className="relative">
-        <select
-          id={id}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg appearance-none focus:ring-2 focus:ring-purple-500 focus:outline-none"
-          defaultValue="English"
-        >
-          {children}
-        </select>
-        <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-      </div>
-    </div>
-  );
-
-  const FormPhoneInput = () => (
-    <div className="mb-4">
-      <label
-        htmlFor="phone"
-        className="block text-sm font-medium text-gray-300 mb-2"
-      >
-        Phone
-      </label>
-      <div className="flex">
-        <div className="relative">
-          <select
-            id="country-code"
-            className="w-full pl-4 pr-10 py-3 bg-gray-700 border border-gray-600 rounded-l-lg appearance-none focus:ring-2 focus:ring-purple-500 focus:outline-none"
-            defaultValue="+880"
-          >
-            <option>+880 🇧🇩</option>
-            <option>+1 🇺🇸</option>
-            <option>+44 🇬🇧</option>
-            <option>+91 🇮🇳</option>
-          </select>
-          <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-        </div>
-        <input
-          type="tel"
-          id="phone"
-          placeholder="e.g. 98765 43210"
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-r-lg border-l-0 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-        />
-      </div>
-    </div>
-  );
-
   async function handleLogout() {
-    console.log("Response Token before log out:", getRefreshToken() ?? "");
     const response = await AuthService.logout({
       refreshToken: getRefreshToken() ?? "",
     });
-    console.log("Response Token :", getRefreshToken() ?? "");
-    console.log("Logout response:", response);
+
     if (response === "200") {
-      // setApiKey(response.accessToken);
       clearTokens();
       router.push(APP_ROUTES.SIGNIN);
     } else {
       alert("Logout failed: No token received.");
+      router.push(APP_ROUTES.HOME);
     }
-    router.push(APP_ROUTES.HOME);
   }
 
   return (
@@ -131,16 +65,16 @@ export default function SettingsPage() {
                 label="Email"
                 id="email"
                 type="email"
-                value={getUserDetails()?.email ?? "no email"}
+                defaultValue={getUserDetails()?.email ?? "no email"}
                 disabled
               />
               <FormInput
                 label="Full name"
                 id="full-name"
                 type="text"
-                value={getUserDetails()?.username ?? "no name"}
+                defaultValue={getUserDetails()?.username ?? "no name"}
               />
-              <FormPhoneInput />
+              <PhoneInput />
               <LanguageSelector />
 
               <button
@@ -150,6 +84,11 @@ export default function SettingsPage() {
                 Update profile
               </button>
             </form>
+          </div>
+          {/* AI Model Preferences Card */}
+
+          <div className="w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700 mb-8">
+            <ModelPreferences />
           </div>
 
           {/* Theme Settings Card */}
