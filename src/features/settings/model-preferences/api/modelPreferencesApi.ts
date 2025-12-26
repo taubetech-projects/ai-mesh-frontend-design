@@ -103,6 +103,21 @@ export const modelPreferencesService = {
     return res.data;
   },
 
+  updatePreference: async (preference: UserModelPreference) => {
+    const res = await authenticatedApi.put<UserModelPreference>(
+      `/v1/api/chat/model-preferences/${preference.id}`,
+      preference
+    );
+    return res.data;
+  },
+
+  deletePreference: async (preferenceId: string) => {
+    const res = await authenticatedApi.delete(
+      `/v1/api/chat/model-preferences/${preferenceId}`
+    );
+    return res.data;
+  },
+
 };
 
 export const updateModelSettings = async (data: any[]) => {

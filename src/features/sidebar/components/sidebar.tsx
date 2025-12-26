@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@/shared/components/ui/button";
-import {
-  Plus,
-  Folder,
-} from "lucide-react";
+import { Plus, Folder } from "lucide-react";
 import { ImageIcon } from "lucide-react"; // New import for image icon
 import { useLanguage } from "@/shared/contexts/language-context";
 import { useEffect, useState } from "react";
@@ -24,20 +21,8 @@ import {
 } from "@/features/chat/store/chat-interface-slice";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import { useRouter } from "next/navigation";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/shared/components/ui/alert-dialog";
-import {
-  clearTokens,
-  getRefreshToken,
-} from "@/features/auth/utils/auth";
+import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
+import { clearTokens, getRefreshToken } from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
 import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
 import { MessageView } from "@/features/chat/types/models";
@@ -271,26 +256,12 @@ export function Sidebar({ activeInterface }: SidebarProps) {
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this conversation? This action
-              cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConversation}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDeleteConversation}
+        description="Are you sure you want to delete this conversation? This action cannot be undone."
+      />
     </div>
   );
 }

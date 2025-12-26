@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import {
   useAddModelPreferences,
+  useDeleteModelPreferences,
   useModelPreferences,
   useUpdateModelPreferences,
 } from "../hooks/modelPreferencesHook";
@@ -30,6 +31,7 @@ import {
   UserModelPreference,
 } from "../types/modelPreferencesTypes";
 import { useModels } from "../hooks/modelHooks";
+import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
 
 export const ModelPreferences = () => {
   // 1. Fetch Data
@@ -40,6 +42,8 @@ export const ModelPreferences = () => {
     isPending,
     error: addModelError,
   } = useAddModelPreferences();
+  const { mutate: deletePreference, isPending: isDeleting } =
+    useDeleteModelPreferences();
 
   const { mutate: savePreferences, isPending: isSaving } =
     useUpdateModelPreferences();
@@ -48,6 +52,10 @@ export const ModelPreferences = () => {
   const [items, setItems] = useState<UserModelPreference[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedNewModelId, setSelectedNewModelId] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [preferenceIdToDelete, setPreferenceIdToDelete] = useState<
+    string | null
+  >(null);
 
   // Sync local state when data fetches
   useEffect(() => {
@@ -91,6 +99,27 @@ export const ModelPreferences = () => {
     );
   };
 
+  const handleDelete = (id: string) => {
+    setPreferenceIdToDelete(id);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (preferenceIdToDelete) {
+      deletePreference(preferenceIdToDelete, {
+        onSuccess: () => {
+          toast.success("Preference deleted successfully");
+          setItems((prev) =>
+            prev.filter((item) => item.id !== preferenceIdToDelete)
+          );
+          setShowDeleteDialog(false);
+          setPreferenceIdToDelete(null);
+        },
+        onError: () => toast.error("Failed to delete preference"),
+      });
+    }
+  };
+
   const handleSave = () => {
     // Transform UI state back to API payload format
     const payload = items.map((item, index) => ({
@@ -121,7 +150,8 @@ export const ModelPreferences = () => {
           toast.success("Preference added successfully");
           setIsAddModalOpen(false);
         },
-        onError: () => toast.error("Failed to add preference"+ addModelError?.message),
+        onError: () =>
+          toast.error("Failed to add preference" + addModelError?.message),
       }
     );
   };
@@ -160,6 +190,7 @@ export const ModelPreferences = () => {
                 item={item}
                 onToggle={handleToggle}
                 onModelChange={handleModelChange}
+                onDelete={handleDelete}
                 modelData={modelsData || []}
               />
             ))}
@@ -228,6 +259,14 @@ export const ModelPreferences = () => {
           </div>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        title="Delete Model Preference"
+        description="Are you sure you want to delete this model preference? This action cannot be undone."
+      />
     </div>
   );
 };

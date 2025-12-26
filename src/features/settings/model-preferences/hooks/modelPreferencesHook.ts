@@ -24,6 +24,17 @@ export const useAddModelPreferences = () => {
   });
 };
 
+export const useDeleteModelPreferences = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: modelPreferencesService.deletePreference,
+    onSuccess: () => {
+      // Invalidate query to refetch fresh data if needed, or update optimistically
+      queryClient.invalidateQueries({ queryKey: ["model-preferences"] });
+    }
+  });
+};
+
 export const useUpdateModelPreferences = () => {
   const queryClient = useQueryClient();
 

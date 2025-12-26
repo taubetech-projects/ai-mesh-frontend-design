@@ -2,7 +2,7 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Lock } from "lucide-react";
+import { GripVertical, Lock, Trash2 } from "lucide-react";
 import { Toggle } from "../components/Toggle";
 import {
   ModelUIState,
@@ -15,6 +15,7 @@ interface ModelRowProps {
   item: UserModelPreference;
   onToggle: (id: string, val: boolean) => void;
   onModelChange: (id: string, modelId: string) => void;
+  onDelete: (id: string) => void;
   modelData: ModelResponse[];
 }
 
@@ -22,6 +23,7 @@ export const ModelRow = ({
   item,
   onToggle,
   onModelChange,
+  onDelete,
   modelData,
 }: ModelRowProps) => {
   const {
@@ -91,6 +93,17 @@ export const ModelRow = ({
               </option>
             ))}
           </select>
+        )}
+
+        {/* Delete Button */}
+        {!item.isPremium && (
+          <button
+            onClick={() => onDelete(item.id)}
+            className="text-neutral-600 hover:text-red-500 transition-colors p-1"
+            title="Delete Preference"
+          >
+            <Trash2 size={18} />
+          </button>
         )}
 
         {/* Locked Status or Toggle */}
