@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/shared/contexts/theme-context";
 import { LanguageSelector } from "@/shared/components/language-selector";
-import { clearTokens, getRefreshToken, getUserDetails } from "@/features/auth/utils/auth";
-import { AuthService } from "@/features/auth/api/authApi";
-import { get } from "http";
 import ProtectedRoute from "@/shared/components/protected-route";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { useAuth } from "@/shared/contexts/AuthContext";
+import { useLogoutMutation } from "@/features/auth/hooks/useAuthQueries";
 
 export default function SettingsPage() {
+  const { me } = useAuth();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
@@ -86,21 +86,16 @@ export default function SettingsPage() {
     </div>
   );
 
+  const logoutMutation = useLogoutMutation();
+
   async function handleLogout() {
-    console.log("Response Token before log out:", getRefreshToken() ?? "");
-    const response = await AuthService.logout({
-      refreshToken: getRefreshToken() ?? "",
-    });
-    console.log("Response Token :", getRefreshToken() ?? "");
-    console.log("Logout response:", response);
-    if (response === "200") {
-      // setApiKey(response.accessToken);
-      clearTokens();
+    try {
+      await logoutMutation.mutateAsync();
       router.push(APP_ROUTES.SIGNIN);
-    } else {
-      alert("Logout failed: No token received.");
+      router.refresh();
+    } catch {
+      alert("Logout failed. Please try again.");
     }
-    router.push(APP_ROUTES.HOME);
   }
 
   return (
@@ -131,14 +126,14 @@ export default function SettingsPage() {
                 label="Email"
                 id="email"
                 type="email"
-                value={getUserDetails()?.email ?? "no email"}
+                value={me?.email ?? "no email"}
                 disabled
               />
               <FormInput
                 label="Full name"
                 id="full-name"
                 type="text"
-                value={getUserDetails()?.username ?? "no name"}
+                value={me?.username ?? "no name"}
               />
               <FormPhoneInput />
               <LanguageSelector />

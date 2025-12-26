@@ -56,25 +56,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog";
-import {
-  clearTokens,
-  getRefreshToken,
-  getUserDetails,
-} from "@/features/auth/utils/auth";
-import { AuthService } from "@/features/auth/api/authApi";
 import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
 import { MessageView } from "@/features/chat/types/models";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
-import {
-  CONVERSATION_TYPES,
-  INTERFACE_TYPES,
-} from "@/shared/constants/constants";
+import { CONVERSATION_TYPES } from "@/shared/constants/constants";
+import { useAuth } from "@/shared/contexts/AuthContext";
+import { useLogoutMutation } from "@/features/auth/hooks/useAuthQueries";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
 }
 
 export function Sidebar({ activeInterface }: SidebarProps) {
+  const { me } = useAuth();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isChatHistoryCollapsed, setIsChatHistoryCollapsed] = useState(false);
@@ -162,18 +156,14 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     router.push(APP_ROUTES.PRICING);
   };
 
+  const logoutMutation = useLogoutMutation();
+
   async function handleLogout() {
-    console.log("Response Token before log out:", getRefreshToken() ?? "");
-    const response = await AuthService.logout({
-      refreshToken: getRefreshToken() ?? "",
-    });
-    console.log("Response Token :", getRefreshToken() ?? "");
-    console.log("Logout response:", response);
-    if (response === "200") {
-      // setApiKey(response.accessToken);
-      clearTokens();
+    try {
+      await logoutMutation.mutateAsync();
       router.push(APP_ROUTES.SIGNIN);
-    } else {
+      router.refresh();
+    } catch {
       alert("Logout failed. Please try again.");
     }
   }
@@ -544,10 +534,10 @@ export function Sidebar({ activeInterface }: SidebarProps) {
                 <>
                   <div className="flex flex-col flex-1 min-w-0 text-left">
                     <span className="text-sm font-medium text-sidebar-foreground truncate">
-                      {getUserDetails()?.username || "User"}
+                      {me?.username || "User"}
                     </span>
                     <span className="text-xs text-muted-foreground truncate">
-                      {getUserDetails()?.roles || "Free User"}
+                      {me?.roles || "Free User"}
                     </span>
                   </div>
                   <Button

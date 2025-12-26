@@ -1,8 +1,10 @@
 "use client";
-import { getAccessToken } from "@/features/auth/utils/auth";
+
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { APP_ROUTES } from "../constants/routingConstants";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { useAuth } from "@/shared/contexts/AuthContext";
+import { useMeQuery } from "@/features/auth/hooks/useAuthQueries";
 
 export default function PublicRoute({
   children,
@@ -10,21 +12,22 @@ export default function PublicRoute({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [isAuth, setIsAuth] = useState(false);
+  const { me } = useAuth();
+
+  // This tells us if /me is still loading (without changing AuthContext)
+  const { isLoading } = useMeQuery({ enabled: true });
 
   useEffect(() => {
-    const token = getAccessToken();
-    if (token) {
-      setIsAuth(true);
+    if (!isLoading && me) {
       router.replace(APP_ROUTES.CHAT);
-    } else {
-      setIsAuth(false);
     }
-  }, [router]);
+  }, [me, isLoading, router]);
 
-  if (isAuth) {
-    return null;
-  }
+  // While /me is loading, don’t show login/signup to avoid flicker
+  if (isLoading) return null;
+
+  // If authenticated, redirect happens
+  if (me) return null;
 
   return children;
 }

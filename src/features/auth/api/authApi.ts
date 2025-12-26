@@ -1,73 +1,53 @@
-import { api, authenticatedApi } from "@/lib/api/axiosApi";
-import {
+import { api } from "@/lib/api/axiosApi";
+import type {
   SignupRequest,
-  TokenResponse,
-  RefreshRequest,
-  LogoutRequest,
-  LoginRequest,
-  ErrorResponse,
-  ResendEmailRequest,
   SignupResponse,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  ResendEmailRequest,
+  Me,
+  LoginRequest,
+  RefreshRequest,
+  TokenResponse,
 } from "@/features/auth/types/authModels";
-import { clear } from "console";
-import { da } from "date-fns/locale";
-import { clearTokens } from "../utils/auth";
-import axios from "axios";
-import VerifyEmail from "@/app/auth/signup/verify-email/page";
 
 export const AuthService = {
   login: async (data: LoginRequest): Promise<TokenResponse> => {
-    const res = await api.post<TokenResponse>("/v1/api/chat/auth/login", data);
+    const res = await api.post<TokenResponse>("/api/auth/login", data);
     return res.data;
   },
-  signup: async (data: SignupRequest): Promise<SignupResponse> => {
-    const res = await api.post<SignupResponse>(
-      "/v1/api/chat/auth/signup",
-      data
-    );
-    console.log("Signup response:", res.data);
+
+  me: async (): Promise<Me> => {
+    const res = await api.get<Me>("/api/auth/me");
     return res.data;
   },
 
   refreshToken: async (data: RefreshRequest): Promise<TokenResponse> => {
-    const res = await api.post<TokenResponse>(
-      "/v1/api/chat/auth/refresh",
-      data
-    );
+    const res = await api.post<TokenResponse>("/api/chat/auth/refresh", data);
     return res.data;
   },
 
-  logout: async (data: LogoutRequest): Promise<string> => {
-    if (!data.refreshToken) return "";
-    // Call the authenticated endpoint to invalidate the token on the server
-    console.log("Logout data:", data);
-    const response = await authenticatedApi.post(
-      "/v1/api/chat/auth/logout",
-      data
-    );
-    console.log("Logout response:", response.status);
-    // Clear tokens after successful logout
-    return response.status.toString();
+  logout: async (): Promise<void> => {
+    await api.post("/api/auth/logout");
+  },
+
+  signup: async (data: SignupRequest): Promise<SignupResponse> => {
+    const res = await api.post<SignupResponse>("/api/auth/signup", data);
+    return res.data;
   },
 
   resendEmail: async (data: ResendEmailRequest): Promise<string> => {
     const res = await api.post<string>(
-      "/v1/api/auth/resend-email",
-      null, // No request body
-      { params: data } // Send data as query parameters
+      `/api/auth/resend-email?email=${encodeURIComponent(data.email)}`
     );
     return res.data;
   },
 
-  forgotPassword: async (data: ForgotPasswordRequest) => {
-    const res = await api.post<void>("/v1/api/chat/auth/forgot-password", data);
-    return res.data;
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
+    await api.post("/api/auth/forgot-password", data);
   },
 
-  resetPassword: async (data: ResetPasswordRequest) => {
-    const res = await api.post<void>("/v1/api/chat/auth/reset-password", data);
-    return res.data;
+  resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
+    await api.post("/api/auth/reset-password", data);
   },
 };

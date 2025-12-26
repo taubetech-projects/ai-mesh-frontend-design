@@ -2,7 +2,7 @@ import { ChatStreamBody } from "@/features/chat/types/models";
 import { API_BASE } from "@/lib/api/http";
 import { authHeader } from "@/features/auth/utils/auth";
 import {
-  API_PATHS,
+  CHAT_API_PATHS,
   APPLICATION_JSON,
   CACHE_NO_STORE,
   CONTENT_TYPE,
@@ -40,15 +40,19 @@ export function streamChat(
   onEvent: (evt: { event: string; data: any }) => void,
   signal?: AbortSignal
 ) {
-  return fetch(API_BASE + API_PATHS.CONVERSATIONS.COMPLETIONS(conversationId, editedMessageId), {
-    method: "POST",
-    headers: {
-      ...authHeader(),
-      [CONTENT_TYPE]: APPLICATION_JSON,
-    },
-    body: JSON.stringify(body),
-    signal,
-  }).then(async (res) => {
+  return fetch(
+    API_BASE +
+      CHAT_API_PATHS.CONVERSATIONS.COMPLETIONS(conversationId, editedMessageId),
+    {
+      method: "POST",
+      headers: {
+        ...authHeader(),
+        [CONTENT_TYPE]: APPLICATION_JSON,
+      },
+      body: JSON.stringify(body),
+      signal,
+    }
+  ).then(async (res) => {
     if (!res.ok || !res.body) throw new Error(await res.text());
     const reader = res.body.getReader();
     const decoder = new TextDecoder();

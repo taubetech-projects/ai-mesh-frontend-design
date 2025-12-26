@@ -1,42 +1,51 @@
-import {
+import type {
   ImageRequestBody,
   MultiImageResponse,
 } from "@/features/chat/types/imageModels";
-import { api, authenticatedApi } from "../../../../lib/api/axiosApi";
+import { proxyApi } from "@/lib/api/axiosApi";
+import { IMAGE_API_PATHS } from "@/shared/constants/constants";
+
+const DEFAULT_IMAGE_MODEL_ID = 45;
+
+// Helper to detect external URLs
+const isAbsoluteUrl = (url: string) => /^https?:\/\//i.test(url);
 
 export const ImageGenerationService = {
   generateImage: async (
     data: ImageRequestBody
   ): Promise<MultiImageResponse> => {
-    const res = await authenticatedApi.post<MultiImageResponse>(
-      "/v1/api/chat/images/generations",
+    const res = await proxyApi.post<MultiImageResponse>(
+      IMAGE_API_PATHS.GENERATE(DEFAULT_IMAGE_MODEL_ID),
       data
     );
-    console.log("Image generation response:", res.data);
     return res.data;
   },
 
-  base64ToImageUrl: async (data: string): Promise<any> => {
-    const payload = { image: data };
-    const res = await authenticatedApi.post<any>(
-      "/v1/save-base64-image",
-      payload
-    );
-    console.log("Base64 image response:", res.data);
+  base64ToImageUrl: async (base64: string): Promise<any> => {
+    const payload = { image: base64 };
+    const res = await proxyApi.post<any>(IMAGE_API_PATHS.SAVE_BASE64, payload);
     return res.data;
   },
 
   getImageByUrl: async (url: string): Promise<Blob> => {
-    const res = await authenticatedApi.get<Blob>(url, {
-      responseType: "blob", // Important: tells axios to handle the response as a Blob
+    // External image (CDN, S3, etc.) → fetch directly
+    if (isAbsoluteUrl(url)) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to load image");
+      return await res.blob();
+    }
+
+    // Backend-relative image → go through proxy
+    const normalized = url.startsWith("/") ? url.slice(1) : url;
+    const res = await proxyApi.get<Blob>(normalized, {
+      responseType: "blob",
     });
-    // The response data will be the image blob itself
     return res.data;
   },
-
-  // addImageMessageInConversation: async (data: ImageRequestBody): Promise<MultiImageResponse> => {
-  //     const res = await authenticatedApi.post<MultiImageResponse>("/v1/save-base63-image", data);
-  //     console.log("Image generation response:", res.data);
-  //     return res.data;
-  // },
 };
+
+// addImageMessageInConversation: async (data: ImageRequestBody): Promise<MultiImageResponse> => {
+//     const res = await proxyApi.post<MultiImageResponse>("v1/save-base63-image", data);
+//     console.log("Image generation response:", res.data);
+//     return res.data;
+// },

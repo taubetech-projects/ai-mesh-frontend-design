@@ -1,8 +1,7 @@
-import { authenticatedApi } from "@/lib/api/axiosApi";
+import { proxyApi } from "@/lib/api/axiosApi";
 import { CreateConversationDto } from "@/features/conversation/types/CreateConversationDto";
-import { API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
+import { CHAT_API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
 
-// Error handler function to standardize error messages
 export const handleApiError = (error: any): never => {
   if (error.message === "Network Error") {
     throw new Error("Network Error. Please try again later.");
@@ -15,7 +14,6 @@ export const handleApiError = (error: any): never => {
   }
 };
 
-// General function to handle API requests
 export const apiCall = async <T>(
   method:
     | HTTP_METHODS.GET
@@ -26,33 +24,39 @@ export const apiCall = async <T>(
   data?: any
 ): Promise<T> => {
   try {
-    const response = await authenticatedApi[method](url, data);
+    const response =
+      method === HTTP_METHODS.GET || method === HTTP_METHODS.DELETE
+        ? await proxyApi.request<T>({ method, url })
+        : await proxyApi.request<T>({ method, url, data });
+
     return response.data;
   } catch (error) {
     throw handleApiError(error);
   }
 };
 
-// CRUD functions for the post feed
 export const createConversationApi = (conversation: CreateConversationDto) =>
   apiCall<any>(
     HTTP_METHODS.POST,
-    API_PATHS.CONVERSATIONS.BASE,
+    CHAT_API_PATHS.CONVERSATIONS.BASE,
     new CreateConversationDto(conversation.title, conversation.convoType)
   );
 
 export const getConversationsApi = () =>
-  apiCall<any>(HTTP_METHODS.GET, API_PATHS.CONVERSATIONS.BASE);
+  apiCall<any>(HTTP_METHODS.GET, CHAT_API_PATHS.CONVERSATIONS.BASE);
 
 export const getConversationByConvoTypeApi = (convoType: string) =>
-  apiCall<any>(HTTP_METHODS.GET, API_PATHS.CONVERSATIONS.BY_TYPE(convoType));
+  apiCall<any>(
+    HTTP_METHODS.GET,
+    CHAT_API_PATHS.CONVERSATIONS.BY_TYPE(convoType)
+  );
 
 export const updateConversationApi = (id: string, conversation: object) =>
   apiCall<any>(
     HTTP_METHODS.PUT,
-    API_PATHS.CONVERSATIONS.BY_ID(id),
+    CHAT_API_PATHS.CONVERSATIONS.BY_ID(id),
     conversation
   );
 
 export const deleteConversationApi = (id: string) =>
-  apiCall<any>(HTTP_METHODS.DELETE, API_PATHS.CONVERSATIONS.BY_ID(id));
+  apiCall<any>(HTTP_METHODS.DELETE, CHAT_API_PATHS.CONVERSATIONS.BY_ID(id));

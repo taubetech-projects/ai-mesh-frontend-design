@@ -23,9 +23,9 @@ export interface UserGrantsView {
 }
 
 export interface SignupRequest {
-  username: string;  // @Size(min=3,max=32)
-  email: string;     // @Email
-  password: string;  // @Size(min=8,max=100)
+  username: string; // @Size(min=3,max=32)
+  email: string; // @Email
+  password: string; // @Size(min=8,max=100)
 }
 
 export interface SignupResponse {
@@ -65,3 +65,10 @@ export interface ErrorResponse {
   errors: string[];
   properties: Record<string, any>;
 }
+
+export type Me = {
+  username: string;
+  email: string;
+  roles: string[];
+  authorities: string[];
+};
