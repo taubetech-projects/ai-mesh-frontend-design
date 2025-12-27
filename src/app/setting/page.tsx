@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon, LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
+import { LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/shared/contexts/theme-context";
@@ -9,82 +9,14 @@ import ProtectedRoute from "@/shared/components/protected-route";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
 import { useAuth } from "@/shared/contexts/AuthContext";
 import { useLogoutMutation } from "@/features/auth/hooks/useAuthQueries";
+import { ModelPreferences } from "@/features/settings/model-preferences/components/ModelPreferences";
+import { PhoneInput } from "@/features/settings/components/PhoneInput";
+import { FormInput } from "@/features/settings/components/FormInput";
 
 export default function SettingsPage() {
   const { me } = useAuth();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-
-  const FormInput = ({ label, id, type = "text", value, disabled = false }) => (
-    <div className="mb-4">
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-gray-300 mb-2"
-      >
-        {label}
-      </label>
-      <input
-        type={type}
-        id={id}
-        defaultValue={value}
-        disabled={disabled}
-        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-      />
-    </div>
-  );
-
-  const FormSelect = ({ label, id, children }) => (
-    <div className="mb-4">
-      <label
-        htmlFor={id}
-        className="block text-sm font-medium text-gray-300 mb-2"
-      >
-        {label}
-      </label>
-      <div className="relative">
-        <select
-          id={id}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg appearance-none focus:ring-2 focus:ring-purple-500 focus:outline-none"
-          defaultValue="English"
-        >
-          {children}
-        </select>
-        <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-      </div>
-    </div>
-  );
-
-  const FormPhoneInput = () => (
-    <div className="mb-4">
-      <label
-        htmlFor="phone"
-        className="block text-sm font-medium text-gray-300 mb-2"
-      >
-        Phone
-      </label>
-      <div className="flex">
-        <div className="relative">
-          <select
-            id="country-code"
-            className="w-full pl-4 pr-10 py-3 bg-gray-700 border border-gray-600 rounded-l-lg appearance-none focus:ring-2 focus:ring-purple-500 focus:outline-none"
-            defaultValue="+880"
-          >
-            <option>+880 🇧🇩</option>
-            <option>+1 🇺🇸</option>
-            <option>+44 🇬🇧</option>
-            <option>+91 🇮🇳</option>
-          </select>
-          <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-        </div>
-        <input
-          type="tel"
-          id="phone"
-          placeholder="e.g. 98765 43210"
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-r-lg border-l-0 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-        />
-      </div>
-    </div>
-  );
 
   const logoutMutation = useLogoutMutation();
 
@@ -135,7 +67,7 @@ export default function SettingsPage() {
                 type="text"
                 value={me?.username ?? "no name"}
               />
-              <FormPhoneInput />
+              <PhoneInput />
               <LanguageSelector />
 
               <button
@@ -145,6 +77,11 @@ export default function SettingsPage() {
                 Update profile
               </button>
             </form>
+          </div>
+          {/* AI Model Preferences Card */}
+
+          <div className="w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700 mb-8">
+            <ModelPreferences />
           </div>
 
           {/* Theme Settings Card */}

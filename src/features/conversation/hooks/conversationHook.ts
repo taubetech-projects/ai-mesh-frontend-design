@@ -5,6 +5,7 @@ import {
   updateConversationApi,
   deleteConversationApi,
   getConversationByConvoTypeApi,
+  getConversationByIdApi,
 } from "@/features/conversation/api/conversationApi";
 import { queryKey } from "../../../lib/react-query/keys";
 import { CONVERSATION_TYPES } from "@/shared/constants/constants";
@@ -24,6 +25,12 @@ export const useGetConversationsApi = () =>
     queryKey: queryKey.conversations(),
     queryFn: getConversationsApi,
     staleTime: 300_000, // 👈 1 minute
+  });
+
+export const useGetConversationById = (id: string) =>
+  useQuery({
+    queryKey: [...queryKey.conversations(), id],
+    queryFn: () => getConversationByIdApi(id),
   });
 
 export const useGetConversationsForChat = () => {

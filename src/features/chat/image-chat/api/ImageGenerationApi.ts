@@ -12,7 +12,8 @@ const isAbsoluteUrl = (url: string) => /^https?:\/\//i.test(url);
 
 export const ImageGenerationService = {
   generateImage: async (
-    data: ImageRequestBody
+    data: ImageRequestBody,
+    conversationId: string
   ): Promise<MultiImageResponse> => {
     const res = await proxyApi.post<MultiImageResponse>(
       IMAGE_API_PATHS.GENERATE(DEFAULT_IMAGE_MODEL_ID),

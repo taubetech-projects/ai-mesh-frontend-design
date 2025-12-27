@@ -1,6 +1,7 @@
 import { proxyApi } from "@/lib/api/axiosApi";
-import { CreateConversationDto } from "@/features/conversation/types/CreateConversationDto";
 import { CHAT_API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
+import { CreateConversationDto } from "@/features/conversation/types/conversationTypes";
+import { ConversationResponse } from "../types/conversationTypes";
 
 export const handleApiError = (error: any): never => {
   if (error.message === "Network Error") {
@@ -44,6 +45,14 @@ export const createConversationApi = (conversation: CreateConversationDto) =>
 
 export const getConversationsApi = () =>
   apiCall<any>(HTTP_METHODS.GET, CHAT_API_PATHS.CONVERSATIONS.BASE);
+
+export const getConversationByIdApi = (
+  id: string
+): Promise<ConversationResponse> =>
+  apiCall<ConversationResponse>(
+    HTTP_METHODS.GET,
+    CHAT_API_PATHS.CONVERSATIONS.BY_ID(id)
+  );
 
 export const getConversationByConvoTypeApi = (convoType: string) =>
   apiCall<any>(

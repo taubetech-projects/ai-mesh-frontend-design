@@ -87,34 +87,33 @@ function ImageAssistantMessageComponent({
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
 
-  const imageUrlPath = message.parts?.at(0)?.attachments?.at(0)?.url ?? "";
+  const imageUrlPath = message.parts?.at(1)?.attachments?.at(0)?.url ?? "";
 
-  useEffect(() => {
-    if (!imageUrlPath) return;
+useEffect(() => {
+  if (!imageUrlPath) return;
 
-    let objectUrl: string;
+  let objectUrl: string | null = null;
 
-    const fetchImage = async () => {
-      try {
-        const imageBlob = await ImageGenerationService.getImageByUrl(
-          imageUrlPath
-        );
-        objectUrl = URL.createObjectURL(imageBlob);
-        setImageSrc(objectUrl);
-      } catch (error) {
-        console.error("Error fetching image:", error);
-        setImageError("Could not load image.");
-      }
-    };
+  const fetchImage = async () => {
+    try {
+      const imageBlob = await ImageGenerationService.getImageByUrl(imageUrlPath);
+      objectUrl = URL.createObjectURL(imageBlob);
+      setImageSrc(objectUrl);
+    } catch (err) {
+      console.error(err);
+      setImageError("Could not load image");
+    }
+  };
 
-    fetchImage();
+  fetchImage();
 
-    return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [imageUrlPath]);
+  return () => {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
+  };
+}, [imageUrlPath]);
+
 
   const contentToRender = message.model
     ? formatLLMContent(message.provider, message.parts?.at(0)?.text ?? "")
