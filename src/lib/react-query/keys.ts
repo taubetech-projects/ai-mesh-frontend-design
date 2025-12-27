@@ -3,3 +3,7 @@ export const queryKey = {
   messages: (conversationId: number) =>
     ["conversations", conversationId, "messages"] as const,
 };
+
+export const qk = {
+  me: () => ["auth", "me"] as const,
+};

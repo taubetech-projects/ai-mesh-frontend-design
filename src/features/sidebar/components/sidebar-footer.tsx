@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
-import { getUserDetails } from "@/features/auth/utils/auth";
+import { useAuth } from "@/shared/contexts/AuthContext";
 
 interface SidebarFooterProps {
   isCollapsed: boolean;
@@ -25,6 +25,7 @@ export function SidebarFooter({
   handleLogout,
   t,
 }: SidebarFooterProps) {
+  const { me } = useAuth();
   return (
     <div className="p-4 border-t border-sidebar-border space-y-4">
       {/* User Profile Section */}
@@ -42,10 +43,10 @@ export function SidebarFooter({
               <>
                 <div className="flex flex-col flex-1 min-w-0 text-left">
                   <span className="text-sm font-medium text-sidebar-foreground truncate">
-                    {getUserDetails()?.username || "User"}
+                    {me?.username || "User"}
                   </span>
                   <span className="text-xs text-muted-foreground truncate">
-                    {getUserDetails()?.roles || "Free User"}
+                    {me?.roles || "Free User"}
                   </span>
                 </div>
                 <Button

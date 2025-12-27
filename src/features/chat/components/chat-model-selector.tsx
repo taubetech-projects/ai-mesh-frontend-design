@@ -48,13 +48,13 @@ export function ModelSelector({}: ModelSelectorProps) {
   const getProviderIcon = (providerId: string) => {
     const icons: Record<string, string> = {
       // openai: "🤖",
-      openai: "icons/openai-64x64.png",
-      anthropic: "icons/anthropic-64x64.png",
-      google: "icons/gemini-64x64.png",
-      deepseek: "icons/deepseek-64x64.png",
-      grok: "icons/grok-64x64.png",
-      perplexity: "icons/perplexity-64x64.png",
-      ollama: "icons/ollama-64x64.png",
+      openai: "/icons/openai-64x64.png",
+      anthropic: "/icons/anthropic-64x64.png",
+      google: "/icons/gemini-64x64.png",
+      deepseek: "/icons/deepseek-64x64.png",
+      grok: "/icons/grok-64x64.png",
+      perplexity: "/icons/perplexity-64x64.png",
+      ollama: "/icons/ollama-64x64.png",
     };
     return icons[providerId] || "🤖";
   };

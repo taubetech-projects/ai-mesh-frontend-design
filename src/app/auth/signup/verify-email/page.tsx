@@ -69,7 +69,7 @@ export default function VerifyEmail() {
 
           <p className="text-center text-gray-400 mt-8">
             <button
-              onClick={() => router.push("/login")}
+              onClick={() => router.push("/auth/login")}
               className="font-medium text-purple-400 hover:underline"
             >
               &larr; Back to Log In

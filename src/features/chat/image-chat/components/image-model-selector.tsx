@@ -35,12 +35,10 @@ export function ImageModelSelector({}: ModelSelectorProps) {
   };
 
   // Function to find provider name from a model id
-  function getProviderByModelId(modelId: string): string | undefined {
+  function getProviderByModelId(modelId: string): ModelProvider | undefined {
     for (const provider of providers) {
-      if (
-        provider.models.some((model: ModelProvider) => model.id === modelId)
-      ) {
-        return provider;
+      if (provider.models.some((model) => model.id === modelId)) {
+        return provider; // Return the whole provider object
       }
     }
     return undefined; // if not found
@@ -49,13 +47,13 @@ export function ImageModelSelector({}: ModelSelectorProps) {
   const getProviderIcon = (providerId: string) => {
     const icons: Record<string, string> = {
       // openai: "🤖",
-      openai: "icons/openai-64x64.png",
-      anthropic: "icons/anthropic-64x64.png",
-      google: "icons/gemini-64x64.png",
-      deepseek: "icons/deepseek-64x64.png",
-      grok: "icons/grok-64x64.png",
-      perplexity: "icons/perplexity-64x64.png",
-      ollama: "icons/ollama-64x64.png",
+      openai: "/icons/openai-64x64.png",
+      anthropic: "/icons/anthropic-64x64.png",
+      google: "/icons/gemini-64x64.png",
+      deepseek: "/icons/deepseek-64x64.png",
+      grok: "/icons/grok-64x64.png",
+      perplexity: "/icons/perplexity-64x64.png",
+      ollama: "/icons/ollama-64x64.png",
     };
     return icons[providerId] || "🤖";
   };

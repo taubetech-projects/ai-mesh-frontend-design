@@ -1,10 +1,10 @@
-// src/components/ProtectedRoute.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/features/auth/utils/auth";
-import { APP_ROUTES } from "../constants/routingConstants";
+import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { useAuth } from "@/shared/contexts/AuthContext";
+import { useMeQuery } from "@/features/auth/hooks/useAuthQueries";
 
 export default function ProtectedRoute({
   children,
@@ -12,20 +12,23 @@ export default function ProtectedRoute({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [isAuth, setIsAuth] = useState(false);
+  const { me } = useAuth();
+
+  // ensures we know whether /me is still loading
+  const { isLoading, isError } = useMeQuery({ enabled: true });
 
   useEffect(() => {
-    const token = getAccessToken();
-    if (!token) {
+    // once /me finishes and no user => redirect to signin
+    if (!isLoading && (!me || isError)) {
       router.replace(APP_ROUTES.SIGNIN);
-    } else {
-      setIsAuth(true);
     }
-  }, [router]);
+  }, [me, isLoading, isError, router]);
 
-  if (!isAuth) {
-    return null; // or show a loader while checking
-  }
+  // while checking auth, render nothing (or a spinner)
+  if (isLoading) return null;
+
+  // if not authenticated, redirect will happen
+  if (!me) return null;
 
   return <>{children}</>;
 }

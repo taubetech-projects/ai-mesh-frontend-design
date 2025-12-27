@@ -90,7 +90,19 @@ export const BACKEND_BASE_URL = "http://localhost:8080/";
 export const API_VERSION_V1 = "v1";
 export const CHAT_API_STEM = "api/chat";
 
-export const API_PATHS = {
+export const BILLING_API_PATHS = {
+  PLANS: `${API_VERSION_V1}/${CHAT_API_STEM}/plans`,
+  BILLING_START: `${API_VERSION_V1}/${CHAT_API_STEM}/billing/start`,
+  SUBSCRIPTION_CURRENT: `${API_VERSION_V1}/${CHAT_API_STEM}/subscription/current`,
+} as const;
+
+export const IMAGE_API_PATHS = {
+  GENERATE: (modelId: number | string) =>
+    `${API_VERSION_V1}/${CHAT_API_STEM}/images/generations/${modelId}`,
+  SAVE_BASE64: `${API_VERSION_V1}/save-base64-image`,
+} as const;
+
+export const CHAT_API_PATHS = {
   CONVERSATIONS: {
     BASE: `${API_VERSION_V1}/${CHAT_API_STEM}/conversations`,
     BY_ID: (id: string | number) =>

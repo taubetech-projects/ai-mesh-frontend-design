@@ -5,35 +5,28 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/shared/contexts/theme-context";
 import { LanguageSelector } from "@/shared/components/language-selector";
-import {
-  clearTokens,
-  getRefreshToken,
-  getUserDetails,
-} from "@/features/auth/utils/auth";
-import { AuthService } from "@/features/auth/api/authApi";
 import ProtectedRoute from "@/shared/components/protected-route";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { useAuth } from "@/shared/contexts/AuthContext";
+import { useLogoutMutation } from "@/features/auth/hooks/useAuthQueries";
 import { ModelPreferences } from "@/features/settings/model-preferences/components/ModelPreferences";
-import { FormInput } from "@/features/settings/components/FormInput";
 import { PhoneInput } from "@/features/settings/components/PhoneInput";
-// import { FormInput } from "@/shared/components/ui/form-input";
-// import { PhoneInput } from "@/shared/components/ui/phone-input";
+import { FormInput } from "@/features/settings/components/FormInput";
 
 export default function SettingsPage() {
+  const { me } = useAuth();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
-  async function handleLogout() {
-    const response = await AuthService.logout({
-      refreshToken: getRefreshToken() ?? "",
-    });
+  const logoutMutation = useLogoutMutation();
 
-    if (response === "200") {
-      clearTokens();
+  async function handleLogout() {
+    try {
+      await logoutMutation.mutateAsync();
       router.push(APP_ROUTES.SIGNIN);
-    } else {
-      alert("Logout failed: No token received.");
-      router.push(APP_ROUTES.HOME);
+      router.refresh();
+    } catch {
+      alert("Logout failed. Please try again.");
     }
   }
 
@@ -65,14 +58,14 @@ export default function SettingsPage() {
                 label="Email"
                 id="email"
                 type="email"
-                defaultValue={getUserDetails()?.email ?? "no email"}
+                value={me?.email ?? "no email"}
                 disabled
               />
               <FormInput
                 label="Full name"
                 id="full-name"
                 type="text"
-                defaultValue={getUserDetails()?.username ?? "no name"}
+                value={me?.username ?? "no name"}
               />
               <PhoneInput />
               <LanguageSelector />

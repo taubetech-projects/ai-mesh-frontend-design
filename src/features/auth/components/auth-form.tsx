@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authenticatedApi } from "@/lib/api/axiosApi";
-import { setTokens, setUserDetails } from "@/features/auth/utils/auth";
 import { AuthService } from "@/features/auth/api/authApi";
 import { ErrorResponse } from "@/features/auth/types/authModels";
 import { toast } from "sonner";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { useLoginMutation, useSignupMutation } from "../hooks/useAuthQueries";
 
 // --- SVG Icons ---
 const UserIcon = ({ className }: { className: string }) => (
@@ -140,14 +139,17 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
     window.location.href = APP_ROUTES.GOOGLE_SIGNIN;
   };
 
+  const loginMutation = useLoginMutation();
+
   const handleLogin = async () => {
     try {
       console.log("usernameOrEmail:", identifier, "password:", password);
-      const response = await AuthService.login({ username, password });
+      const response = await loginMutation.mutateAsync({
+        username,
+        password,
+      });
       console.log("Login response:", response);
       if (response && response.accessToken) {
-        setTokens(response.accessToken, response.refreshToken);
-        setUserDetails(response.user);
         toast.success("Login successful! Welcome to our platform...");
         setTimeout(() => {
           router.push(APP_ROUTES.CHAT);
@@ -186,15 +188,23 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
     }
   };
 
+  const signupMutation = useSignupMutation();
+
   const handleSignup = async () => {
     try {
-      const response = await AuthService.signup({ username, email, password });
+      const response = await signupMutation.mutateAsync({
+        username,
+        email,
+        password,
+      });
       if (response) {
         toast.info(
           "Signup successful! Please check your email for verification."
         );
         router.push(
-          `${APP_ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(response.email)}`
+          `${APP_ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(
+            response.email
+          )}`
         );
         // toast.success("Signup successful! Redirecting to login...");
         // setTimeout(() => {

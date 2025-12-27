@@ -3,9 +3,9 @@ import {
   MessageView,
   MessagePage,
 } from "@/features/chat/types/models";
-import { authenticatedApi } from "@/lib/api/axiosApi";
+import { proxyApi } from "@/lib/api/axiosApi";
 import type { AxiosError, AxiosRequestConfig } from "axios";
-import { API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
+import { CHAT_API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
 
 /* ---------------------------
  * Error handling
@@ -44,10 +44,10 @@ export async function apiCall<T>(
 ): Promise<T> {
   try {
     if (method === HTTP_METHODS.GET || method === HTTP_METHODS.DELETE) {
-      const res = await authenticatedApi[method](url, config);
+      const res = await proxyApi[method](url, config);
       return res.data as T;
     }
-    const res = await authenticatedApi[method](url, data, config);
+    const res = await proxyApi[method](url, data, config);
     return res.data as T;
   } catch (error) {
     throw handleApiError(error);
@@ -61,27 +61,27 @@ export const messageApi = {
   create: (conversationId: number, body: SaveMessageRequest) =>
     apiCall<MessageView>(
       HTTP_METHODS.POST,
-      API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
+      CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
       body
     ),
 
   createBatch: (conversationId: number, body: SaveMessageRequest[]) =>
     apiCall<MessageView[]>(
       HTTP_METHODS.POST,
-      API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
+      CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
       body
     ),
 
   listByConversation: (conversationId: number) =>
     apiCall<MessagePage>(
       HTTP_METHODS.GET,
-      API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId)
+      CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId)
     ),
 
   update: (id: number, conversationId: number, body: SaveMessageRequest) =>
     apiCall<MessageView>(
       HTTP_METHODS.PUT,
-      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id),
+      CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id),
       body
     ),
 
@@ -92,20 +92,20 @@ export const messageApi = {
   ) =>
     apiCall<MessageView[]>(
       HTTP_METHODS.POST,
-      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, messageId),
+      CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, messageId),
       bodies
     ),
 
   removeForAllModel: (id: number, conversationId: number) =>
     apiCall<void>(
       HTTP_METHODS.DELETE,
-      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) + "/all"
+      CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) + "/all"
     ),
 
   removeForSingleModel: (id: number, conversationId: number, model: string) =>
     apiCall<void>(
       HTTP_METHODS.DELETE,
-      API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) +
+      CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) +
         `?modelName=${model}`
     ),
 };

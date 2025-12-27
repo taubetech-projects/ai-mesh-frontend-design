@@ -1,73 +1,57 @@
-import {
-  ACCESS_TOKEN_KEY,
-  EMPTY_STRING,
-  REFRESH_TOKEN_KEY,
-  UNDEFINED,
-} from "@/shared/constants/constants";
-import { UserGrantsView } from "../types/authModels";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import type { UserGrantsView } from "../types/authModels";
 
-const defaultApiKey = process.env.NEXT_PUBLIC_DEFAULT_API_KEY || "";
+/**
+ * ❌ Tokens are HttpOnly cookies.
+ * Frontend CANNOT read or write them.
+ * These functions exist only for compatibility / clarity.
+ */
 
-export function getAccessToken(): string {
-  if (typeof window === UNDEFINED) {
-    return EMPTY_STRING; // No user-specific access token on the server
-  }
-  return localStorage.getItem(ACCESS_TOKEN_KEY) || "";
+export function getAccessToken(): null {
+  return null;
 }
 
-export function getRefreshToken(): string {
-  if (typeof window === UNDEFINED) {
-    return EMPTY_STRING;
-  }
-  return localStorage.getItem(REFRESH_TOKEN_KEY) || "";
+export function getRefreshToken(): null {
+  return null;
 }
 
-export function setTokens(accessToken: string, refreshToken: string) {
-  if (typeof window !== UNDEFINED) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken.trim());
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken.trim());
-  }
+export function setTokens(): void {
+  // ❌ NO-OP
+  // Tokens are set by /api/auth/login via cookies
 }
 
-export function setUserDetails(user: UserGrantsView) {
-  if (typeof window !== UNDEFINED) {
-    localStorage.setItem("user", JSON.stringify(user));
-  }
+export function clearTokens(): void {
+  // ❌ NO-OP
+  // Tokens are cleared by /api/auth/logout
+}
+
+export function setUserDetails(): void {
+  // ❌ NO-OP
+  // User comes from /api/auth/me
 }
 
 export function getUserDetails(): UserGrantsView | null {
-  if (typeof window === UNDEFINED) {
-    return null;
-  }
-  const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
+  // ❌ NO-OP
+  return null;
 }
 
-export function clearUserDetails() {
-  if (typeof window !== UNDEFINED) {
-    localStorage.removeItem("user");
-  }
+export function clearUserDetails(): void {
+  // ❌ NO-OP
 }
 
-export function clearTokens() {
-  if (typeof window !== UNDEFINED) {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem("user");
-  }
-}
-
+/**
+ * ❌ Authorization header must NOT be built on frontend.
+ * Proxy + cookies handle auth.
+ */
 export function authHeader(): Record<string, string> {
-  const k = getAccessToken();
-  return k ? { Authorization: `Bearer ${k}` } : {};
+  return {};
 }
 
-export function ensureAuthenticatedClient() {
-  const token = getAccessToken();
-  if (!token) {
-    clearTokens();
-    window.location.href = APP_ROUTES.SIGNIN;
-    throw new Error("Unauthorized access — no token found.");
-  }
+/**
+ * ❌ Frontend must NOT enforce auth using tokens.
+ * Middleware + /me do that.
+ */
+export function ensureAuthenticatedClient(): never {
+  window.location.href = APP_ROUTES.SIGNIN;
+  throw new Error("Unauthorized");
 }
