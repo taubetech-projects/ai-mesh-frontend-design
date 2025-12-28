@@ -1,112 +1,71 @@
-import { ChatStreamBody } from "@/features/chat/types/models";
-import { API_BASE } from "@/lib/api/http";
-import { authHeader } from "@/features/auth/utils/auth";
-import {
-  CHAT_API_PATHS,
-  APPLICATION_JSON,
-  CACHE_NO_STORE,
-  CONTENT_TYPE,
-  EMPTY_STRING,
-  EVENT_DATA_SLICE_START,
-  EVENT_DATA_START_WITH,
-  EVENT_NAME_SLICE_START,
-  EVENT_NAME_START_WITH,
-} from "@/shared/constants/constants";
+import { CHAT_API_PATHS } from "@/shared/constants/constants";
 
-export async function fetchProviders() {
-  const res = await fetch(`${API_BASE}/v1/providers`, {
-    headers: authHeader(),
-    cache: CACHE_NO_STORE,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-export async function fetchModels(providerId: string) {
-  const res = await fetch(`${API_BASE}/v1/providers/${providerId}/models`, {
-    headers: authHeader(),
-    cache: CACHE_NO_STORE,
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
+const PROXY_BASE = "/api/proxy/";
 
-/** Basic SSE reader. Calls onEvent({event, data}) for each frame. */
 export function streamChat(
   conversationId: number,
   editedMessageId: number | null,
-  // body: ChatStreamBody,
   body: any,
-
   onEvent: (evt: { event: string; data: any }) => void,
   signal?: AbortSignal
 ) {
-  return fetch(
-    API_BASE +
-      CHAT_API_PATHS.CONVERSATIONS.COMPLETIONS(conversationId, editedMessageId),
-    {
-      method: "POST",
-      headers: {
-        ...authHeader(),
-        [CONTENT_TYPE]: APPLICATION_JSON,
-      },
-      body: JSON.stringify(body),
-      signal,
-    }
-  ).then(async (res) => {
+  const url =
+    PROXY_BASE +
+    CHAT_API_PATHS.CONVERSATIONS.COMPLETIONS(
+      conversationId,
+      editedMessageId
+    ).replace(/^\//, "");
+
+  return fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+    credentials: "include",
+    cache: "no-store",
+  }).then(async (res) => {
     if (!res.ok || !res.body) throw new Error(await res.text());
+
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
+    let buf = "";
 
-    let buf = EMPTY_STRING;
-    const processBuffer = (isFinal: boolean = false) => {
+    const processBuffer = (isFinal = false) => {
       let idx: number;
       while ((idx = buf.indexOf("\n\n")) !== -1) {
         const frame = buf.slice(0, idx);
         buf = buf.slice(idx + 2);
+
         let event = "message";
-        let data = EMPTY_STRING;
+        let data = "";
+
         for (const line of frame.split("\n")) {
           if (!line) continue;
-          if (line.startsWith(EVENT_NAME_START_WITH))
-            event = line.slice(EVENT_NAME_SLICE_START).trim();
-          else if (line.startsWith(EVENT_DATA_START_WITH))
-            data += line.slice(EVENT_DATA_SLICE_START).trim();
+          if (line.startsWith("event:")) event = line.slice(6).trim();
+          if (line.startsWith("data:")) data += line.slice(5).trim();
         }
+
         if (data) {
           try {
-            onEvent({ event: event, data: JSON.parse(data) });
+            onEvent({ event, data: JSON.parse(data) });
           } catch {}
         }
       }
-      // Process final incomplete frame if stream is done
+
       if (isFinal && buf) {
-        let event = "message";
-        let data = EMPTY_STRING;
-        for (const line of buf.split("\n")) {
-          if (!line) continue;
-          if (line.startsWith(EVENT_NAME_START_WITH))
-            event = line.slice(EVENT_NAME_SLICE_START).trim();
-          else if (line.startsWith(EVENT_DATA_START_WITH))
-            data += line.slice(EVENT_DATA_SLICE_START).trim();
-        }
-        if (data) {
-          try {
-            onEvent({ event: event, data: JSON.parse(data) });
-          } catch {}
-        }
-        buf = EMPTY_STRING; // Clear buffer
+        // optional: process remaining
+        buf = "";
       }
     };
 
     while (true) {
       const { value, done } = await reader.read();
       if (done) {
-        processBuffer(true); // Process any remaining buffer content
+        processBuffer(true);
         break;
       }
       buf += decoder.decode(value, { stream: true });
-      // console.log("Buffer", buf);
-      processBuffer();
+      processBuffer(false);
     }
   });
 }
