@@ -40,8 +40,12 @@ function buildHeaders(from: Response) {
   return h;
 }
 
-async function forward(req: Request, path: string, accessToken?: string) {
-  const url = `${process.env.BACKEND_ORIGIN}/${path}`;
+async function forward(
+  req: Request,
+  pathWithQuery: string,
+  accessToken?: string
+) {
+  const url = `${process.env.BACKEND_ORIGIN}/${pathWithQuery}`;
 
   const headers = new Headers(req.headers);
   headers.delete("host");
@@ -64,10 +68,13 @@ async function forward(req: Request, path: string, accessToken?: string) {
 
 async function handler(req: Request, ctx: { params: { path: string[] } }) {
   const path = ctx.params.path.join("/");
+  const { search } = new URL(req.url); // ✅ includes "?editedMessageId=55"
+  const pathWithQuery = `${path}${search}`;
+
   const cookieStore = cookies();
 
   const access = cookieStore.get(ACCESS_COOKIE)?.value;
-  let backendRes = await forward(req, path, access);
+  let backendRes = await forward(req, pathWithQuery, access);
 
   // If 401: refresh once (only possible if refresh cookie exists)
   if (backendRes.status === 401) {
