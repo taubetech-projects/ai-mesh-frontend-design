@@ -5,8 +5,8 @@ export const cookieOptions = () => {
   const isProd = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: false, // isProd, // IMPORTANT: false on localhost (http)
-    sameSite: "lax" as const,
+    secure: isProd, // IMPORTANT: false on localhost (http)
+    sameSite: "strict" as const,
     path: "/",
   };
 };
