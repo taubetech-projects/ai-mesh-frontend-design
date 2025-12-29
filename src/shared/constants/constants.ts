@@ -116,7 +116,7 @@ export const CHAT_API_PATHS = {
         `${API_VERSION_V1}/${CHAT_API_STEM}/conversations/${conversationId}/messages/${messageId}`,
     },
     COMPLETIONS: (
-      conversationId: string | number,
+      conversationId: string | number | null,
       editedMessageId: number | null
     ) => {
       if (editedMessageId !== null) {

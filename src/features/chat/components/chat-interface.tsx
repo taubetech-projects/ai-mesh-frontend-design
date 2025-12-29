@@ -24,9 +24,9 @@ import { useUpdateMessages } from "@/features/chat/text-chat/hooks/useUpdateMess
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
-import { authHeader } from "@/features/auth/utils/auth";
-import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
-import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
+import { authHeader } from "@/features/chat/auth/utils/auth";
+import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
+import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 import { RootState } from "@/lib/store/store";
 import { CONTENT_INPUT_TYPES, ROLES } from "@/shared/constants/constants";
 import { ChatInputArea } from "./chat-input-area";

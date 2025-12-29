@@ -1,22 +1,22 @@
 export enum APP_ROUTES {
     HOME = "/",
-    SIGNUP = "/auth/signup",
-    SIGNIN = "/auth/login",
-    SIGNOUT = "/auth/logout",
-    FORGOT_PASSWORD = "/auth/forgot-password",
-    RESET_PASSWORD = "/auth/reset-password",
-    VERIFY_EMAIL = "/auth/signup/verify-email",
-    OAUTH2SUCESS = "/auth/oauth2-success",
+    SIGNUP = "/chat/auth/signup",
+    SIGNIN = "/chat/auth/login",
+    SIGNOUT = "/chat/auth/logout",
+    FORGOT_PASSWORD = "/chat/auth/forgot-password",
+    RESET_PASSWORD = "/chat/auth/reset-password",
+    VERIFY_EMAIL = "/chat/auth/signup/verify-email",
+    OAUTH2SUCESS = "/chat/auth/oauth2-success",
     GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google",
 
-    PLAYGROUND = "/playground",
+    PLAYGROUND = "/platform/playground",
 
     CHAT = "/chat",
     IMAGE = "/chat/image",
 
-    PRICING = "/pricing",
-    PRICING_SUCCESS = "/pricing/success",
-    PRICING_CANCEL = "/pricing/cancel",
+    PRICING = "/chat/pricing",
+    PRICING_SUCCESS = "/chat/pricing/success",
+    PRICING_CANCEL = "/chat/pricing/cancel",
 
-    SETTINGS = "/setting",
+    SETTINGS = "/chat/setting",
 }

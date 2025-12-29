@@ -25,16 +25,19 @@ import { useUpdateMessages } from "@/features/chat/text-chat/hooks/useUpdateMess
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
-import { authHeader } from "@/features/auth/utils/auth";
-import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
-import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
+import { authHeader } from "@/features/chat/auth/utils/auth";
+import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
+import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 import { RootState } from "@/lib/store/store";
-import { CONTENT_INPUT_TYPES, CONVERSATION_TYPES, ROLES } from "@/shared/constants/constants";
+import {
+  CONTENT_INPUT_TYPES,
+  CONVERSATION_TYPES,
+  ROLES,
+} from "@/shared/constants/constants";
 import { useRouter } from "next/navigation";
 import { ChatInputArea } from "./chat-input-area";
 import { ChatActionChips } from "./chat-action-chips";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
-
 
 export function HomeChatInterface() {
   const {
@@ -68,7 +71,9 @@ export function HomeChatInterface() {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.IMAGE));
-    isImageGenSelected ? setIsImageGenSelected(false) : setIsImageGenSelected(true);
+    isImageGenSelected
+      ? setIsImageGenSelected(false)
+      : setIsImageGenSelected(true);
   };
 
   const handleWebSearchClick = () => {

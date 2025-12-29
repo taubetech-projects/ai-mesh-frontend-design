@@ -10,7 +10,7 @@ import {
   clearUploadedImages,
   setIsGenerating,
 } from "@/features/chat/store/image-generation-slice";
-import { setSelectedConvId } from "@/features/conversation/store/conversation-slice";
+import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 import { ImageDisplayColumns } from "./image-display-columns";
 import { RootState } from "@/lib/store/store";
 import {
@@ -21,7 +21,7 @@ import {
   ImageInput,
   ImageRequestBody,
 } from "@/features/chat/types/imageModels";
-import { useCreateConversationApi } from "@/features/conversation/hooks/conversationHook";
+import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
 import { ImageModelSelector } from "./image-model-selector";
 import { ChatInputArea } from "../../components/chat-input-area";
 

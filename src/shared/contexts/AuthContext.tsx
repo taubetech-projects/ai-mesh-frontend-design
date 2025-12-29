@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useMemo } from "react";
-import type { Me } from "@/features/auth/types/authModels";
-import { useMeQuery } from "@/features/auth/hooks/useAuthQueries";
+import type { Me } from "@/features/chat/auth/types/authModels";
+import { useMeQuery } from "@/features/chat/auth/hooks/useAuthQueries";
 
 type AuthValue = {
   me: Me | null;

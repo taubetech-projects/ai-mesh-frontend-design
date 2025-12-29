@@ -5,7 +5,7 @@ import {
   CACHE_NO_STORE,
   CONTENT_TYPE,
 } from "@/shared/constants/constants";
-import { authHeader } from "@/features/auth/utils/auth";
+import { authHeader } from "@/features/chat/auth/utils/auth";
 export const API_BASE = BACKEND_BASE_URL;
 
 export async function apiFetch(path: string, init: RequestInit = {}) {

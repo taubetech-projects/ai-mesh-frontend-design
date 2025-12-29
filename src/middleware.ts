@@ -30,17 +30,18 @@ export async function middleware(req: NextRequest) {
   // public routes
   if (
     pathname === "/" ||
-    pathname.startsWith("/auth") ||
+    pathname.startsWith("/platform/auth") ||    
+    pathname.startsWith("/chat/auth") ||
     pathname.startsWith("/public")
   ) {
     return NextResponse.next();
   }
 
   const token = req.cookies.get(ACCESS_COOKIE)?.value;
-  if (!token) return NextResponse.redirect(new URL("/auth/login", req.url));
+  if (!token) return NextResponse.redirect(new URL("/chat/auth/login", req.url));
 
   const payload = await verifyAccessToken(token);
-  if (!payload) return NextResponse.redirect(new URL("/auth/login", req.url));
+  if (!payload) return NextResponse.redirect(new URL("/chat/auth/login", req.url));
 
   const rule = ROLE_ROUTES.find((r) => pathname.startsWith(r.prefix));
   if (rule && !hasAnyRole(payload.roles, rule.roles)) {

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
 import { useAuth } from "@/shared/contexts/AuthContext";
-import { useMeQuery } from "@/features/auth/hooks/useAuthQueries";
+import { useMeQuery } from "@/features/chat/auth/hooks/useAuthQueries";
 
 export default function PublicRoute({
   children,
