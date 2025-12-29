@@ -60,6 +60,7 @@ export const useCreateMessages = (conversationId: number | null) => {
         tempsByModel,
         updateMessageTextById: cacheOps.updateMessageTextById,
         invalidateConversation: (cid) => {
+          console.log("Invalidating conversation:", cid);
           if (cid !== null) cacheOps.invalidateConversation(cid);
         },
         router,
@@ -69,7 +70,9 @@ export const useCreateMessages = (conversationId: number | null) => {
 
       return null;
     },
-
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
+    },
     onSettled: () => {
       // ✅ Fallback: ensure UI always re-syncs with backend even if event is missed
       queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });

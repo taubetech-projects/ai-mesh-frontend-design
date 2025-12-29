@@ -43,7 +43,7 @@ export const createMessageCacheOps = (
   };
 
   const invalidateConversation = (cid: number) => {
-    queryClient.invalidateQueries({ queryKey: cid === null ? key : cacheKey(cid) });
+    queryClient.invalidateQueries({ queryKey: cacheKey(cid) });
   };
 
   // Keep streamChat “behind” cacheOps so the hook stays tiny

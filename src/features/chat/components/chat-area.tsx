@@ -90,6 +90,7 @@ export function ChatArea({ activeModel }: ChatAreaProps) {
     useDeleteForSingleModel(selectedConvId);
 
   const isDeleting = isDeletingForAll || isDeletingForModel;
+  console.log("selected conversation id : ", selectedConvId);
   console.log("Selected Conversations Data : ", data);
 
   const [deleteDialog, setDeleteDialog] = useState<{

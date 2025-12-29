@@ -8,7 +8,7 @@ import {
   startStreaming,
   endStreaming,
   concatenateDelta,
-  setSelectedModels
+  setSelectedModels,
 } from "@/features/chat/store/chat-interface-slice"; // adjust
 
 import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
@@ -86,12 +86,12 @@ export const createStreamEventHandler = ({
       }
       return;
     }
-    if (name == CHAT_STREAM_EVENT_TYPES.CONVERSATION_CREATED_SUCCESS) {
-      dispatch(setSelectedConvId(data.payload.conversationId));
-      invalidateConversation(data.payload.conversationId);
-      router.push(`/chat/${data.payload.conversationId}`);
-      return;
-    }
+    // if (name == CHAT_STREAM_EVENT_TYPES.CONVERSATION_CREATED_SUCCESS) {
+    //   dispatch(setSelectedConvId(data.payload.conversationId));
+    //   invalidateConversation(data.payload.conversationId);
+    //   router.push(`/chat/${data.payload.conversationId}`);
+    //   return;
+    // }
 
     // ─────────────────────────────────────────────
     // Backend persistence confirmation
@@ -99,7 +99,10 @@ export const createStreamEventHandler = ({
       name === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS ||
       data?.type === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS
     ) {
+      dispatch(setSelectedConvId(data.payload.conversationId));
       invalidateConversation(data.payload.conversationId);
+      router.push(`/chat/${data.payload.conversationId}`);
+      // invalidateConversation(data.payload.conversationId);
       return;
     }
   };

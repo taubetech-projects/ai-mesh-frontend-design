@@ -115,7 +115,6 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     dispatch(clearChatState());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
     router.push(APP_ROUTES.CHAT);
-    console.log("Selected Models: ", selectedModels);
   };
 
   const handleDeleteConversation = () => {
