@@ -3,7 +3,7 @@ import { CHAT_API_PATHS } from "@/shared/constants/constants";
 const PROXY_BASE = "/api/proxy/";
 
 export function streamChat(
-  conversationId: number,
+  conversationId: number | null,
   editedMessageId: number | null,
   body: any,
   onEvent: (evt: { event: string; data: any }) => void,

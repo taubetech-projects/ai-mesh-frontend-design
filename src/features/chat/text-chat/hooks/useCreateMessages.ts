@@ -16,6 +16,7 @@ import { createStreamEventHandler } from "@/features/chat/text-chat/utils/stream
 import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
 import { queryKey } from "@/lib/react-query/keys";
 import { endStreaming } from "@/features/chat/store/chat-interface-slice";
+import { toast } from "sonner";
 
 const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
 
@@ -71,5 +72,9 @@ export const useCreateMessages = (conversationId: number) => {
       queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
       dispatch(endStreaming());
     },
+    onError: () => {
+      toast.error("Something went wrong. Please try again.");
+      dispatch(endStreaming())
+    }
   });
 };
