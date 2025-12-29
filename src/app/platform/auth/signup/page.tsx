@@ -1,10 +1,10 @@
 import { AuthForm } from "@/features/chat/auth/components/auth-form";
-import PublicRoute from "@/shared/components/public-route";
+import PlatformPublicRoute from "@/features/platform/auth/components/PlatformPublicRoute";
 
 export default function SignUp() {
   return (
-    <PublicRoute>
+    <PlatformPublicRoute>
       <AuthForm view="signup" />
-    </PublicRoute>
+    </PlatformPublicRoute>
   );
 }

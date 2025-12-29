@@ -1,8 +1,8 @@
 "use client";
-import { useAuth } from "@/shared/contexts/AuthContext";
+import { usePlatformAuth } from "@/features/platform/auth/PlatformAuthProvider";
 
 export default function AppPage() {
-  const { me, hasAuthority } = useAuth();
+  const { me, hasAuthority } = usePlatformAuth();
 
   return (
     <div>

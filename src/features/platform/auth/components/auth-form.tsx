@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { PlatformAuthService } from "@/features/platform/auth/api/authApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { toast } from "sonner";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
@@ -180,7 +180,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
   const handleResendVerification = async (email: string) => {
     console.log("Resending verification email for:", email);
     try {
-      const response = await AuthService.resendEmail({ email });
+      const response = await PlatformAuthService.resendEmail({ email });
       console.log("Resend email response:", response);
       toast.success("Verification email sent successfully!");
     } catch (err: any) {

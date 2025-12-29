@@ -2,7 +2,7 @@ import type {
   ImageRequestBody,
   MultiImageResponse,
 } from "@/features/chat/types/imageModels";
-import { proxyApi } from "@/lib/api/axiosApi";
+import { chatProxyApi } from "@/lib/api/axiosApi";
 import { IMAGE_API_PATHS } from "@/shared/constants/constants";
 
 const DEFAULT_IMAGE_MODEL_ID = 45;
@@ -15,7 +15,7 @@ export const ImageGenerationService = {
     data: ImageRequestBody,
     conversationId: string
   ): Promise<MultiImageResponse> => {
-    const res = await proxyApi.post<MultiImageResponse>(
+    const res = await chatProxyApi.post<MultiImageResponse>(
       IMAGE_API_PATHS.GENERATE(DEFAULT_IMAGE_MODEL_ID),
       data
     );
@@ -24,7 +24,10 @@ export const ImageGenerationService = {
 
   base64ToImageUrl: async (base64: string): Promise<any> => {
     const payload = { image: base64 };
-    const res = await proxyApi.post<any>(IMAGE_API_PATHS.SAVE_BASE64, payload);
+    const res = await chatProxyApi.post<any>(
+      IMAGE_API_PATHS.SAVE_BASE64,
+      payload
+    );
     return res.data;
   },
 
@@ -38,7 +41,7 @@ export const ImageGenerationService = {
 
     // Backend-relative image → go through proxy
     const normalized = url.startsWith("/") ? url.slice(1) : url;
-    const res = await proxyApi.get<Blob>(normalized, {
+    const res = await chatProxyApi.get<Blob>(normalized, {
       responseType: "blob",
     });
     return res.data;

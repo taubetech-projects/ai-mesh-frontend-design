@@ -1,4 +1,4 @@
-import { proxyApi } from "@/lib/api/axiosApi";
+import { chatProxyApi } from "@/lib/api/axiosApi";
 import type {
   SubscriptionPlan,
   currentSubscriptionResponse,
@@ -11,14 +11,16 @@ import { BILLING_API_PATHS } from "@/shared/constants/constants";
 
 export const BillingService = {
   getPlans: async (): Promise<SubscriptionPlan[]> => {
-    const res = await proxyApi.get<SubscriptionPlan[]>(BILLING_API_PATHS.PLANS);
+    const res = await chatProxyApi.get<SubscriptionPlan[]>(
+      BILLING_API_PATHS.PLANS
+    );
     return res.data;
   },
 
   purchasePlan: async (
     payload: CreateBillingRequest
   ): Promise<BillingRediretResponse> => {
-    const res = await proxyApi.post<BillingRediretResponse>(
+    const res = await chatProxyApi.post<BillingRediretResponse>(
       BILLING_API_PATHS.BILLING_START,
       payload
     );
@@ -26,7 +28,7 @@ export const BillingService = {
   },
 
   getCurrentSubscription: async (): Promise<currentSubscriptionResponse> => {
-    const res = await proxyApi.get<currentSubscriptionResponse>(
+    const res = await chatProxyApi.get<currentSubscriptionResponse>(
       BILLING_API_PATHS.SUBSCRIPTION_CURRENT
     );
     return res.data;

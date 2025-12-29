@@ -5,16 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/shared/contexts/theme-context";
 import { LanguageSelector } from "@/shared/components/language-selector";
-import ProtectedRoute from "@/shared/components/protected-route";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
-import { useAuth } from "@/shared/contexts/AuthContext";
 import { useLogoutMutation } from "@/features/chat/auth/hooks/useAuthQueries";
 import { ModelPreferences } from "@/features/chat/settings/model-preferences/components/ModelPreferences";
 import { PhoneInput } from "@/features/chat/settings/components/PhoneInput";
 import { FormInput } from "@/features/chat/settings/components/FormInput";
+import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
+import ChatProtectedRoute from "@/features/chat/auth/components/ChatProtectedRoute";
 
 export default function SettingsPage() {
-  const { me } = useAuth();
+  const { me, isLoading } = useChatAuth();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
@@ -31,7 +31,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ChatProtectedRoute>
       <div className="min-h-screen bg-gray-900 text-white pt-16">
         <div className="max-w-4xl mx-auto p-4 sm:p-8">
           <Link
@@ -138,6 +138,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+    </ChatProtectedRoute>
   );
 }

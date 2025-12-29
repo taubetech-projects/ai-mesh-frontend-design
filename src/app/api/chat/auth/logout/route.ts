@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  ACCESS_COOKIE,
-  REFRESH_COOKIE,
-  cookieOptions,
+  CHAT_ACCESS_COOKIE,
+  CHAT_REFRESH_COOKIE,
+  chatCookieOptions,
 } from "@/lib/auth/cookies";
 
 export async function POST() {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value;
-
+  const refreshToken = cookieStore.get(CHAT_REFRESH_COOKIE)?.value;
   if (refreshToken) {
     try {
       await fetch(`${process.env.BACKEND_ORIGIN}/v1/api/chat/auth/logout`, {
@@ -24,7 +23,13 @@ export async function POST() {
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ACCESS_COOKIE, "", { ...cookieOptions(), maxAge: 0 });
-  res.cookies.set(REFRESH_COOKIE, "", { ...cookieOptions(), maxAge: 0 });
+  res.cookies.set(CHAT_ACCESS_COOKIE, "", {
+    ...chatCookieOptions(),
+    maxAge: 0,
+  });
+  res.cookies.set(CHAT_REFRESH_COOKIE, "", {
+    ...chatCookieOptions(),
+    maxAge: 0,
+  });
   return res;
 }

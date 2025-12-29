@@ -1,4 +1,4 @@
-import { proxyApi } from "@/lib/api/axiosApi";
+import { chatProxyApi } from "@/lib/api/axiosApi";
 import { CHAT_API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
 import { CreateConversationDto } from "@/features/chat/conversation/types/conversationTypes";
 import { ConversationResponse } from "../types/conversationTypes";
@@ -27,8 +27,8 @@ export const apiCall = async <T>(
   try {
     const response =
       method === HTTP_METHODS.GET || method === HTTP_METHODS.DELETE
-        ? await proxyApi.request<T>({ method, url })
-        : await proxyApi.request<T>({ method, url, data });
+        ? await chatProxyApi.request<T>({ method, url })
+        : await chatProxyApi.request<T>({ method, url, data });
 
     return response.data;
   } catch (error) {

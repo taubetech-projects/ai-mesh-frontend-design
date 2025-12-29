@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  ACCESS_COOKIE,
-  REFRESH_COOKIE,
-  cookieOptions,
+  CHAT_ACCESS_COOKIE,
+  CHAT_REFRESH_COOKIE,
+  chatCookieOptions,
 } from "@/lib/auth/cookies";
 
 export const runtime = "nodejs"; // ✅ important for streaming
@@ -73,12 +73,12 @@ async function handler(req: Request, ctx: { params: { path: string[] } }) {
 
   const cookieStore = cookies();
 
-  const access = cookieStore.get(ACCESS_COOKIE)?.value;
+  const access = cookieStore.get(CHAT_ACCESS_COOKIE)?.value;
   let backendRes = await forward(req, pathWithQuery, access);
 
   // If 401: refresh once (only possible if refresh cookie exists)
   if (backendRes.status === 401) {
-    const refresh = cookieStore.get(REFRESH_COOKIE)?.value;
+    const refresh = cookieStore.get(CHAT_REFRESH_COOKIE)?.value;
     if (refresh) {
       const refreshed = await refreshAccessToken(refresh);
       if (refreshed?.accessToken) {
@@ -93,15 +93,15 @@ async function handler(req: Request, ctx: { params: { path: string[] } }) {
             headers,
           });
           next.cookies.set(
-            ACCESS_COOKIE,
+            CHAT_ACCESS_COOKIE,
             refreshed.accessToken,
-            cookieOptions()
+            chatCookieOptions()
           );
           if (refreshed.refreshToken) {
             next.cookies.set(
-              REFRESH_COOKIE,
+              CHAT_REFRESH_COOKIE,
               refreshed.refreshToken,
-              cookieOptions()
+              chatCookieOptions()
             );
           }
           return next;
@@ -113,12 +113,16 @@ async function handler(req: Request, ctx: { params: { path: string[] } }) {
           status: backendRes.status,
           headers,
         });
-        next.cookies.set(ACCESS_COOKIE, refreshed.accessToken, cookieOptions());
+        next.cookies.set(
+          CHAT_ACCESS_COOKIE,
+          refreshed.accessToken,
+          chatCookieOptions()
+        );
         if (refreshed.refreshToken) {
           next.cookies.set(
-            REFRESH_COOKIE,
+            CHAT_REFRESH_COOKIE,
             refreshed.refreshToken,
-            cookieOptions()
+            chatCookieOptions()
           );
         }
         return next;

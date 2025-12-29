@@ -1,12 +1,12 @@
 "use client";
 import { AuthForm } from "@/features/chat/auth/components/auth-form";
-import PublicRoute from "@/shared/components/public-route";
+import ChatPublicRoute from "@/features/chat/auth/components/ChatPublicRoute";
 
 // --- Login Page Component ---
 export default function SignIn() {
   return (
-    <PublicRoute>
+    <ChatPublicRoute>
       <AuthForm view="login" />
-    </PublicRoute>
+    </ChatPublicRoute>
   );
 }

@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
-import { useAuth } from "@/shared/contexts/AuthContext";
+import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
 
 interface SidebarFooterProps {
   isCollapsed: boolean;
@@ -25,7 +25,7 @@ export function SidebarFooter({
   handleLogout,
   t,
 }: SidebarFooterProps) {
-  const { me } = useAuth();
+  const { me, isLoading } = useChatAuth();
   return (
     <div className="p-4 border-t border-sidebar-border space-y-4">
       {/* User Profile Section */}

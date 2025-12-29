@@ -8,19 +8,8 @@ import { Suspense, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { Provider } from "react-redux";
 import store from "@/lib/store/store";
-import { AuthProvider } from "@/shared/contexts/AuthContext";
-import { usePathname } from "next/navigation";
 
-export function Providers({
-  children,
-  initialMe,
-}: {
-  children: React.ReactNode;
-  initialMe: any;
-}) {
-  const pathname = usePathname();
-  const isAuthRoute = pathname?.startsWith("/auth");
-
+export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -38,11 +27,9 @@ export function Providers({
       <ReactQueryDevtools initialIsOpen={false} />
       <Suspense fallback={null}>
         <Provider store={store}>
-          <AuthProvider initialMe={initialMe} enabled={!isAuthRoute}>
-            <ThemeProvider>
-              <LanguageProvider>{children}</LanguageProvider>
-            </ThemeProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <LanguageProvider>{children}</LanguageProvider>
+          </ThemeProvider>
         </Provider>
       </Suspense>
       <Analytics />

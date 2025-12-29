@@ -3,7 +3,7 @@ import {
   MessageView,
   MessagePage,
 } from "@/features/chat/types/models";
-import { proxyApi } from "@/lib/api/axiosApi";
+import { chatProxyApi } from "@/lib/api/axiosApi";
 import type { AxiosError, AxiosRequestConfig } from "axios";
 import { CHAT_API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
 
@@ -44,10 +44,10 @@ export async function apiCall<T>(
 ): Promise<T> {
   try {
     if (method === HTTP_METHODS.GET || method === HTTP_METHODS.DELETE) {
-      const res = await proxyApi[method](url, config);
+      const res = await chatProxyApi[method](url, config);
       return res.data as T;
     }
-    const res = await proxyApi[method](url, data, config);
+    const res = await chatProxyApi[method](url, data, config);
     return res.data as T;
   } catch (error) {
     throw handleApiError(error);

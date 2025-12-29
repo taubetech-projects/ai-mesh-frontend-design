@@ -1,4 +1,4 @@
-import { api } from "@/lib/api/axiosApi";
+import { createAuthService } from "@/lib/auth/createAuthService";
 import type {
   SignupRequest,
   SignupResponse,
@@ -9,45 +9,26 @@ import type {
   LoginRequest,
   RefreshRequest,
   TokenResponse,
-} from "@/features/chat/auth/types/authModels";
+} from "../types/authModels";
 
-export const AuthService = {
-  login: async (data: LoginRequest): Promise<TokenResponse> => {
-    const res = await api.post<TokenResponse>("/api/chat/auth/login", data);
-    return res.data;
-  },
+const platformAuth = createAuthService("/api/platform/auth");
 
-  me: async (): Promise<Me> => {
-    const res = await api.get<Me>("/api/chat/auth/me");
-    return res.data;
-  },
+export const PlatformAuthService = {
+  login: (data: LoginRequest) =>
+    platformAuth.login<LoginRequest, TokenResponse>(data),
+  me: () => platformAuth.me<Me>(),
 
-  refreshToken: async (data: RefreshRequest): Promise<TokenResponse> => {
-    const res = await api.post<TokenResponse>("/api/chat/auth/refresh", data);
-    return res.data;
-  },
+  refreshToken: (data: RefreshRequest) =>
+    platformAuth.refreshToken<RefreshRequest, TokenResponse>(data),
+  logout: () => platformAuth.logout(),
 
-  logout: async (): Promise<void> => {
-    await api.post("/api/chat/auth/logout");
-  },
+  signup: (data: SignupRequest) =>
+    platformAuth.signup<SignupRequest, SignupResponse>(data),
+  resendEmail: (data: ResendEmailRequest) =>
+    platformAuth.resendEmail(data.email),
 
-  signup: async (data: SignupRequest): Promise<SignupResponse> => {
-    const res = await api.post<SignupResponse>("/api/chat/auth/signup", data);
-    return res.data;
-  },
-
-  resendEmail: async (data: ResendEmailRequest): Promise<string> => {
-    const res = await api.post<string>(
-      `/api/chat/auth/resend-email?email=${encodeURIComponent(data.email)}`
-    );
-    return res.data;
-  },
-
-  forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
-    await api.post("/api/chat/auth/forgot-password", data);
-  },
-
-  resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
-    await api.post("/api/chat/auth/reset-password", data);
-  },
+  forgotPassword: (data: ForgotPasswordRequest) =>
+    platformAuth.forgotPassword<ForgotPasswordRequest>(data),
+  resetPassword: (data: ResetPasswordRequest) =>
+    platformAuth.resetPassword<ResetPasswordRequest>(data),
 };

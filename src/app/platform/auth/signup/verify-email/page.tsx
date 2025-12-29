@@ -1,7 +1,7 @@
 "use client";
 
 import PublicRoute from "@/shared/components/public-route";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { PlatformAuthService } from "@/features/platform/auth/api/authApi";
 import {
   ErrorResponse,
   ResendEmailRequest,
@@ -21,7 +21,7 @@ export default function VerifyEmail() {
     if (!email) return;
     setEmailSent(true);
     try {
-      const response = await AuthService.resendEmail({ email });
+      const response = await PlatformAuthService.resendEmail({ email });
       if (response) {
         toast.success("Resend Successfull");
       } else {

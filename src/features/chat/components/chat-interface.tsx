@@ -30,10 +30,10 @@ import { setSelectedConvId } from "@/features/chat/conversation/store/conversati
 import { RootState } from "@/lib/store/store";
 import { CONTENT_INPUT_TYPES, ROLES } from "@/shared/constants/constants";
 import { ChatInputArea } from "./chat-input-area";
-import { proxyApi } from "@/lib/api/axiosApi";
+import { chatProxyApi } from "@/lib/api/axiosApi";
 
 export async function listConversations() {
-  const res = await proxyApi.get("v1/api/chat/conversations");
+  const res = await chatProxyApi.get("v1/api/chat/conversations");
   return res.data;
 }
 
