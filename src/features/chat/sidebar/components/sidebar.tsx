@@ -48,6 +48,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   const { selectedConvId } = useSelector(
     (store: any) => store.conversationSlice
   );
+  const { selectedModels } = useSelector((store: any) => store.chatInterface);
 
   const dispatch = useDispatch();
   const { mutate: deleteConversation } = useDeleteConversationApi(); // For deleting
@@ -113,21 +114,8 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
-
-    if (modelPreferences && modelPreferences.length > 0) {
-      const activePreferences = modelPreferences
-        .filter((p: any) => p.isActive)
-        .map((p: any) => ({ provider: p.provider, model: p.modelId }));
-
-      if (activePreferences.length > 0) {
-        dispatch(setSelectedModels(activePreferences));
-      } else {
-        dispatch(setInitialSelectedModels());
-      }
-    } else {
-      dispatch(setInitialSelectedModels());
-    }
     router.push(APP_ROUTES.CHAT);
+    console.log("Selected Models: ", selectedModels);
   };
 
   const handleDeleteConversation = () => {
@@ -136,6 +124,8 @@ export function Sidebar({ activeInterface }: SidebarProps) {
       setConversationIdToDelete(null);
     }
     setShowDeleteDialog(false); // Close the dialog
+    dispatch(clearChatState())
+    router.push(APP_ROUTES.CHAT);
   };
 
   const handleRenameConversation = (

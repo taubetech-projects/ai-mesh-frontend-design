@@ -39,7 +39,7 @@ export const buildMessageParts = (content: any[]): MessagePartRequest[] => {
 };
 
 export const createOptimisticUserMessage = (args: {
-  conversationId: number;
+  conversationId: number | null;
   chatRequestBody: ChatRequestBody;
 }): MessageView => {
   const { conversationId, chatRequestBody } = args;
@@ -54,7 +54,7 @@ export const createOptimisticUserMessage = (args: {
 };
 
 export const createAssistantPlaceholder = (args: {
-  conversationId: number;
+  conversationId: number | null;
   modelId: string;
 }): MessageView => {
   const { conversationId, modelId } = args;
@@ -71,7 +71,7 @@ export const createAssistantPlaceholder = (args: {
 };
 
 export const createAssistantPlaceholderTemps = (args: {
-  conversationId: number;
+  conversationId: number | null;
   modelIds: string[];
   pushMessage: (msg: MessageView) => void;
 }): Map<string, TempInfo> => {

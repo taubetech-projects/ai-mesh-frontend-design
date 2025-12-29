@@ -26,7 +26,6 @@ import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
 import { authHeader } from "@/features/chat/auth/utils/auth";
-import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
 import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 import { RootState } from "@/lib/store/store";
 import {
@@ -55,9 +54,8 @@ export function HomeChatInterface() {
     (store: any) => store.conversationSlice
   );
   const dispatch = useDispatch();
-  const createMessages = useCreateMessages(selectedConvId); // Will get convId at time of mutation
+  const createMessages = useCreateMessages(selectedConvId ?? null); // Will get convId at time of mutation
   const updateMessages = useUpdateMessages(selectedConvId);
-  const createConversation = useCreateConversationApi();
   const router = useRouter();
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -272,22 +270,6 @@ export function HomeChatInterface() {
 
     // If there's no selected conversation, create one first.
     console.log("Active Interface: ", activeInterface);
-    if (!currentConvId) {
-      try {
-        const newConversation = await createConversation.mutateAsync({
-          title: userMessage.substring(0, 50), // Use first 50 chars as title
-          convoType: activeInterface,
-        });
-        currentConvId = newConversation.id;
-        dispatch(setSelectedConvId(newConversation.id));
-        console.log("New conversation created and selected: ", currentConvId);
-      } catch (error) {
-        console.error("Failed to create conversation:", error);
-        setIsAnimating(false);
-        return; // Stop if conversation creation fails
-      }
-    }
-
     const bodyRoutes: RouteSel[] = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
       .map((model: RouteSel) => ({
@@ -350,11 +332,11 @@ export function HomeChatInterface() {
       dispatch(setEditMessageId(null));
       dispatch(clearModelResponses());
 
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 500 - elapsedTime);
-      setTimeout(() => {
-        router.push(`/chat/${currentConvId}`);
-      }, remainingTime);
+      // const elapsedTime = Date.now() - startTime;
+      // const remainingTime = Math.max(0, 500 - elapsedTime);
+      // setTimeout(() => {
+      //   router.push(`/chat/${currentConvId}`);
+      // }, remainingTime);
     } catch (error) {
       console.error("Error sending message:", error);
       setIsAnimating(false);

@@ -262,20 +262,20 @@ export function ChatInterface() {
 
     // If there's no selected conversation, create one first.
     console.log("Active Interface: ", activeInterface);
-    if (!currentConvId) {
-      try {
-        const newConversation = await createConversation.mutateAsync({
-          title: userMessage.substring(0, 50), // Use first 50 chars as title
-          convoType: activeInterface,
-        });
-        currentConvId = newConversation.id;
-        dispatch(setSelectedConvId(newConversation.id));
-        console.log("New conversation created and selected: ", currentConvId);
-      } catch (error) {
-        console.error("Failed to create conversation:", error);
-        return; // Stop if conversation creation fails
-      }
-    }
+    // if (!currentConvId) {
+    //   try {
+    //     const newConversation = await createConversation.mutateAsync({
+    //       title: userMessage.substring(0, 50), // Use first 50 chars as title
+    //       convoType: activeInterface,
+    //     });
+    //     currentConvId = newConversation.id;
+    //     dispatch(setSelectedConvId(newConversation.id));
+    //     console.log("New conversation created and selected: ", currentConvId);
+    //   } catch (error) {
+    //     console.error("Failed to create conversation:", error);
+    //     return; // Stop if conversation creation fails
+    //   }
+    // }
 
     const bodyRoutes: RouteSel[] = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")

@@ -8,7 +8,7 @@ const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
 
 export const createMessageCacheOps = (
   queryClient: QueryClient,
-  conversationId: number
+  conversationId: number | null
 ) => {
   const key = queryKey.messages(conversationId);
 
@@ -43,12 +43,12 @@ export const createMessageCacheOps = (
   };
 
   const invalidateConversation = (cid: number) => {
-    queryClient.invalidateQueries({ queryKey: key });
+    queryClient.invalidateQueries({ queryKey: cid === null ? key : cacheKey(cid) });
   };
 
   // Keep streamChat “behind” cacheOps so the hook stays tiny
   const stream = async (
-    conversationId: number,
+    conversationId: number | null,
     editedMessageId: number | null,
     chatRequestBody: any,
     onEvent: (event: any) => void

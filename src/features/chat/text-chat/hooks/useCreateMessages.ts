@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 
 import { createMessageCacheOps } from "@/features/chat/text-chat/utils/chatCacheOps";
 import {
@@ -18,11 +19,13 @@ import { queryKey } from "@/lib/react-query/keys";
 import { endStreaming } from "@/features/chat/store/chat-interface-slice";
 import { toast } from "sonner";
 
-const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
+const cacheKey = (conversationId: number | null) =>
+  queryKey.messages(conversationId ?? 0);
 
-export const useCreateMessages = (conversationId: number) => {
+export const useCreateMessages = (conversationId: number | null) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const cacheOps = createMessageCacheOps(queryClient, conversationId);
 
@@ -33,10 +36,7 @@ export const useCreateMessages = (conversationId: number) => {
         queryKey: cacheKey(conversationId),
       });
 
-      const { includeConsensus } = validateChatRequest(
-        conversationId,
-        chatRequestBody
-      );
+      const { includeConsensus } = validateChatRequest(chatRequestBody);
 
       cacheOps.pushMessage(
         createOptimisticUserMessage({ conversationId, chatRequestBody })
@@ -59,7 +59,10 @@ export const useCreateMessages = (conversationId: number) => {
         expectedStreams,
         tempsByModel,
         updateMessageTextById: cacheOps.updateMessageTextById,
-        invalidateConversation: cacheOps.invalidateConversation,
+        invalidateConversation: (cid) => {
+          if (cid !== null) cacheOps.invalidateConversation(cid);
+        },
+        router,
       });
 
       await cacheOps.streamChat(conversationId, null, chatRequestBody, onEvent);
@@ -74,7 +77,7 @@ export const useCreateMessages = (conversationId: number) => {
     },
     onError: () => {
       toast.error("Something went wrong. Please try again.");
-      dispatch(endStreaming())
-    }
+      dispatch(endStreaming());
+    },
   });
 };
