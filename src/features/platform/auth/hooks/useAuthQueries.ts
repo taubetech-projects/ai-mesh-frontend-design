@@ -9,7 +9,7 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   RefreshRequest,
-} from "@/features/chat/auth/types/authModels";
+} from "@/features/platform/auth/types/authModels";
 
 /* ---------------------------
  * Queries
@@ -58,7 +58,8 @@ export function useSignupMutation() {
 
 export function useResendEmailMutation() {
   return useMutation({
-    mutationFn: (data: ResendEmailRequest) => PlatformAuthService.resendEmail(data),
+    mutationFn: (data: ResendEmailRequest) =>
+      PlatformAuthService.resendEmail(data),
   });
 }
 
@@ -71,7 +72,8 @@ export function useForgotPasswordMutation() {
 
 export function useResetPasswordMutation() {
   return useMutation({
-    mutationFn: (data: ResetPasswordRequest) => PlatformAuthService.resetPassword(data),
+    mutationFn: (data: ResetPasswordRequest) =>
+      PlatformAuthService.resetPassword(data),
   });
 }
 
@@ -83,7 +85,8 @@ export function useResetPasswordMutation() {
 export function useRefreshTokenMutation() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: RefreshRequest) => PlatformAuthService.refreshToken(data),
+    mutationFn: (data: RefreshRequest) =>
+      PlatformAuthService.refreshToken(data),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: qk.me() });
     },

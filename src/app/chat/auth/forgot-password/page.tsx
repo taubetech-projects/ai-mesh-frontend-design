@@ -1,5 +1,5 @@
 "use client";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { ChatAuthService } from "@/features/chat/auth/api/authApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { KeyIcon, MailIcon } from "lucide-react";
@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      await AuthService.forgotPassword({ email });
+      await ChatAuthService.forgotPassword({ email });
       // This generic message is good practice to avoid revealing which emails are registered.
       setMessage(
         "If an account with this email exists, a password reset link has been sent."

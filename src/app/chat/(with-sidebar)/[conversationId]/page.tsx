@@ -4,7 +4,6 @@ import { ImageGenerationInterface } from "@/features/chat/image-chat/components/
 import { useGetConversationById } from "@/features/chat/conversation/hooks/conversationHook";
 import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 import store, { RootState } from "@/lib/store/store";
-import ProtectedRoute from "@/shared/components/protected-route";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -17,6 +16,7 @@ import {
 } from "@/shared/constants/constants";
 import { toast } from "sonner";
 import { useModelPreferences } from "@/features/chat/settings/model-preferences/hooks/modelPreferencesHook";
+import ChatProtectedRoute from "@/features/chat/auth/components/ChatProtectedRoute";
 
 function HomeContent2() {
   const { activeInterface } = useSelector((state: RootState) => state.ui);
@@ -71,8 +71,8 @@ export default function ConversationPage() {
   }, [error, dispatch]);
 
   return (
-    <ProtectedRoute>
+    <ChatProtectedRoute>
       <HomeContent2 />
-    </ProtectedRoute>
+    </ChatProtectedRoute>
   );
 }

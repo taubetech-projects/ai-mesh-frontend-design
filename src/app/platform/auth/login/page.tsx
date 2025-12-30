@@ -1,12 +1,12 @@
 "use client";
-import { PlatformAuthForm } from "@/features/platform/auth/components/auth-form";
-import PublicRoute from "@/shared/components/public-route";
+import { PlatformAuthForm } from "@/features/platform/auth/components/PlatfromAuthForm";
+import PlatformPublicRoute from "@/features/platform/auth/components/PlatformPublicRoute";
 
 // --- Login Page Component ---
 export default function SignIn() {
   return (
-    <PublicRoute>
+    <PlatformPublicRoute>
       <PlatformAuthForm view="login" />
-    </PublicRoute>
+    </PlatformPublicRoute>
   );
 }

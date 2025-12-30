@@ -1,5 +1,5 @@
 "use client";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { ChatAuthService } from "@/features/chat/auth/api/authApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { LockIcon, MailIcon } from "lucide-react";
@@ -48,7 +48,7 @@ function ResetPasswordFormComponent() {
 
     setIsLoading(true);
     try {
-      await AuthService.resetPassword({
+      await ChatAuthService.resetPassword({
         token,
         newPassword: password,
       });

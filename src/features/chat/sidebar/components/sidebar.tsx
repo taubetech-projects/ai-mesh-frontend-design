@@ -25,7 +25,7 @@ import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/
 import { MessageView } from "@/features/chat/types/models";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { CONVERSATION_TYPES } from "@/shared/constants/constants";
-import { useAuth } from "@/shared/contexts/AuthContext";
+import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
 import { useLogoutMutation } from "@/features/chat/auth/hooks/useAuthQueries";
 import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
 import { useModelPreferences } from "@/features/chat/settings/model-preferences/hooks/modelPreferencesHook";
@@ -39,7 +39,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeInterface }: SidebarProps) {
-  const { me } = useAuth();
+  const { me, isLoading } = useChatAuth();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isChatHistoryCollapsed, setIsChatHistoryCollapsed] = useState(false);

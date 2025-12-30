@@ -1,6 +1,6 @@
 import { CHAT_API_PATHS } from "@/shared/constants/constants";
 
-const PROXY_BASE = "/api/proxy/";
+const PROXY_BASE = "/api/proxy/chat/";
 
 export function streamChat(
   conversationId: number | null,

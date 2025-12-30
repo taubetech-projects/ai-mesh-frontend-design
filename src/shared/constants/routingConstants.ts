@@ -18,7 +18,7 @@ export enum CHAT_ROUTES {
   PRICING_SUCCESS = "/chat/pricing/success",
   PRICING_CANCEL = "/chat/pricing/cancel",
 
-  SETTINGS = "/chat/setting",
+  SETTINGS = "/chat/settings",
 }
 
 export enum PLATFORM_ROUTES {
@@ -44,5 +44,4 @@ export enum PLATFORM_ROUTES {
   VERIFY_EMAIL = "/platform/auth/signup/verify-email",
   OAUTH2SUCESS = "/platform/auth/oauth2-success",
   GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google",
-
 }

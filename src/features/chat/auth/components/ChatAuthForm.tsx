@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { ChatAuthService } from "@/features/chat/auth/api/authApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { toast } from "sonner";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
@@ -116,7 +116,7 @@ const GoogleIcon = ({ className }: { className: string }) => (
 );
 
 // --- Login Page Component ---
-export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
+export const ChatAuthForm = ({ view }: { view: "login" | "signup" }) => {
   const isLogin = view === "login";
   const title = isLogin ? "Welcome Back" : "Create Account";
   const buttonText = isLogin ? "Log In" : "Sign Up";
@@ -180,7 +180,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
   const handleResendVerification = async (email: string) => {
     console.log("Resending verification email for:", email);
     try {
-      const response = await AuthService.resendEmail({ email });
+      const response = await ChatAuthService.resendEmail({ email });
       console.log("Resend email response:", response);
       toast.success("Verification email sent successfully!");
     } catch (err: any) {

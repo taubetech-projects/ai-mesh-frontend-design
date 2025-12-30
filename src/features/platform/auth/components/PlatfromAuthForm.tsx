@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import { PlatformAuthService } from "@/features/platform/auth/api/paltformApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { toast } from "sonner";
-import { CHAT_ROUTES, PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
+import {
+  CHAT_ROUTES,
+  PLATFORM_ROUTES,
+} from "@/shared/constants/routingConstants";
 import { useLoginMutation, useSignupMutation } from "../hooks/useAuthQueries";
 
 // --- SVG Icons ---
