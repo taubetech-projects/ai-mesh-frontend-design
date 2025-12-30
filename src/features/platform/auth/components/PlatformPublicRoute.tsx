@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
 import { usePlatformAuth } from "@/features/platform/auth/PlatformAuthProvider";
 import { useMeQuery as usePlatformMeQuery } from "@/features/platform/auth/hooks/useAuthQueries";
+import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
 
 export default function PlatformPublicRoute({
   children,
@@ -18,7 +18,7 @@ export default function PlatformPublicRoute({
 
   useEffect(() => {
     if (!isLoading && me) {
-      router.replace(APP_ROUTES.PLATFORM); // e.g. "/platform"
+      router.replace(PLATFORM_ROUTES.HOME); // e.g. "/platform"
     }
   }, [me, isLoading, router]);
 
