@@ -6,7 +6,10 @@ const PLATFORM_ACCESS_COOKIE = "platform_access_token"; // use your real constan
 const PLATFORM_ROLE_ROUTES = [
   { prefix: "/platform/admin", roles: ["ROLE_ADMIN"] },
   { prefix: "/platform/moderator", roles: ["ROLE_ADMIN", "ROLE_MODERATOR"] },
-  { prefix: "/platform", roles: ["ROLE_ADMIN", "ROLE_USER"] },
+  {
+    prefix: "/platform",
+    roles: ["ROLE_ADMIN", "ROLE_MODERATOR", "ROLE_FREE_USER", "ROLE_USER"],
+  },
 ];
 
 function hasAnyRole(userRoles: string[] | undefined, allowed: string[]) {

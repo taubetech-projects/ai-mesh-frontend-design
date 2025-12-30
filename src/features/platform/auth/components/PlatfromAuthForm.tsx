@@ -152,7 +152,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
       if (response && response.accessToken) {
         toast.success("Login successful! Welcome to our platform...");
         setTimeout(() => {
-          router.push(APP_ROUTES.CHAT);
+          router.push(APP_ROUTES.PLATFORM);
         }, 1000);
       } else {
         setError("Login failed: No token received.");

@@ -20,5 +20,5 @@ export enum APP_ROUTES {
   PRICING_SUCCESS = "/chat/pricing/success",
   PRICING_CANCEL = "/chat/pricing/cancel",
 
-  SETTINGS = "/chat/setting",
+  SETTINGS = "/chat/settings",
 }

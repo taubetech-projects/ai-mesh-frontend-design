@@ -1,5 +1,5 @@
 "use client";
-import { AuthForm } from "@/features/chat/auth/components/auth-form";
+import { AuthForm } from "@/features/platform/auth/components/PlatfromAuthForm";
 import PlatformPublicRoute from "@/features/platform/auth/components/PlatformPublicRoute";
 
 // --- Login Page Component ---
