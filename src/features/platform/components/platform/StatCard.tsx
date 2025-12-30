@@ -22,7 +22,7 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <div className={cn("stat-card animate-fade-in", className)}>
+    <div className="bg-card border border-border rounded-xl p-5 transition-all duration-200 group hover:bg-card-hover">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm text-muted-foreground font-medium">{title}</p>
@@ -33,10 +33,8 @@ export function StatCard({
           {trend && (
             <div className="flex items-center gap-1 mt-2">
               <span
-                className={cn(
-                  "text-xs font-medium",
-                  trend.isPositive ? "text-success" : "text-destructive"
-                )}
+                className="font-medium text-foreground flex items-center gap-1 text-xs"
+                style={{ color: trend.isPositive ? "text-success" : "text-destructive" }}
               >
                 {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%
               </span>

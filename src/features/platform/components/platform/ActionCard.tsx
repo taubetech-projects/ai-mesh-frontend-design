@@ -21,10 +21,7 @@ export function ActionCard({
   return (
     <Link
       href={href}
-      className={cn(
-        "card-interactive p-5 block group animate-fade-in",
-        className
-      )}
+      className="p-5 bg-card border border-border rounded-xl transition-all duration-200 group hover:bg-card-hover"
     >
       <div className="flex flex-col h-full">
         <div className="p-2.5 rounded-lg bg-secondary w-fit mb-4">
