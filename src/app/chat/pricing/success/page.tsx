@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function PaymentSuccessPage() {
     }, 1000);
 
     const redirect = setTimeout(() => {
-      router.push(APP_ROUTES.CHAT);
+      router.push(CHAT_ROUTES.CHAT);
     }, 5000);
 
     return () => {
@@ -50,7 +50,7 @@ export default function PaymentSuccessPage() {
 
         <div className="space-y-4">
           <Link
-            href={APP_ROUTES.CHAT}
+            href={CHAT_ROUTES.CHAT}
             className="block w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
           >
             Go to Home <ArrowRight size={18} />

@@ -1,3 +1,4 @@
+"use client";
 import { Key, Box, BookOpen, Users } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import { PageHeader, ActionCard, StatCard } from "@/features/platform/components/platform";

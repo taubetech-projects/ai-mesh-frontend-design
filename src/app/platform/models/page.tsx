@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import { PageHeader, SearchInput } from "@/features/platform/components/platform";

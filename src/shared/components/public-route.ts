@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { useAuth } from "@/shared/contexts/AuthContext";
 import { useMeQuery } from "@/features/chat/auth/hooks/useAuthQueries";
 
@@ -19,7 +19,7 @@ export default function PublicRoute({
 
   useEffect(() => {
     if (!isLoading && me) {
-      router.replace(APP_ROUTES.CHAT);
+      router.replace(CHAT_ROUTES.CHAT);
     }
   }, [me, isLoading, router]);
 

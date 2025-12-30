@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Plus, Wallet as WalletIcon, ArrowUpRight, ArrowDownRight, CreditCard } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";

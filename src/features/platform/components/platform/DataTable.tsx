@@ -6,8 +6,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+} from "@/shared/components/ui/table";
+import { cn } from "@/features/platform/lib/utils";
 
 export interface Column<T> {
   header: string;

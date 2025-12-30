@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Plus, MoreHorizontal, Mail, Shield, Users } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/shared/contexts/theme-context";
 import { LanguageSelector } from "@/shared/components/language-selector";
 import ProtectedRoute from "@/shared/components/protected-route";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { useAuth } from "@/shared/contexts/AuthContext";
 import { useLogoutMutation } from "@/features/chat/auth/hooks/useAuthQueries";
 import { ModelPreferences } from "@/features/chat/settings/model-preferences/components/ModelPreferences";
@@ -23,7 +23,7 @@ export default function SettingsPage() {
   async function handleLogout() {
     try {
       await logoutMutation.mutateAsync();
-      router.push(APP_ROUTES.SIGNIN);
+      router.push(CHAT_ROUTES.SIGNIN);
       router.refresh();
     } catch {
       alert("Logout failed. Please try again.");
@@ -35,7 +35,7 @@ export default function SettingsPage() {
       <div className="min-h-screen bg-gray-900 text-white pt-16">
         <div className="max-w-4xl mx-auto p-4 sm:p-8">
           <Link
-            href={APP_ROUTES.CHAT}
+            href={CHAT_ROUTES.CHAT}
             className="font-medium text-gray-400 hover:underline mb-6 inline-block"
           >
             &larr; Back to Home

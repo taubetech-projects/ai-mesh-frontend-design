@@ -1,10 +1,9 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { Provider } from "react-redux";
 import store, { RootState } from "@/lib/store/store";
-
 
 // --- Navbar Component ---
 const Navbar = () => {
@@ -14,7 +13,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex-shrink-0 flex items-center">
             <Link
-              href={APP_ROUTES.CHAT}
+              href={CHAT_ROUTES.CHAT}
               className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 hover:opacity-80 transition-opacity"
             >
               AI Mesh
@@ -40,7 +39,7 @@ const Navbar = () => {
               About
             </a>
             <Link
-              href={APP_ROUTES.SIGNIN}
+              href={CHAT_ROUTES.SIGNIN}
               className="ml-4 px-4 py-2 rounded-md text-sm font-medium bg-indigo-600 hover:bg-indigo-700 transition-colors"
             >
               Log In
@@ -67,13 +66,13 @@ const HeroSection = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
           <Link
-            href={APP_ROUTES.SIGNIN}
+            href={CHAT_ROUTES.SIGNIN}
             className="text-lg font-semibold px-10 py-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg hover:shadow-2xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300"
           >
             Start Here
           </Link>
           <Link
-            href={APP_ROUTES.PLAYGROUND}
+            href={CHAT_ROUTES.PLAYGROUND}
             className="text-lg font-semibold px-10 py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg hover:bg-white/20 hover:shadow-2xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-white/50"
           >
             Try Playground

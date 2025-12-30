@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { useAuth } from "@/shared/contexts/AuthContext";
 import { useMeQuery } from "@/features/chat/auth/hooks/useAuthQueries";
 
@@ -20,7 +20,7 @@ export default function ProtectedRoute({
   useEffect(() => {
     // once /me finishes and no user => redirect to signin
     if (!isLoading && (!me || isError)) {
-      router.replace(APP_ROUTES.SIGNIN);
+      router.replace(CHAT_ROUTES.SIGNIN);
     }
   }, [me, isLoading, isError, router]);
 

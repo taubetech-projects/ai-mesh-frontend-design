@@ -1,3 +1,5 @@
+"use client";
+
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import { PageHeader, CodeBlock, StatusBadge } from "@/features/platform/components/platform";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";

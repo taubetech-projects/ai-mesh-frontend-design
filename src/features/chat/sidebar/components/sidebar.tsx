@@ -23,7 +23,7 @@ import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/
 import { useRouter } from "next/navigation";
 import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
 import { MessageView } from "@/features/chat/types/models";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { CONVERSATION_TYPES } from "@/shared/constants/constants";
 import { useAuth } from "@/shared/contexts/AuthContext";
 import { useLogoutMutation } from "@/features/chat/auth/hooks/useAuthQueries";
@@ -114,7 +114,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
-    router.push(APP_ROUTES.CHAT);
+    router.push(CHAT_ROUTES.CHAT);
   };
 
   const handleDeleteConversation = () => {
@@ -123,8 +123,8 @@ export function Sidebar({ activeInterface }: SidebarProps) {
       setConversationIdToDelete(null);
     }
     setShowDeleteDialog(false); // Close the dialog
-    dispatch(clearChatState())
-    router.push(APP_ROUTES.CHAT);
+    dispatch(clearChatState());
+    router.push(CHAT_ROUTES.CHAT);
   };
 
   const handleRenameConversation = (
@@ -144,7 +144,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   };
 
   const handleUpgradePlan = () => {
-    router.push(APP_ROUTES.PRICING);
+    router.push(CHAT_ROUTES.PRICING);
   };
 
   const logoutMutation = useLogoutMutation();
@@ -152,7 +152,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   async function handleLogout() {
     try {
       await logoutMutation.mutateAsync();
-      router.push(APP_ROUTES.SIGNIN);
+      router.push(CHAT_ROUTES.SIGNIN);
       router.refresh();
     } catch {
       alert("Logout failed. Please try again.");
@@ -229,7 +229,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
               setConversationIdToDelete(id);
               setShowDeleteDialog(true);
             }}
-            baseRoute={APP_ROUTES.CHAT}
+            baseRoute={CHAT_ROUTES.CHAT}
           />
 
           {/* Image History Section */}
@@ -258,7 +258,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
               setConversationIdToDelete(id);
               setShowDeleteDialog(true);
             }}
-            baseRoute={APP_ROUTES.CHAT}
+            baseRoute={CHAT_ROUTES.CHAT}
           />
         </div>
       )}

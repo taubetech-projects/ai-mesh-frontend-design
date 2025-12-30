@@ -3,9 +3,13 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setTokens } from "@/features/chat/auth/utils/auth";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { cookies } from "next/headers";
-import { ACCESS_COOKIE, cookieOptions, REFRESH_COOKIE } from "@/lib/auth/cookies";
+import {
+  ACCESS_COOKIE,
+  cookieOptions,
+  REFRESH_COOKIE,
+} from "@/lib/auth/cookies";
 import next from "next";
 
 export default function PlatformOAuthSuccess() {
@@ -22,10 +26,10 @@ export default function PlatformOAuthSuccess() {
       cookieStore.set(REFRESH_COOKIE, refreshToken ?? "", cookieOptions());
       // setTokens(accessToken, refreshToken?.trim() ?? "");
       // Redirect to a protected route, e.g., /home or /dashboard
-      router.push(APP_ROUTES.CHAT);
+      router.push(CHAT_ROUTES.CHAT);
     } else {
       // Handle error or redirect to login if no token is present
-      router.push(APP_ROUTES.SIGNIN);
+      router.push(CHAT_ROUTES.SIGNIN);
     }
   }, [router, searchParams]);
 

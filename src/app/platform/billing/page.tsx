@@ -1,3 +1,4 @@
+"use client";
 import { Download, CreditCard, TrendingUp } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import { PageHeader, StatCard, DataTable, StatusBadge, Column } from "@/features/platform/components/platform";

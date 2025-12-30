@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { PlatformAuthService } from "@/features/platform/auth/api/paltformApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { toast } from "sonner";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { useLoginMutation, useSignupMutation } from "../hooks/useAuthQueries";
 
 // --- SVG Icons ---
@@ -136,7 +136,7 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
   const router = useRouter();
 
   const handleGoogleSignIn = () => {
-    window.location.href = APP_ROUTES.GOOGLE_SIGNIN;
+    window.location.href = CHAT_ROUTES.GOOGLE_SIGNIN;
   };
 
   const loginMutation = useLoginMutation();
@@ -152,7 +152,7 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
       if (response && response.accessToken) {
         toast.success("Login successful! Welcome to our platform...");
         setTimeout(() => {
-          router.push(APP_ROUTES.CHAT);
+          router.push(CHAT_ROUTES.CHAT);
         }, 1000);
       } else {
         setError("Login failed: No token received.");
@@ -202,7 +202,7 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
           "Signup successful! Please check your email for verification."
         );
         router.push(
-          `${APP_ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(
+          `${CHAT_ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(
             response.email
           )}`
         );

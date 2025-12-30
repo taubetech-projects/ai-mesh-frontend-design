@@ -1,5 +1,5 @@
 import { Search, Command } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/features/platform/lib/utils";
 
 interface SearchInputProps {
   value: string;

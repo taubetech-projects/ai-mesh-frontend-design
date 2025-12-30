@@ -30,7 +30,7 @@ export async function middleware(req: NextRequest) {
   // public routes
   if (
     pathname === "/" ||
-    pathname.startsWith("/platform/auth") ||    
+    pathname.startsWith("/platform") ||    
     pathname.startsWith("/chat/auth") ||
     pathname.startsWith("/public")
   ) {

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Plus, FolderKanban, MoreHorizontal, Users, Key } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";

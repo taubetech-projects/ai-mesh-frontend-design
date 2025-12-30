@@ -1,6 +1,7 @@
 import { LucideIcon, ArrowUpRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "@/features/platform/lib/utils";
+import Link from "next/link";
+
 
 interface ActionCardProps {
   title: string;
@@ -19,7 +20,7 @@ export function ActionCard({
 }: ActionCardProps) {
   return (
     <Link
-      to={href}
+      href={href}
       className={cn(
         "card-interactive p-5 block group animate-fade-in",
         className
