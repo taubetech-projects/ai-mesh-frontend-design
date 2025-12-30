@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES, PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
 import { Provider } from "react-redux";
 import store, { RootState } from "@/lib/store/store";
 
@@ -72,7 +72,7 @@ const HeroSection = () => {
             Start Here
           </Link>
           <Link
-            href={CHAT_ROUTES.PLAYGROUND}
+            href={PLATFORM_ROUTES.HOME}
             className="text-lg font-semibold px-10 py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg hover:bg-white/20 hover:shadow-2xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-white/50"
           >
             Try Playground

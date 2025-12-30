@@ -35,4 +35,14 @@ export enum PLATFORM_ROUTES {
   BILLING = "/platform/billing",
   WALLET = "/platform/wallet",
   DASHBOARD = "/platform/dashboard",
+
+  SIGNUP = "/platform/auth/signup",
+  SIGNIN = "/platform/auth/login",
+  SIGNOUT = "/platform/auth/logout",
+  FORGOT_PASSWORD = "/platform/auth/forgot-password",
+  RESET_PASSWORD = "/platform/auth/reset-password",
+  VERIFY_EMAIL = "/platform/auth/signup/verify-email",
+  OAUTH2SUCESS = "/platform/auth/oauth2-success",
+  GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google",
+
 }
