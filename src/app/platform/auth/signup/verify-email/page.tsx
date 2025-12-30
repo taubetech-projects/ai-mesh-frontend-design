@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
-export default function VerifyEmail() {
+export default function PlatformVerifyEmail() {
   const [emailSent, setEmailSent] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { PlatformAuthService } from "@/features/platform/auth/api/paltformApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { toast } from "sonner";
 import { APP_ROUTES } from "@/shared/constants/routingConstants";
@@ -116,7 +116,7 @@ const GoogleIcon = ({ className }: { className: string }) => (
 );
 
 // --- Login Page Component ---
-export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
+export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
   const isLogin = view === "login";
   const title = isLogin ? "Welcome Back" : "Create Account";
   const buttonText = isLogin ? "Log In" : "Sign Up";
@@ -180,7 +180,7 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
   const handleResendVerification = async (email: string) => {
     console.log("Resending verification email for:", email);
     try {
-      const response = await AuthService.resendEmail({ email });
+      const response = await PlatformAuthService.resendEmail({ email });
       console.log("Resend email response:", response);
       toast.success("Verification email sent successfully!");
     } catch (err: any) {
@@ -317,22 +317,6 @@ export const AuthForm = ({ view }: { view: "login" | "signup" }) => {
               </div>
             </>
           )}
-
-          {/* {!isLogin && (
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <UserIcon className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Username"
-                                required
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                            />
-                        </div>
-                    )} */}
 
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

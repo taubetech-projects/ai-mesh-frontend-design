@@ -11,7 +11,7 @@ import type {
   TokenResponse,
 } from "@/features/chat/auth/types/authModels";
 
-export const AuthService = {
+export const PlatformAuthService = {
   login: async (data: LoginRequest): Promise<TokenResponse> => {
     const res = await api.post<TokenResponse>("/api/chat/auth/login", data);
     return res.data;

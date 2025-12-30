@@ -6,7 +6,7 @@ import { LockIcon, MailIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState, Suspense } from "react";
 
-function ResetPasswordFormComponent() {
+function PlatformResetPasswordFormComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -147,7 +147,7 @@ export default function ResetPasswordPage() {
   // to handle the initial server-side render where search params are not available.
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ResetPasswordFormComponent />
+      <PlatformResetPasswordFormComponent />
     </Suspense>
   );
 }

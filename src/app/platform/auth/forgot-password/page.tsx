@@ -6,7 +6,7 @@ import { KeyIcon, MailIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 
-export default function ForgotPasswordPage() {
+export default function PlatformForgotPasswordPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
