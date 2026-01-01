@@ -15,13 +15,14 @@ import { createStreamEventHandler } from "@/features/chat/text-chat/utils/stream
 
 import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
 import { queryKey } from "@/lib/react-query/keys";
-import { endStreaming } from "@/features/chat/store/chat-interface-slice";
+import { useRouter } from "next/navigation";
 
 const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
 
 export const useUpdateMessages = (conversationId: number) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const cacheOps = createMessageCacheOps(queryClient, conversationId);
 
@@ -67,7 +68,9 @@ export const useUpdateMessages = (conversationId: number) => {
         expectedStreams,
         tempsByModel,
         updateMessageTextById: cacheOps.updateMessageTextById,
-        invalidateConversation: cacheOps.invalidateConversation,
+        invalidateConversation: () =>
+          cacheOps.invalidateConversation(conversationId),
+        router,
       });
 
       await cacheOps.streamChat(

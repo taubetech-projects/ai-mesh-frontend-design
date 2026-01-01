@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
     "dev": "next dev",
-    "lint": "next lint",
-    "start": "next start"
+    "typecheck": "tsc --noEmit",
+    "dev:strict": "npm run typecheck && next dev",
+    "build": "next build",
+    "lint": "next lint"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -91,6 +92,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.35",
     "openapi-typescript": "^7.10.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",

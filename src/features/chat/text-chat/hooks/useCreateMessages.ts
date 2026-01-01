@@ -36,7 +36,10 @@ export const useCreateMessages = (conversationId: number | null) => {
         queryKey: cacheKey(conversationId),
       });
 
-      const { includeConsensus } = validateChatRequest(chatRequestBody);
+      const { includeConsensus } = validateChatRequest(
+        conversationId,
+        chatRequestBody
+      );
 
       cacheOps.pushMessage(
         createOptimisticUserMessage({ conversationId, chatRequestBody })

@@ -2,6 +2,7 @@ import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
 import { CHAT_MODES } from "@/shared/constants/constants"; // adjust
 
 export const validateChatRequest = (
+  conversationId: number | null,
   body: ChatRequestBody
 ) => {
   // if (!conversationId) throw new Error("Missing conversationId");

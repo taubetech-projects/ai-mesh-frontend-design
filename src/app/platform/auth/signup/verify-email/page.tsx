@@ -1,7 +1,6 @@
 "use client";
 
-import PublicRoute from "@/shared/components/public-route";
-import { PlatformAuthService } from "@/features/platform/auth/api/authApi";
+import { PlatformAuthService } from "@/features/platform/auth/api/paltformApi";
 import {
   ErrorResponse,
   ResendEmailRequest,
@@ -10,6 +9,7 @@ import { MailIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import PlatformPublicRoute from "@/features/platform/auth/components/PlatformPublicRoute";
 
 export default function PlatformVerifyEmail() {
   const [emailSent, setEmailSent] = useState(false);
@@ -35,7 +35,7 @@ export default function PlatformVerifyEmail() {
   };
 
   return (
-    <PublicRoute>
+    <PlatformPublicRoute>
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
         <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700 text-center">
           <div className="flex justify-center mb-6">
@@ -77,7 +77,7 @@ export default function PlatformVerifyEmail() {
           </p>
         </div>
       </div>
-    </PublicRoute>
+    </PlatformPublicRoute>
   );
 }
 

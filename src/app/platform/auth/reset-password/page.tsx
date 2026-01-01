@@ -1,5 +1,5 @@
 "use client";
-import { PlatformAuthService } from "@/features/platform/auth/api/authApi";
+import { PlatformAuthService } from "@/features/platform/auth/api/paltformApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { LockIcon, MailIcon } from "lucide-react";
