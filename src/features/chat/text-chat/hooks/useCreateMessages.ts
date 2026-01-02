@@ -81,8 +81,9 @@ export const useCreateMessages = (conversationId: number | null) => {
       queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
       dispatch(endStreaming());
     },
-    onError: () => {
-      toast.error("Something went wrong. Please try again.");
+    onError: (error: unknown) => {
+      // toast.error("Something went wrong. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Unknown error");
       dispatch(endStreaming());
     },
   });

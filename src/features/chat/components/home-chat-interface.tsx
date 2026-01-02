@@ -37,6 +37,7 @@ import { useRouter } from "next/navigation";
 import { ChatInputArea } from "./chat-input-area";
 import { ChatActionChips } from "./chat-action-chips";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
+import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
 
 export function HomeChatInterface() {
   const {
@@ -58,6 +59,7 @@ export function HomeChatInterface() {
   const updateMessages = useUpdateMessages(selectedConvId);
   const router = useRouter();
   const [isAnimating, setIsAnimating] = useState(false);
+  const createConversation = useCreateConversationApi();
 
   // 🔹 File handling
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -270,6 +272,21 @@ export function HomeChatInterface() {
 
     // If there's no selected conversation, create one first.
     console.log("Active Interface: ", activeInterface);
+    if (!currentConvId) {
+      try {
+        const newConversation = await createConversation.mutateAsync({
+          title: userMessage.substring(0, 50), // Use first 50 chars as title
+          convoType: activeInterface,
+        });
+        currentConvId = newConversation.id;
+        dispatch(setSelectedConvId(newConversation.id));
+        console.log("New conversation created and selected: ", currentConvId);
+        router.push(`/chat/${currentConvId}`);
+      } catch (error) {
+        console.error("Failed to create conversation:", error);
+        return; // Stop if conversation creation fails
+      }
+    }
     const bodyRoutes: RouteSel[] = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
       .map((model: RouteSel) => ({
