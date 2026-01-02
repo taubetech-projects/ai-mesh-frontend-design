@@ -73,7 +73,7 @@ export type UserMsg = { role: ROLES.USER; content: string };
 export type RouteSel = { provider: string; model: string };
 
 export type ChatMsg = {
-  role: any; //"user" | "assistant" | "system";
+  role: ROLES; //"user" | "assistant" | "system";
   content: string;
 };
 

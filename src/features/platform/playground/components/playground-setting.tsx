@@ -17,18 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import {
-  initialPlaygroundState,
-  playgroundReducer,
-  UPDATE_INPUT_FORMAT,
-  UPDATE_MAX_TOKENS,
-  UPDATE_OUTPUT_FORMAT,
-  UPDATE_REASONING_EFFORT,
-  UPDATE_SYSTEM_PROMPT,
-  UPDATE_TEMPERATURE,
-  PLAYGROUND_IS_STREAMING,
-  UPDATE_PROVIDER_SPECIFIC,
-} from "@/features/platform/playground/store/playground-reducer";
 import { ModelProvider } from "@/features/chat/types/models";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
