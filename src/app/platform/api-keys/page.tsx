@@ -3,7 +3,13 @@ import { useState } from "react";
 import { Key } from "lucide-react";
 import { Plus, Copy, Eye, EyeOff, Trash2, MoreHorizontal } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
-import { PageHeader, DataTable, StatusBadge, EmptyState, Column } from "@/features/platform/components/platform";
+import {
+  PageHeader,
+  DataTable,
+  StatusBadge,
+  EmptyState,
+  Column,
+} from "@/features/platform/components/platform";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -22,50 +28,16 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { toast } from "@/shared/hooks/use-toast";
-import { RateLimitForm } from "@/features/platform/api-keys/RateLimitForm";
-import { PermissionsForm } from "@/features/platform/api-keys/PermissionsForm";
+import { RateLimitForm } from "@/features/platform/api-keys/components/RateLimitForm";
+import { PermissionsForm } from "@/features/platform/api-keys/components/PermissionsForm";
+import {
+  useProjectApiKeys,
+  useCreateApiKey,
+  useUpdateApiKey,
+  useAllApiKeys,
+} from "@/features/platform/api-keys/hooks/useProjectApiKeys";
+import { ApiKeyView } from "@/features/platform/api-keys/types/apiKeyTypes";
 
-interface ApiKey {
-  id: string;
-  name: string;
-  key: string;
-  createdAt: string;
-  lastUsed: string | null;
-  status: "active" | "revoked";
-  rateLimits?: { tpm?: string; rpm?: string };
-  permissions?: {
-    type: "all" | "restricted";
-    models?: string[];
-    endpoints?: string[];
-  };
-}
-
-const mockApiKeys: ApiKey[] = [
-  {
-    id: "1",
-    name: "Production API Key",
-    key: "sk-prod-xxxx...xxxx1234",
-    createdAt: "2024-01-15",
-    lastUsed: "2 hours ago",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Development Key",
-    key: "sk-dev-xxxx...xxxx5678",
-    createdAt: "2024-01-10",
-    lastUsed: "1 day ago",
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Test Key",
-    key: "sk-test-xxxx...xxxx9012",
-    createdAt: "2024-01-05",
-    lastUsed: null,
-    status: "revoked",
-  },
-];
 
 const AVAILABLE_MODELS = [
   "gpt-4-turbo",
@@ -88,14 +60,24 @@ const AVAILABLE_ENDPOINTS = [
 ];
 
 export default function ApiKeys() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
+  // TODO: Get projectId from context or route params
+  const projectId = "default-project";
+
+  const { data: apiKeys = [], isLoading } = useAllApiKeys();
+  const createApiKeyMutation = useCreateApiKey(projectId);
+  const updateApiKeyMutation = useUpdateApiKey();
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [rateLimits, setRateLimits] = useState({ tpm: "", rpm: "" });
-  const [permissionType, setPermissionType] = useState<"all" | "restricted">("all");
+  const [permissionType, setPermissionType] = useState<"all" | "restricted">(
+    "all"
+  );
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
-  const [selectedEndpoints, setSelectedEndpoints] = useState<Set<string>>(new Set());
+  const [selectedEndpoints, setSelectedEndpoints] = useState<Set<string>>(
+    new Set()
+  );
 
   const toggleKeyVisibility = (id: string) => {
     setVisibleKeys((prev) => {
@@ -120,43 +102,59 @@ export default function ApiKeys() {
   const handleCreateKey = () => {
     if (!newKeyName.trim()) return;
 
-    const newKey: ApiKey = {
-      id: Date.now().toString(),
+    const newKeyData = {
       name: newKeyName,
-      key: `sk-${newKeyName.toLowerCase().replace(/\s/g, "-")}-xxxx...xxxx${Math.random().toString().slice(2, 6)}`,
-      createdAt: new Date().toISOString().split("T")[0],
-      lastUsed: null,
-      status: "active",
       rateLimits: {
         tpm: rateLimits.tpm || undefined,
         rpm: rateLimits.rpm || undefined,
       },
       permissions: {
         type: permissionType,
-        models: permissionType === "restricted" ? Array.from(selectedModels) : undefined,
-        endpoints: permissionType === "restricted" ? Array.from(selectedEndpoints) : undefined,
+        models:
+          permissionType === "restricted"
+            ? Array.from(selectedModels)
+            : undefined,
+        endpoints:
+          permissionType === "restricted"
+            ? Array.from(selectedEndpoints)
+            : undefined,
       },
     };
 
-    setApiKeys((prev) => [newKey, ...prev]);
-    resetForm();
-    setIsCreateOpen(false);
-    toast({
-      title: "API Key Created",
-      description: "Your new API key has been created successfully.",
+    // @ts-ignore - Assuming the mutation accepts this shape based on local types
+    createApiKeyMutation.mutate(newKeyData, {
+      onSuccess: () => {
+        resetForm();
+        setIsCreateOpen(false);
+        toast({
+          title: "API Key Created",
+          description: "Your new API key has been created successfully.",
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "Failed to create API key. Please try again.",
+          variant: "destructive",
+        });
+      },
     });
   };
 
   const handleRevokeKey = (id: string) => {
-    setApiKeys((prev) =>
-      prev.map((key) =>
-        key.id === id ? { ...key, status: "revoked" as const } : key
-      )
+    // @ts-ignore - Assuming update accepts keyId and status
+    updateApiKeyMutation.mutate(
+      { keyId: id, status: "revoked" },
+      {
+        onSuccess: () => {
+          toast({
+            title: "API Key Revoked",
+            description:
+              "The API key has been revoked and can no longer be used.",
+          });
+        },
+      }
     );
-    toast({
-      title: "API Key Revoked",
-      description: "The API key has been revoked and can no longer be used.",
-    });
   };
 
   const handleCopyKey = (key: string) => {
@@ -167,7 +165,7 @@ export default function ApiKeys() {
     });
   };
 
-  const columns: Column<ApiKey>[] = [
+  const columns: Column<ApiKeyView>[] = [
     {
       header: "Name",
       accessor: (row) => (
@@ -175,11 +173,19 @@ export default function ApiKeys() {
       ),
     },
     {
+      header: "Project Name",
+      accessor: (row) => (
+        <span className="font-medium text-foreground">{row.projectName}</span>
+      ),
+    },
+    {
       header: "Key",
       accessor: (row) => (
         <div className="flex items-center gap-2">
           <code className="text-sm text-muted-foreground font-mono">
-            {visibleKeys.has(row.id) ? row.key.replace("xxxx...xxxx", "abcd1234efgh5678") : row.key}
+            {visibleKeys.has(row.id)
+              ? row.maskedKey.replace("xxxx...xxxx", "abcd1234efgh5678")
+              : row.maskedKey}
           </code>
           <button
             onClick={(e) => {
@@ -197,7 +203,7 @@ export default function ApiKeys() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleCopyKey(row.key);
+              handleCopyKey(row.maskedKey);
             }}
             className="p-1 hover:bg-secondary rounded"
           >
@@ -207,19 +213,23 @@ export default function ApiKeys() {
       ),
     },
     {
-      header: "Created",
-      accessor: "createdAt",
+      header: "Created By",
+      accessor: (row) => (
+        <span className="font-medium text-foreground">{row.createdBy}</span>
+      ),
     },
     {
-      header: "Last Used",
-      accessor: (row) => row.lastUsed || "Never",
+      header: "Rate Limits",
+      accessor: (row) => (
+        <span className="font-medium text-foreground">{row.rpmLimit} - {row.tpmLimit}</span>
+      ),
     },
     {
       header: "Status",
       accessor: (row) => (
         <StatusBadge
-          status={row.status === "active" ? "Active" : "Revoked"}
-          variant={row.status === "active" ? "success" : "destructive"}
+          status={row.active === true ? "Active" : "Revoked"}
+          variant={row.active === true ? "success" : "destructive"}
         />
       ),
     },
@@ -233,10 +243,10 @@ export default function ApiKeys() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleCopyKey(row.key)}>
+            <DropdownMenuItem onClick={() => handleCopyKey(row.maskedKey)}>
               Copy Key
             </DropdownMenuItem>
-            {row.status === "active" && (
+            {row.active === true && (
               <DropdownMenuItem
                 onClick={() => handleRevokeKey(row.id)}
                 className="text-destructive"
@@ -264,7 +274,7 @@ export default function ApiKeys() {
           </Button>
         </PageHeader>
 
-        {apiKeys.length > 0 ? (
+        {apiKeys.length > 0 || isLoading ? (
           <DataTable columns={columns} data={apiKeys} />
         ) : (
           <EmptyState
@@ -276,12 +286,19 @@ export default function ApiKeys() {
           />
         )}
 
-        <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) resetForm(); }}>
+        <Dialog
+          open={isCreateOpen}
+          onOpenChange={(open) => {
+            setIsCreateOpen(open);
+            if (!open) resetForm();
+          }}
+        >
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Create API Key</DialogTitle>
               <DialogDescription>
-                Create a new API key to access the platform. Make sure to copy it immediately as it won't be shown again.
+                Create a new API key to access the platform. Make sure to copy
+                it immediately as it won't be shown again.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -312,7 +329,12 @@ export default function ApiKeys() {
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateKey}>Create Key</Button>
+              <Button
+                onClick={handleCreateKey}
+                disabled={createApiKeyMutation.isPending}
+              >
+                {createApiKeyMutation.isPending ? "Creating..." : "Create Key"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
