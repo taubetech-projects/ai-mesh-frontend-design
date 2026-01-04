@@ -22,6 +22,8 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { toast } from "@/shared/hooks/use-toast";
+import { RateLimitForm } from "@/features/platform/api-keys/RateLimitForm";
+import { PermissionsForm } from "@/features/platform/api-keys/PermissionsForm";
 
 interface ApiKey {
   id: string;
@@ -30,6 +32,12 @@ interface ApiKey {
   createdAt: string;
   lastUsed: string | null;
   status: "active" | "revoked";
+  rateLimits?: { tpm?: string; rpm?: string };
+  permissions?: {
+    type: "all" | "restricted";
+    models?: string[];
+    endpoints?: string[];
+  };
 }
 
 const mockApiKeys: ApiKey[] = [
@@ -59,11 +67,35 @@ const mockApiKeys: ApiKey[] = [
   },
 ];
 
+const AVAILABLE_MODELS = [
+  "gpt-4-turbo",
+  "gpt-4",
+  "gpt-3.5-turbo",
+  "claude-3-opus",
+  "claude-3-sonnet",
+  "mistral-large",
+  "llama-3-70b",
+  "gemini-1.5-pro",
+];
+
+const AVAILABLE_ENDPOINTS = [
+  "/v1/chat/completions",
+  "/v1/embeddings",
+  "/v1/completions",
+  "/v1/models",
+  "/v1/audio/transcriptions",
+  "/v1/images/generations",
+];
+
 export default function ApiKeys() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const [rateLimits, setRateLimits] = useState({ tpm: "", rpm: "" });
+  const [permissionType, setPermissionType] = useState<"all" | "restricted">("all");
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
+  const [selectedEndpoints, setSelectedEndpoints] = useState<Set<string>>(new Set());
 
   const toggleKeyVisibility = (id: string) => {
     setVisibleKeys((prev) => {
@@ -77,6 +109,14 @@ export default function ApiKeys() {
     });
   };
 
+  const resetForm = () => {
+    setNewKeyName("");
+    setRateLimits({ tpm: "", rpm: "" });
+    setPermissionType("all");
+    setSelectedModels(new Set());
+    setSelectedEndpoints(new Set());
+  };
+
   const handleCreateKey = () => {
     if (!newKeyName.trim()) return;
 
@@ -87,10 +127,19 @@ export default function ApiKeys() {
       createdAt: new Date().toISOString().split("T")[0],
       lastUsed: null,
       status: "active",
+      rateLimits: {
+        tpm: rateLimits.tpm || undefined,
+        rpm: rateLimits.rpm || undefined,
+      },
+      permissions: {
+        type: permissionType,
+        models: permissionType === "restricted" ? Array.from(selectedModels) : undefined,
+        endpoints: permissionType === "restricted" ? Array.from(selectedEndpoints) : undefined,
+      },
     };
 
     setApiKeys((prev) => [newKey, ...prev]);
-    setNewKeyName("");
+    resetForm();
     setIsCreateOpen(false);
     toast({
       title: "API Key Created",
@@ -227,8 +276,8 @@ export default function ApiKeys() {
           />
         )}
 
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) resetForm(); }}>
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Create API Key</DialogTitle>
               <DialogDescription>
@@ -245,6 +294,19 @@ export default function ApiKeys() {
                   onChange={(e) => setNewKeyName(e.target.value)}
                 />
               </div>
+
+              <RateLimitForm value={rateLimits} onChange={setRateLimits} />
+
+              <PermissionsForm
+                type={permissionType}
+                onTypeChange={setPermissionType}
+                selectedModels={selectedModels}
+                onModelsChange={setSelectedModels}
+                selectedEndpoints={selectedEndpoints}
+                onEndpointsChange={setSelectedEndpoints}
+                availableModels={AVAILABLE_MODELS}
+                availableEndpoints={AVAILABLE_ENDPOINTS}
+              />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>

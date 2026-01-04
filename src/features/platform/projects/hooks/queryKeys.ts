@@ -1,10 +1,10 @@
-export const projectKeys = {
+export const platformProjectKeys = {
   all: ["projects"] as const,
 
-  owned: () => [...projectKeys.all, "owned"] as const,
+  owned: () => [...platformProjectKeys.all, "owned"] as const,
 
-  memberOf: () => [...projectKeys.all, "memberOf"] as const,
+  memberOf: () => [...platformProjectKeys.all, "memberOf"] as const,
 
   detail: (projectId: string) =>
-    [...projectKeys.all, "detail", projectId] as const,
+    [...platformProjectKeys.all, "detail", projectId] as const,
 };
