@@ -30,10 +30,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "types/generated.ts.bak",
-    ".next/dev/types/**/*.ts",
-    "src/shared/contexts/AuthContext.tsx.bak",
-    "src/shared/components/public-route.tsx.bak",
-    "src/shared/components/protected-route.tsx.bak"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
