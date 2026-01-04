@@ -1,9 +1,12 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { CHAT_ROUTES, PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
+import {
+  CHAT_ROUTES,
+  PLATFORM_ROUTES,
+} from "@/shared/constants/routingConstants";
 import { Provider } from "react-redux";
-import store, { RootState } from "@/lib/store/store";
+import store from "@/lib/store/store";
 
 // --- Navbar Component ---
 const Navbar = () => {
