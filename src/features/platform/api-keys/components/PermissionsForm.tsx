@@ -2,6 +2,8 @@
 
 import { Label } from "@/shared/components/ui/label";
 import { SelectionList } from "./SelectionList";
+import { ModelView } from "../../models/types/modelTypes";
+import { EndpointView } from "../../endpoints/endpoint.types";
 
 interface PermissionsFormProps {
   type: "all" | "restricted";
@@ -10,8 +12,12 @@ interface PermissionsFormProps {
   onModelsChange: (models: Set<string>) => void;
   selectedEndpoints: Set<string>;
   onEndpointsChange: (endpoints: Set<string>) => void;
-  availableModels: string[];
-  availableEndpoints: string[];
+  availableModels: ModelView[];
+  availableEndpoints: EndpointView[];
+  errors?: {
+    models?: string;
+    endpoints?: string;
+  };
 }
 
 export function PermissionsForm({
@@ -23,6 +29,7 @@ export function PermissionsForm({
   onEndpointsChange,
   availableModels,
   availableEndpoints,
+  errors,
 }: PermissionsFormProps) {
   return (
     <div className="space-y-3">
@@ -54,18 +61,39 @@ export function PermissionsForm({
 
       {type === "restricted" && (
         <div className="grid grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-200">
-          <SelectionList
-            title="Models"
-            items={availableModels}
-            selected={selectedModels}
-            onChange={onModelsChange}
-          />
-          <SelectionList
-            title="Endpoints"
-            items={availableEndpoints}
-            selected={selectedEndpoints}
-            onChange={onEndpointsChange}
-          />
+          <div className="space-y-1">
+            <SelectionList
+              title="Models"
+              items={
+                new Map(
+                  availableModels.map((model) => [model.id, model.displayName])
+                )
+              }
+              selected={selectedModels}
+              onChange={onModelsChange}
+            />
+            {errors?.models && (
+              <p className="text-xs text-destructive">{errors.models}</p>
+            )}
+          </div>
+          <div className="space-y-1">
+            <SelectionList
+              title="Endpoints"
+              items={
+                new Map(
+                  availableEndpoints.map((endpoint) => [
+                    endpoint.id,
+                    endpoint.path,
+                  ])
+                )
+              }
+              selected={selectedEndpoints}
+              onChange={onEndpointsChange}
+            />
+            {errors?.endpoints && (
+              <p className="text-xs text-destructive">{errors.endpoints}</p>
+            )}
+          </div>
         </div>
       )}
     </div>

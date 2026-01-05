@@ -5,27 +5,29 @@ export function SelectionList({
   onChange,
 }: {
   title: string;
-  items: string[];
+  items: Map<string, string>;
   selected: Set<string>;
   onChange: (selected: Set<string>) => void;
 }) {
-  const allSelected = items.length > 0 && items.every((item) => selected.has(item));
+  const allSelected =
+    items.size > 0 &&
+    Array.from(items.keys()).every((key) => selected.has(key));
   const isIndeterminate = selected.size > 0 && !allSelected;
 
   const toggleAll = () => {
     if (allSelected) {
       onChange(new Set());
     } else {
-      onChange(new Set(items));
+      onChange(new Set(items.keys()));
     }
   };
 
-  const toggleItem = (item: string) => {
+  const toggleItem = (key: string) => {
     const next = new Set(selected);
-    if (next.has(item)) {
-      next.delete(item);
+    if (next.has(key)) {
+      next.delete(key);
     } else {
-      next.add(item);
+      next.add(key);
     }
     onChange(next);
   };
@@ -42,24 +44,28 @@ export function SelectionList({
           }}
           onChange={toggleAll}
         />
-        <span className="font-medium text-xs uppercase tracking-wider text-muted-foreground">{title}</span>
+        <span className="font-medium text-xs uppercase tracking-wider text-muted-foreground">
+          {title}
+        </span>
         <span className="ml-auto text-xs text-muted-foreground">
           {selected.size} selected
         </span>
       </div>
       <div className="flex-1 overflow-y-auto p-1">
-        {items.map((item) => (
+        {Array.from(items.entries()).map(([key, value]) => (
           <label
-            key={item}
+            key={key}
             className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors"
           >
             <input
               type="checkbox"
               className="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
-              checked={selected.has(item)}
-              onChange={() => toggleItem(item)}
+              checked={selected.has(key)}
+              onChange={() => toggleItem(key)}
             />
-            <span className="text-sm truncate" title={item}>{item}</span>
+            <span className="text-sm truncate" title={value}>
+              {value}
+            </span>
           </label>
         ))}
       </div>

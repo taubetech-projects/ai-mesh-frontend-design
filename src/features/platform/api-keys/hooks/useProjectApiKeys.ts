@@ -50,10 +50,10 @@ export const useCreateApiKey = (projectId: string) => {
       queryClient.invalidateQueries({
         queryKey: projectApiKeyKeys.listByProject(projectId),
       });
-
       queryClient.invalidateQueries({
         queryKey: projectApiKeyKeys.listAllForUser(),
       });
+      toast("Your new API key has been created successfully.");
     },
     onError: () => {
       toast("Failed to create API key");

@@ -37,8 +37,21 @@ import {
   useAllApiKeys,
   useDeleteApiKey,
 } from "@/features/platform/api-keys/hooks/useProjectApiKeys";
-import { ApiKeyView } from "@/features/platform/api-keys/types/apiKeyTypes";
+import {
+  ApiKeyCreateRequest,
+  ApiKeyView,
+} from "@/features/platform/api-keys/types/apiKeyTypes";
 import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
+import { useOwnedProjectsQuery } from "@/features/platform/projects/hooks/useProjectQueries";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { useModels } from "@/features/platform/models/hooks/useModelQueries";
+import { useEndpoints } from "@/features/platform/endpoints/endpointCatalog.queries";
 
 const AVAILABLE_MODELS = [
   "gpt-4-turbo",
@@ -61,13 +74,7 @@ const AVAILABLE_ENDPOINTS = [
 ];
 
 export default function ApiKeys() {
-  // TODO: Get projectId from context or route params
-  const projectId = "default-project";
-
-  const { data: apiKeys = [], isLoading } = useAllApiKeys();
-  const createApiKeyMutation = useCreateApiKey(projectId);
-  const updateApiKeyMutation = useUpdateApiKey();
-  const deleteApiKeyMutation = useDeleteApiKey();
+  // TODO: Get projectId from context or route param
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
@@ -80,7 +87,25 @@ export default function ApiKeys() {
   const [selectedEndpoints, setSelectedEndpoints] = useState<Set<string>>(
     new Set()
   );
+  const [selectedProject, setSelectedProject] = useState<string | undefined>(
+    undefined
+  );
   const [keyToDelete, setKeyToDelete] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    models?: string;
+    endpoints?: string;
+    projects?: string;
+  }>({});
+
+  //Here all the hooks
+  const { data: apiKeys = [], isLoading } = useAllApiKeys();
+  const createApiKeyMutation = useCreateApiKey(selectedProject || "");
+  const updateApiKeyMutation = useUpdateApiKey();
+  const deleteApiKeyMutation = useDeleteApiKey();
+  const { data: ownedProjects } = useOwnedProjectsQuery();
+  const { data: models } = useModels();
+  const { data: endpoints } = useEndpoints();
 
   const toggleKeyVisibility = (id: string) => {
     setVisibleKeys((prev) => {
@@ -100,39 +125,56 @@ export default function ApiKeys() {
     setPermissionType("all");
     setSelectedModels(new Set());
     setSelectedEndpoints(new Set());
+    setErrors({});
   };
 
   const handleCreateKey = () => {
-    if (!newKeyName.trim()) return;
+    const newErrors: typeof errors = {};
+    let isValid = true;
 
-    const newKeyData = {
+    if (!newKeyName.trim()) {
+      newErrors.name = "Key name is required";
+      isValid = false;
+    }
+
+    if (!selectedProject) {
+      newErrors.projects = "At least one project must be selected";
+      isValid = false;
+    }
+
+    if (permissionType === "restricted") {
+      if (selectedModels.size === 0) {
+        newErrors.models = "At least one model must be selected";
+        isValid = false;
+      }
+      if (selectedEndpoints.size === 0) {
+        newErrors.endpoints = "At least one endpoint must be selected";
+        isValid = false;
+      }
+    }
+
+    setErrors(newErrors);
+    if (!isValid) {
+      return;
+    }
+
+    const newKeyData: ApiKeyCreateRequest = {
       name: newKeyName,
-      rateLimits: {
-        tpm: rateLimits.tpm || undefined,
-        rpm: rateLimits.rpm || undefined,
-      },
-      permissions: {
-        type: permissionType,
-        models:
-          permissionType === "restricted"
-            ? Array.from(selectedModels)
-            : undefined,
-        endpoints:
-          permissionType === "restricted"
-            ? Array.from(selectedEndpoints)
-            : undefined,
-      },
+      allowAllModels: permissionType === "all",
+      allowAllEndpoints: permissionType === "all",
+      models: permissionType === "all" ? undefined : Array.from(selectedModels),
+      endpoints:
+        permissionType === "all" ? undefined : Array.from(selectedEndpoints),
+      tpmLimit: rateLimits.tpm ? parseInt(rateLimits.tpm) : undefined,
+      rpmLimit: rateLimits.rpm ? parseInt(rateLimits.rpm) : undefined,
     };
 
+    console.log("New key data:", newKeyData);
     // @ts-ignore - Assuming the mutation accepts this shape based on local types
     createApiKeyMutation.mutate(newKeyData, {
       onSuccess: () => {
         resetForm();
         setIsCreateOpen(false);
-        toast({
-          title: "API Key Created",
-          description: "Your new API key has been created successfully.",
-        });
       },
     });
   };
@@ -244,7 +286,12 @@ export default function ApiKeys() {
       header: "Rate Limits",
       accessor: (row) => (
         <span className="font-medium text-foreground">
-          {row.rpmLimit} - {row.tpmLimit}
+          {row.rpmLimit === null && row.tpmLimit === null
+            ? "Unlimited"
+            : row.rpmLimit?.toLocaleString() +
+              " RPM / " +
+              row.tpmLimit?.toLocaleString() +
+              " TPM"}
         </span>
       ),
     },
@@ -338,8 +385,46 @@ export default function ApiKeys() {
                   id="name"
                   placeholder="e.g., Production API Key"
                   value={newKeyName}
-                  onChange={(e) => setNewKeyName(e.target.value)}
+                  onChange={(e) => {
+                    setNewKeyName(e.target.value);
+                    if (errors.name) setErrors({ ...errors, name: undefined });
+                  }}
+                  className={errors.name ? "border-destructive" : ""}
                 />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Choose a Project</Label>
+                <Select
+                  value={selectedProject}
+                  onValueChange={(value) => {
+                    setSelectedProject(value);
+                    if (errors.projects) {
+                      setErrors({ ...errors, projects: undefined });
+                    }
+                  }}
+                >
+                  <SelectTrigger
+                    className={
+                      errors.projects ? "border-destructive w-full" : "w-full"
+                    }
+                  >
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ownedProjects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.projects && (
+                  <p className="text-sm text-destructive">{errors.projects}</p>
+                )}
               </div>
 
               <RateLimitForm value={rateLimits} onChange={setRateLimits} />
@@ -351,8 +436,9 @@ export default function ApiKeys() {
                 onModelsChange={setSelectedModels}
                 selectedEndpoints={selectedEndpoints}
                 onEndpointsChange={setSelectedEndpoints}
-                availableModels={AVAILABLE_MODELS}
-                availableEndpoints={AVAILABLE_ENDPOINTS}
+                availableModels={models ?? []}
+                availableEndpoints={endpoints ?? []}
+                errors={errors}
               />
             </div>
             <DialogFooter>
