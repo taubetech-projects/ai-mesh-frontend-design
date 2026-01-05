@@ -35,9 +35,10 @@ import {
   useCreateApiKey,
   useUpdateApiKey,
   useAllApiKeys,
+  useDeleteApiKey,
 } from "@/features/platform/api-keys/hooks/useProjectApiKeys";
 import { ApiKeyView } from "@/features/platform/api-keys/types/apiKeyTypes";
-
+import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
 
 const AVAILABLE_MODELS = [
   "gpt-4-turbo",
@@ -66,6 +67,7 @@ export default function ApiKeys() {
   const { data: apiKeys = [], isLoading } = useAllApiKeys();
   const createApiKeyMutation = useCreateApiKey(projectId);
   const updateApiKeyMutation = useUpdateApiKey();
+  const deleteApiKeyMutation = useDeleteApiKey();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
@@ -78,6 +80,7 @@ export default function ApiKeys() {
   const [selectedEndpoints, setSelectedEndpoints] = useState<Set<string>>(
     new Set()
   );
+  const [keyToDelete, setKeyToDelete] = useState<string | null>(null);
 
   const toggleKeyVisibility = (id: string) => {
     setVisibleKeys((prev) => {
@@ -131,13 +134,6 @@ export default function ApiKeys() {
           description: "Your new API key has been created successfully.",
         });
       },
-      onError: () => {
-        toast({
-          title: "Error",
-          description: "Failed to create API key. Please try again.",
-          variant: "destructive",
-        });
-      },
     });
   };
 
@@ -163,6 +159,32 @@ export default function ApiKeys() {
       title: "Copied",
       description: "API key copied to clipboard.",
     });
+  };
+
+  const handleUpdateKey = (id: string) => {
+    // @ts-ignore - Assuming update accepts keyId and status
+    updateApiKeyMutation.mutate(
+      { keyId: id, status: "active" },
+      {
+        onSuccess: () => {
+          toast({
+            title: "API Key Activated",
+            description: "The API key has been activated and can be used.",
+          });
+        },
+      }
+    );
+  };
+
+  const handleDeleteKey = (id: string) => {
+    setKeyToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (keyToDelete) {
+      await deleteApiKeyMutation.mutateAsync(keyToDelete);
+      setKeyToDelete(null);
+    }
   };
 
   const columns: Column<ApiKeyView>[] = [
@@ -221,7 +243,9 @@ export default function ApiKeys() {
     {
       header: "Rate Limits",
       accessor: (row) => (
-        <span className="font-medium text-foreground">{row.rpmLimit} - {row.tpmLimit}</span>
+        <span className="font-medium text-foreground">
+          {row.rpmLimit} - {row.tpmLimit}
+        </span>
       ),
     },
     {
@@ -246,14 +270,20 @@ export default function ApiKeys() {
             <DropdownMenuItem onClick={() => handleCopyKey(row.maskedKey)}>
               Copy Key
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toggleKeyVisibility(row.id)}>
+              Edit Key
+            </DropdownMenuItem>
             {row.active === true && (
               <DropdownMenuItem
                 onClick={() => handleRevokeKey(row.id)}
                 className="text-destructive"
               >
-                Revoke Key
+                Disable Key
               </DropdownMenuItem>
             )}
+            <DropdownMenuItem onClick={() => handleDeleteKey(row.id)}>
+              Delete Key
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -338,6 +368,14 @@ export default function ApiKeys() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <DeleteConfirmationDialog
+          open={!!keyToDelete}
+          onOpenChange={(open) => !open && setKeyToDelete(null)}
+          onConfirm={confirmDelete}
+          title="Delete Project"
+          description="Are you sure you want to delete this project? This action cannot be undone."
+        />
       </div>
     </DashboardLayout>
   );

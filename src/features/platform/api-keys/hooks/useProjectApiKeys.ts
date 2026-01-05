@@ -1,11 +1,8 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlatformProjectKeyService } from "../api/projectKeyService";
 import { ApiKeyCreateRequest, ApiKeyView } from "../types/apiKeyTypes";
 import { projectApiKeyKeys } from "./queryKeys";
+import { toast } from "sonner";
 
 /* =======================
    Queries
@@ -58,6 +55,9 @@ export const useCreateApiKey = (projectId: string) => {
         queryKey: projectApiKeyKeys.listAllForUser(),
       });
     },
+    onError: () => {
+      toast("Failed to create API key");
+    },
   });
 };
 
@@ -91,6 +91,7 @@ export const useDeleteApiKey = () => {
       queryClient.invalidateQueries({
         queryKey: projectApiKeyKeys.lists(),
       });
+      toast("The API key has been deleted.");
     },
   });
 };
