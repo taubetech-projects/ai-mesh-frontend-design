@@ -1,5 +1,5 @@
 import { platformProxyApi } from "@/lib/api/axiosApi";
-import { ApiKeyCreateRequest, ApiKeyCreateResponse, ApiKeyView } from "../types/apiKeyTypes";
+import { ApiKeyCreateRequest, ApiKeyCreateResponse, ApiKeyUpdateRequest, ApiKeyView } from "../types/apiKeyTypes";
 
 const basePath = "/v1/api/platform/projects";
 
@@ -27,12 +27,17 @@ export const PlatformProjectKeyService = {
     return res.data;
   },
 
-  updateKey: async ({ keyId, body }: { keyId: string; body: any }) => {
+  updateKey: async ({ keyId, body }: { keyId: string; body: ApiKeyUpdateRequest }) => {
+    // console.log("Updating key:", keyId, "with body:", body);
     const res = await platformProxyApi.patch(
       `${basePath}/keys/${keyId}`,
       body
     );
     return res.data;
+  },
+
+  revokeKey: async ({keyId} : {keyId :string}) => {
+    await platformProxyApi.put(`${basePath}/keys/${keyId}/revoke`);
   },
 
   deleteKey: async (keyId: string) => {

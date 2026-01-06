@@ -33,6 +33,17 @@ export type ApiKeyCreateRequest = {
   rpmLimit?: number | null;
 };
 
+export type ApiKeyUpdateRequest = {
+  name?: string | null;
+  allowAllModels?: boolean | null;
+  allowAllEndpoints?: boolean | null;
+  models?: string[] | null;     // UUID[]
+  endpoints?: string[] | null;  // UUID[]
+  tpmLimit?: number | null;
+  rpmLimit?: number | null;
+  active?: Boolean | null;
+};
+
 export type ApiKeyCreateResponse = {
     apiKey: string,
     key: ApiKeyView

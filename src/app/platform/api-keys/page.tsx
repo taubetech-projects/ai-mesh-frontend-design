@@ -36,9 +36,11 @@ import {
   useUpdateApiKey,
   useAllApiKeys,
   useDeleteApiKey,
+  useRevokeApiKey,
 } from "@/features/platform/api-keys/hooks/useProjectApiKeys";
 import {
   ApiKeyCreateRequest,
+  ApiKeyUpdateRequest,
   ApiKeyView,
 } from "@/features/platform/api-keys/types/apiKeyTypes";
 import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
@@ -52,26 +54,7 @@ import {
 } from "@/shared/components/ui/select";
 import { useModels } from "@/features/platform/models/hooks/useModelQueries";
 import { useEndpoints } from "@/features/platform/endpoints/endpointCatalog.queries";
-
-const AVAILABLE_MODELS = [
-  "gpt-4-turbo",
-  "gpt-4",
-  "gpt-3.5-turbo",
-  "claude-3-opus",
-  "claude-3-sonnet",
-  "mistral-large",
-  "llama-3-70b",
-  "gemini-1.5-pro",
-];
-
-const AVAILABLE_ENDPOINTS = [
-  "/v1/chat/completions",
-  "/v1/embeddings",
-  "/v1/completions",
-  "/v1/models",
-  "/v1/audio/transcriptions",
-  "/v1/images/generations",
-];
+import { set } from "date-fns";
 
 export default function ApiKeys() {
   // TODO: Get projectId from context or route param
@@ -97,12 +80,17 @@ export default function ApiKeys() {
     endpoints?: string;
     projects?: string;
   }>({});
+  const [editingKeyId, setEditingKeyId] = useState<string | null>(null);
+  const [showProjects, setShowProjects] = useState(false);
+  const [keyToRevoke, setKeyToRevoke] = useState<string | null>(null);
 
   //Here all the hooks
   const { data: apiKeys = [], isLoading } = useAllApiKeys();
   const createApiKeyMutation = useCreateApiKey(selectedProject || "");
   const updateApiKeyMutation = useUpdateApiKey();
   const deleteApiKeyMutation = useDeleteApiKey();
+  const revokeApiKeyMutation = useRevokeApiKey();
+
   const { data: ownedProjects } = useOwnedProjectsQuery();
   const { data: models } = useModels();
   const { data: endpoints } = useEndpoints();
@@ -126,18 +114,21 @@ export default function ApiKeys() {
     setSelectedModels(new Set());
     setSelectedEndpoints(new Set());
     setErrors({});
+    setEditingKeyId(null);
+    setSelectedProject(undefined);
   };
 
-  const handleCreateKey = () => {
+  const handleSaveKey = () => {
     const newErrors: typeof errors = {};
     let isValid = true;
+    console.log("selectedProject", selectedProject);
 
     if (!newKeyName.trim()) {
       newErrors.name = "Key name is required";
       isValid = false;
     }
 
-    if (!selectedProject) {
+    if (!selectedProject && showProjects) {
       newErrors.projects = "At least one project must be selected";
       isValid = false;
     }
@@ -168,31 +159,59 @@ export default function ApiKeys() {
       tpmLimit: rateLimits.tpm ? parseInt(rateLimits.tpm) : undefined,
       rpmLimit: rateLimits.rpm ? parseInt(rateLimits.rpm) : undefined,
     };
-
-    console.log("New key data:", newKeyData);
-    // @ts-ignore - Assuming the mutation accepts this shape based on local types
-    createApiKeyMutation.mutate(newKeyData, {
-      onSuccess: () => {
-        resetForm();
-        setIsCreateOpen(false);
-      },
-    });
+    console.log("editingKeyId", editingKeyId);
+    if (editingKeyId) {
+      const updateBody: ApiKeyUpdateRequest = {
+        name: newKeyName,
+        allowAllModels: permissionType === "all",
+        allowAllEndpoints: permissionType === "all",
+        models:
+          permissionType === "all" ? undefined : Array.from(selectedModels),
+        endpoints:
+          permissionType === "all" ? undefined : Array.from(selectedEndpoints),
+        tpmLimit: rateLimits.tpm ? parseInt(rateLimits.tpm) : undefined,
+        rpmLimit: rateLimits.rpm ? parseInt(rateLimits.rpm) : undefined,
+      };
+      console.log("updateBody", updateBody);
+      updateApiKeyMutation.mutate(
+        { body: updateBody, keyId: editingKeyId },
+        {
+          onSuccess: () => {
+            resetForm();
+            setIsCreateOpen(false);
+            toast({
+              title: "API Key Updated",
+              description: "The API key has been successfully updated.",
+            });
+          },
+        }
+      );
+    } else {
+      // @ts-ignore - Assuming the mutation accepts this shape based on local types
+      createApiKeyMutation.mutate(newKeyData, {
+        onSuccess: () => {
+          resetForm();
+          setIsCreateOpen(false);
+        },
+      });
+    }
   };
 
-  const handleRevokeKey = (id: string) => {
-    // @ts-ignore - Assuming update accepts keyId and status
-    updateApiKeyMutation.mutate(
-      { keyId: id, status: "revoked" },
-      {
-        onSuccess: () => {
-          toast({
-            title: "API Key Revoked",
-            description:
-              "The API key has been revoked and can no longer be used.",
-          });
-        },
-      }
-    );
+  const handleRevokeKey = () => {
+    if (keyToRevoke) {
+      revokeApiKeyMutation.mutate(
+        { keyId: keyToRevoke},
+        {
+          onSuccess: () => {
+            toast({
+              title: "API Key Revoked",
+              description:
+                "The API key has been revoked and can no longer be used.",
+            });
+          },
+        }
+      );
+    }
   };
 
   const handleCopyKey = (key: string) => {
@@ -203,19 +222,53 @@ export default function ApiKeys() {
     });
   };
 
-  const handleUpdateKey = (id: string) => {
-    // @ts-ignore - Assuming update accepts keyId and status
-    updateApiKeyMutation.mutate(
-      { keyId: id, status: "active" },
-      {
-        onSuccess: () => {
-          toast({
-            title: "API Key Activated",
-            description: "The API key has been activated and can be used.",
-          });
-        },
+  const handleEditClick = (key: ApiKeyView) => {
+    console.log("selected endpoints", selectedEndpoints);
+    setEditingKeyId(key.id);
+    setNewKeyName(key.name);
+    setShowProjects(false);
+    setRateLimits({
+      tpm: key.tpmLimit ? key.tpmLimit.toString() : "",
+      rpm: key.rpmLimit ? key.rpmLimit.toString() : "",
+    });
+
+    if (key.allowAllModels && key.allowAllEndpoints) {
+      setPermissionType("all");
+      setSelectedModels(new Set());
+      setSelectedEndpoints(new Set());
+    } else {
+      setPermissionType("restricted");
+
+      const modelIds = new Set<string>();
+      if (key.models && models) {
+        key.models.forEach((name) => {
+          const model = models.find((m) => m.name === name);
+          if (model) modelIds.add(model.id);
+        });
       }
-    );
+      setSelectedModels(modelIds);
+      console.log("Current key endpoints :", key.endpoints);
+      console.log("Endpoints: ", endpoints);
+      const endpointIds = new Set<string>();
+      const currentEndpoints = Array.isArray(key.endpoints)
+        ? key.endpoints
+        : String(key.endpoints || "").split(",");
+
+      if (endpoints) {
+        currentEndpoints.forEach((name) => {
+          const endpoint = endpoints.find((e) => e.code === name);
+          if (endpoint) endpointIds.add(endpoint.id);
+        });
+      }
+      setSelectedEndpoints(endpointIds);
+    }
+    setIsCreateOpen(true);
+  };
+
+  const handleCreateClick = () => {
+    setIsCreateOpen(true);
+    setShowProjects(true);
+    // resetForm();
   };
 
   const handleDeleteKey = (id: string) => {
@@ -251,30 +304,30 @@ export default function ApiKeys() {
               ? row.maskedKey.replace("xxxx...xxxx", "abcd1234efgh5678")
               : row.maskedKey}
           </code>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleKeyVisibility(row.id);
-            }}
-            className="p-1 hover:bg-secondary rounded"
-          >
-            {visibleKeys.has(row.id) ? (
-              <EyeOff className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            )}
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopyKey(row.maskedKey);
-            }}
-            className="p-1 hover:bg-secondary rounded"
-          >
-            <Copy className="h-4 w-4 text-muted-foreground" />
-          </button>
         </div>
       ),
+    },
+
+    {
+      header: "Allowed Models",
+      accessor: (row) => (
+        <div className="font-medium text-foreground whitespace-normal break-words">
+          {row.allowAllModels === true ? "All" : row.models?.join(", ")}
+        </div>
+      ),
+      className: "w-50",
+    },
+
+    {
+      header: "Allowed Endpoints",
+      accessor: (row) => (
+        <span className="font-medium text-foreground">
+          {row.allowAllEndpoints === true && row.endpoints?.length === 0
+            ? "All"
+            : row.endpoints?.join(", ")}
+        </span>
+      ),
+      className: "w-50",
     },
     {
       header: "Created By",
@@ -317,18 +370,18 @@ export default function ApiKeys() {
             <DropdownMenuItem onClick={() => handleCopyKey(row.maskedKey)}>
               Copy Key
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => toggleKeyVisibility(row.id)}>
+            <DropdownMenuItem onClick={() => handleEditClick(row)}>
               Edit Key
             </DropdownMenuItem>
             {row.active === true && (
-              <DropdownMenuItem
-                onClick={() => handleRevokeKey(row.id)}
-                className="text-destructive"
-              >
-                Disable Key
+              <DropdownMenuItem onClick={() => setKeyToRevoke(row.id)}>
+                Revoke Key
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={() => handleDeleteKey(row.id)}>
+            <DropdownMenuItem
+              onClick={() => handleDeleteKey(row.id)}
+              className="text-destructive"
+            >
               Delete Key
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -345,7 +398,7 @@ export default function ApiKeys() {
           title="API Keys"
           description="Manage your API keys for accessing the platform"
         >
-          <Button onClick={() => setIsCreateOpen(true)}>
+          <Button onClick={() => handleCreateClick()}>
             <Plus className="h-4 w-4 mr-2" />
             Create Key
           </Button>
@@ -372,10 +425,13 @@ export default function ApiKeys() {
         >
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Create API Key</DialogTitle>
+              <DialogTitle>
+                {editingKeyId ? "Edit API Key" : "Create API Key"}
+              </DialogTitle>
               <DialogDescription>
-                Create a new API key to access the platform. Make sure to copy
-                it immediately as it won't be shown again.
+                {editingKeyId
+                  ? "Update the details of your API key."
+                  : "Create a new API key to access the platform. Make sure to copy it immediately as it won't be shown again."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -395,37 +451,40 @@ export default function ApiKeys() {
                   <p className="text-sm text-destructive">{errors.name}</p>
                 )}
               </div>
-
-              <div className="space-y-2">
-                <Label>Choose a Project</Label>
-                <Select
-                  value={selectedProject}
-                  onValueChange={(value) => {
-                    setSelectedProject(value);
-                    if (errors.projects) {
-                      setErrors({ ...errors, projects: undefined });
-                    }
-                  }}
-                >
-                  <SelectTrigger
-                    className={
-                      errors.projects ? "border-destructive w-full" : "w-full"
-                    }
+              {showProjects && (
+                <div className="space-y-2">
+                  <Label>Choose a Project</Label>
+                  <Select
+                    value={selectedProject}
+                    onValueChange={(value) => {
+                      setSelectedProject(value);
+                      if (errors.projects) {
+                        setErrors({ ...errors, projects: undefined });
+                      }
+                    }}
                   >
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ownedProjects?.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.projects && (
-                  <p className="text-sm text-destructive">{errors.projects}</p>
-                )}
-              </div>
+                    <SelectTrigger
+                      className={
+                        errors.projects ? "border-destructive w-full" : "w-full"
+                      }
+                    >
+                      <SelectValue placeholder="Select a project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ownedProjects?.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.projects && (
+                    <p className="text-sm text-destructive">
+                      {errors.projects}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <RateLimitForm value={rateLimits} onChange={setRateLimits} />
 
@@ -446,10 +505,18 @@ export default function ApiKeys() {
                 Cancel
               </Button>
               <Button
-                onClick={handleCreateKey}
-                disabled={createApiKeyMutation.isPending}
+                onClick={handleSaveKey}
+                disabled={
+                  createApiKeyMutation.isPending ||
+                  updateApiKeyMutation.isPending
+                }
               >
-                {createApiKeyMutation.isPending ? "Creating..." : "Create Key"}
+                {createApiKeyMutation.isPending ||
+                updateApiKeyMutation.isPending
+                  ? "Saving..."
+                  : editingKeyId
+                  ? "Save Changes"
+                  : "Create Key"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -461,6 +528,15 @@ export default function ApiKeys() {
           onConfirm={confirmDelete}
           title="Delete Project"
           description="Are you sure you want to delete this project? This action cannot be undone."
+        />
+
+        <DeleteConfirmationDialog
+          open={!!keyToRevoke}
+          onOpenChange={(open) => !open && setKeyToRevoke(null)}
+          onConfirm={handleRevokeKey}
+          title="Revoke Key"
+          description="Are you sure you want to revoke this key? This action cannot be undone."
+          confirmText="Confirm"
         />
       </div>
     </DashboardLayout>

@@ -80,6 +80,23 @@ export const useUpdateApiKey = () => {
   });
 };
 
+export const useRevokeApiKey = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: PlatformProjectKeyService.revokeKey,
+
+    onSuccess: (_, { keyId }) => {
+      queryClient.invalidateQueries({
+        queryKey: projectApiKeyKeys.detail(keyId),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: projectApiKeyKeys.lists(),
+      });
+    }});
+}
+
 // DELETE /v1/api/platform/projects/keys/{keyId}
 export const useDeleteApiKey = () => {
   const queryClient = useQueryClient();
