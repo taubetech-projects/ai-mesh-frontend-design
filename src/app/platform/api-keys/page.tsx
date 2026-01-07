@@ -1,7 +1,16 @@
 "use client";
 import { useState } from "react";
 import { Key } from "lucide-react";
-import { Plus, Copy, Eye, EyeOff, Trash2, MoreHorizontal } from "lucide-react";
+import {
+  Plus,
+  Copy,
+  Eye,
+  EyeOff,
+  Trash2,
+  MoreHorizontal,
+  Search,
+  Filter,
+} from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import {
   PageHeader,
@@ -25,6 +34,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { toast } from "@/shared/hooks/use-toast";
@@ -34,9 +48,9 @@ import {
   useProjectApiKeys,
   useCreateApiKey,
   useUpdateApiKey,
-  useAllApiKeys,
   useDeleteApiKey,
   useRevokeApiKey,
+  useSearchApiKeys,
 } from "@/features/platform/api-keys/hooks/useProjectApiKeys";
 import {
   ApiKeyCreateRequest,
@@ -83,9 +97,15 @@ export default function ApiKeys() {
   const [editingKeyId, setEditingKeyId] = useState<string | null>(null);
   const [showProjects, setShowProjects] = useState(false);
   const [keyToRevoke, setKeyToRevoke] = useState<string | null>(null);
+  const [searchName, setSearchName] = useState("");
+  const [filterProject, setFilterProject] = useState<string | undefined>(
+    undefined
+  );
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(
+    undefined
+  );
 
   //Here all the hooks
-  const { data: apiKeys = [], isLoading } = useAllApiKeys();
   const createApiKeyMutation = useCreateApiKey(selectedProject || "");
   const updateApiKeyMutation = useUpdateApiKey();
   const deleteApiKeyMutation = useDeleteApiKey();
@@ -94,6 +114,11 @@ export default function ApiKeys() {
   const { data: ownedProjects } = useOwnedProjectsQuery();
   const { data: models } = useModels();
   const { data: endpoints } = useEndpoints();
+  const { data: apiKeys = [], isLoading } = useSearchApiKeys(
+    searchName || null,
+    filterProject || null,
+    filterStatus === "active" ? true : filterStatus === "revoked" ? false : null
+  );
 
   const toggleKeyVisibility = (id: string) => {
     setVisibleKeys((prev) => {
@@ -200,7 +225,7 @@ export default function ApiKeys() {
   const handleRevokeKey = () => {
     if (keyToRevoke) {
       revokeApiKeyMutation.mutate(
-        { keyId: keyToRevoke},
+        { keyId: keyToRevoke },
         {
           onSuccess: () => {
             toast({
@@ -404,7 +429,96 @@ export default function ApiKeys() {
           </Button>
         </PageHeader>
 
-        {apiKeys.length > 0 || isLoading ? (
+        <div className="flex items-center space-x-2 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search API keys..."
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="shrink-0">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+                {(filterProject || filterStatus) && (
+                  <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                    {(filterProject ? 1 : 0) + (filterStatus ? 1 : 0)}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">Filters</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Refine your API keys list
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Project</Label>
+                  <Select
+                    value={filterProject || "all"}
+                    onValueChange={(value) =>
+                      setFilterProject(value === "all" ? undefined : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Projects" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Projects</SelectItem>
+                      {ownedProjects?.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={filterStatus || "all"}
+                    onValueChange={(value) =>
+                      setFilterStatus(value === "all" ? undefined : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="revoked">Revoked</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(filterProject || filterStatus) && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setFilterProject(undefined);
+                      setFilterStatus(undefined);
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {apiKeys.length > 0 ||
+        isLoading ||
+        searchName ||
+        filterProject ||
+        filterStatus ? (
           <DataTable columns={columns} data={apiKeys} />
         ) : (
           <EmptyState

@@ -34,6 +34,14 @@ export const useApiKey = (keyId: string) => {
   });
 };
 
+// GET /v1/api/platform/projects/keys/search?keyName={keyName}&projectId={projectId}&active={active}
+export const useSearchApiKeys = (keyName: string | null, projectId: string | null, active: boolean | null) => {
+  return useQuery({
+    queryKey: projectApiKeyKeys.search(keyName, projectId, active),
+    queryFn: () => PlatformProjectKeyService.serachKeys(keyName, projectId, active),
+  });
+};
+
 /* =======================
    Mutations
 ======================= */

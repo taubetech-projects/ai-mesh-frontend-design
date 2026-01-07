@@ -14,4 +14,7 @@ export const projectApiKeyKeys = {
 
   detail: (keyId: string) =>
     [...projectApiKeyKeys.details(), keyId] as const,
+
+  search: (keyName: string | null, projectId: string | null, active: boolean | null) =>
+    [...projectApiKeyKeys.lists(), "search", keyName, projectId, active] as const,
 };
