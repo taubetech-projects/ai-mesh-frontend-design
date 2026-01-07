@@ -1,29 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { ImageIcon } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
-import { PageHeader, SearchInput } from "@/features/platform/components/platform";
+import {
+  PageHeader,
+  SearchInput,
+} from "@/features/platform/components/platform";
 import { cn } from "@/features/platform/lib/utils";
 import { useModels } from "@/features/platform/models/hooks/useModelQueries";
 import { ModelView } from "@/features/platform/models/types/modelTypes";
-
+import { ModelCard } from "@/features/platform/models/components/ModelCard";
+import { useRouter } from "next/navigation";
+import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
 
 export default function Models() {
   const [search, setSearch] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-
-  const {data : models, isLoading: isModelsLoading } = useModels();
-    const providers = [...new Set(models?.map((m: ModelView) => m.providerDisplayName))];
-
+  const router = useRouter();
+  const { data: models, isLoading: isModelsLoading } = useModels();
+  const providers = [
+    ...new Set(models?.map((m: ModelView) => m.providerDisplayName)),
+  ];
 
   const filteredModels = models?.filter((model) => {
     const matchesSearch =
       model.name.toLowerCase().includes(search.toLowerCase()) ||
       model.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesProvider = !selectedProvider || model.providerDisplayName === selectedProvider;
+    const matchesProvider =
+      !selectedProvider || model.providerDisplayName === selectedProvider;
     return matchesSearch && matchesProvider;
   });
+
+  const onModelClick = (id: string) => {
+    router.push(`${PLATFORM_ROUTES.MODELS}/${id}`);
+  };
 
   return (
     <DashboardLayout>
@@ -71,73 +81,11 @@ export default function Models() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredModels?.map((model) => (
-            <div
+            <ModelCard
               key={model.id}
-              className="card-interactive p-5"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-foreground">{model.displayName}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{model.providerDisplayName}</p>
-                </div>
-                <span className="text-xs badge-warning  px-2 py-1 rounded ">
-                  {model.contextWindowTokens} context
-                </span>
-              </div>
-
-              <p className="text-sm text-muted-foreground mb-4">{model.description}</p>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {(model.inputModalities?.length > 0 || model.outputModalities?.length > 0) && (
-                  <div className="flex items-center gap-1.5 text-xs bg-secondary text-foreground px-2 py-1 rounded">
-                    <div className="flex items-center gap-1">
-                      {model.inputModalities?.map((m: string) =>
-                        m.includes("IMAGE") ? (
-                          <ImageIcon key={m} className="w-3 h-3" />
-                        ) : (
-                          <span key={m} className="font-bold">
-                            T
-                          </span>
-                        )
-                      )}
-                    </div>
-                    <span className="text-muted-foreground">→</span>
-                    <div className="flex items-center gap-1">
-                      {model.outputModalities?.map((m: string) =>
-                        m.includes("IMAGE") ? (
-                          <ImageIcon key={m} className="w-3 h-3" />
-                        ) : (
-                          <span key={m} className="font-bold">
-                            T
-                          </span>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-                {model.capabilities.map((cap) => (
-                  <span
-                    key={cap}
-                    className="text-xs bg-secondary text-foreground px-2 py-1 rounded"
-                  >
-                    {cap}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Input: </span>
-                  <span className="text-foreground font-mono">${model.inputPpmCents != null ? (model.inputPpmCents / 100).toFixed(2) : "—"}/1M</span>
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Output: </span>
-                  <span className="text-foreground font-mono">${model.outputPpmCents != null ? (model.outputPpmCents / 100).toFixed(2) : "—"}/1M</span>
-                </div>
-              </div>
-            </div>
+              model={model}
+              onModelClick={() => onModelClick(model.id)}
+            />
           ))}
         </div>
       </div>
