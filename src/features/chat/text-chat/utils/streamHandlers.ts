@@ -8,7 +8,10 @@ import {
   startStreaming,
   endStreaming,
   concatenateDelta,
+  setSelectedModels,
 } from "@/features/chat/store/chat-interface-slice"; // adjust
+
+import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 
 export const createStreamEventHandler = ({
   dispatch,
@@ -16,12 +19,14 @@ export const createStreamEventHandler = ({
   tempsByModel,
   updateMessageTextById,
   invalidateConversation,
+  router,
 }: {
   dispatch: any;
   expectedStreams: number;
   tempsByModel: Map<string, TempInfo>;
   updateMessageTextById: (id: number, text: string) => void;
-  invalidateConversation: (conversationId: number) => void;
+  invalidateConversation: (conversationId: number | null) => void;
+  router: any;
 }) => {
   const finalByModel = new Map<string, string>();
   let completedCount = 0;
@@ -36,7 +41,7 @@ export const createStreamEventHandler = ({
 
     const temp = tempsByModel.get(modelId);
     if (temp) {
-      updateMessageTextById(temp.id, next);
+      updateMessageTextById(temp?.id ?? 0, next);
       temp.text = next;
     }
   };
@@ -81,6 +86,12 @@ export const createStreamEventHandler = ({
       }
       return;
     }
+    // if (name == CHAT_STREAM_EVENT_TYPES.CONVERSATION_CREATED_SUCCESS) {
+    //   dispatch(setSelectedConvId(data.payload.conversationId));
+    //   invalidateConversation(data.payload.conversationId);
+    //   router.push(`/chat/${data.payload.conversationId}`);
+    //   return;
+    // }
 
     // ─────────────────────────────────────────────
     // Backend persistence confirmation
@@ -88,7 +99,10 @@ export const createStreamEventHandler = ({
       name === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS ||
       data?.type === CHAT_STREAM_EVENT_TYPES.CONVERSATION_SAVE_SUCCESS
     ) {
+      dispatch(setSelectedConvId(data.payload.conversationId));
       invalidateConversation(data.payload.conversationId);
+      router.push(`/chat/${data.payload.conversationId}`);
+      // invalidateConversation(data.payload.conversationId);
       return;
     }
   };

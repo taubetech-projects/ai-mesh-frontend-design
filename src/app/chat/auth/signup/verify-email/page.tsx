@@ -1,11 +1,8 @@
 "use client";
 
-import PublicRoute from "@/shared/components/public-route";
-import { AuthService } from "@/features/chat/auth/api/authApi";
-import {
-  ErrorResponse,
-  ResendEmailRequest,
-} from "@/features/chat/auth/types/authModels";
+import { ChatAuthService } from "@/features/chat/auth/api/authApi";
+import ChatPublicRoute from "@/features/chat/auth/components/ChatPublicRoute";
+import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 import { MailIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
@@ -21,7 +18,7 @@ export default function VerifyEmail() {
     if (!email) return;
     setEmailSent(true);
     try {
-      const response = await AuthService.resendEmail({ email });
+      const response = await ChatAuthService.resendEmail({ email });
       if (response) {
         toast.success("Resend Successfull");
       } else {
@@ -35,7 +32,7 @@ export default function VerifyEmail() {
   };
 
   return (
-    <PublicRoute>
+    <ChatPublicRoute>
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
         <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700 text-center">
           <div className="flex justify-center mb-6">
@@ -77,7 +74,7 @@ export default function VerifyEmail() {
           </p>
         </div>
       </div>
-    </PublicRoute>
+    </ChatPublicRoute>
   );
 }
 

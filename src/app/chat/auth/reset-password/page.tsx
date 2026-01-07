@@ -1,7 +1,7 @@
 "use client";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { ChatAuthService } from "@/features/chat/auth/api/authApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { LockIcon, MailIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState, Suspense } from "react";
@@ -48,7 +48,7 @@ function ResetPasswordFormComponent() {
 
     setIsLoading(true);
     try {
-      await AuthService.resetPassword({
+      await ChatAuthService.resetPassword({
         token,
         newPassword: password,
       });
@@ -76,7 +76,7 @@ function ResetPasswordFormComponent() {
             your new password.
           </p>
           <button
-            onClick={() => router.push(APP_ROUTES.SIGNIN)}
+            onClick={() => router.push(CHAT_ROUTES.SIGNIN)}
             className="w-full text-lg font-semibold px-6 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg hover:shadow-2xl hover:scale-105 transform transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300"
           >
             Back to Log In

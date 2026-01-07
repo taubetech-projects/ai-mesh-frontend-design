@@ -7,16 +7,24 @@ import {
   getConversationByConvoTypeApi,
   getConversationByIdApi,
 } from "@/features/chat/conversation/api/conversationApi";
-import { queryKey } from "../../../../lib/react-query/keys";
-import { CONVERSATION_TYPES } from "@/shared/constants/constants";
+import { queryKey } from "@/lib/react-query/keys";
+import { CONVERSATION_TYPES, STALE_TIME } from "@/shared/constants/constants";
 
 // Custom hooks for CRUD operations
 export const useCreateConversationApi = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createConversationApi,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after a new conversation is created
+    onSuccess: () => {
+      console.log("Conversation created successfully");
+      queryClient.invalidateQueries({ queryKey: queryKey.conversations() }); // Refetch conversations after a new conversation is created
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey.conversations() });
+    },
+    onError: (error: unknown) => {
+      console.error("Error creating conversation:", error);
+    },
   });
 };
 
@@ -24,7 +32,7 @@ export const useGetConversationsApi = () =>
   useQuery({
     queryKey: queryKey.conversations(),
     queryFn: getConversationsApi,
-    staleTime: 300_000, // 👈 1 minute
+    staleTime: STALE_TIME,
   });
 
 export const useGetConversationById = (id: string) =>
@@ -37,7 +45,7 @@ export const useGetConversationsForChat = () => {
   return useQuery({
     queryKey: [...queryKey.conversations(), "chat"],
     queryFn: () => getConversationByConvoTypeApi(CONVERSATION_TYPES.CHAT),
-    staleTime: 300_000, // 👈 1 minute
+    staleTime: STALE_TIME,
   });
 };
 
@@ -45,7 +53,7 @@ export const useGetConversationsForImage = () => {
   return useQuery({
     queryKey: [...queryKey.conversations(), "image"],
     queryFn: () => getConversationByConvoTypeApi(CONVERSATION_TYPES.IMAGE),
-    staleTime: 300_000, // 👈 1 minute
+    staleTime: STALE_TIME,
   });
 };
 

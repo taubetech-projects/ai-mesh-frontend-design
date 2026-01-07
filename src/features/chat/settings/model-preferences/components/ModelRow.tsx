@@ -96,15 +96,14 @@ export const ModelRow = ({
         )}
 
         {/* Delete Button */}
-        {!item.isPremium && (
-          <button
-            onClick={() => onDelete(item.id)}
-            className="text-neutral-600 hover:text-red-500 transition-colors p-1"
-            title="Delete Preference"
-          >
-            <Trash2 size={18} />
-          </button>
-        )}
+
+        <button
+          onClick={() => onDelete(item.id)}
+          className="text-neutral-600 hover:text-red-500 transition-colors p-1"
+          title="Delete Preference"
+        >
+          <Trash2 size={18} />
+        </button>
 
         {/* Locked Status or Toggle */}
         <div className="w-12 flex justify-end">

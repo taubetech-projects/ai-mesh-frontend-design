@@ -1,7 +1,7 @@
 "use client";
-import { AuthService } from "@/features/chat/auth/api/authApi";
+import { ChatAuthService } from "@/features/chat/auth/api/authApi";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { KeyIcon, MailIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     try {
-      await AuthService.forgotPassword({ email });
+      await ChatAuthService.forgotPassword({ email });
       // This generic message is good practice to avoid revealing which emails are registered.
       setMessage(
         "If an account with this email exists, a password reset link has been sent."
@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
             <p className="text-green-400 text-sm">{message}</p>
             {/* This button simulates the user clicking the link in their email */}
             <button
-              onClick={() => router.push(APP_ROUTES.RESET_PASSWORD)}
+              onClick={() => router.push(CHAT_ROUTES.RESET_PASSWORD)}
               className="mt-4 text-sm font-medium text-purple-400 hover:underline"
             >
               (Simulate clicking email link &rarr;)
@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
 
         <p className="text-center text-gray-400 mt-8">
           <button
-            onClick={() => router.push(APP_ROUTES.SIGNIN)}
+            onClick={() => router.push(CHAT_ROUTES.SIGNIN)}
             className="font-medium text-purple-400 hover:underline"
           >
             &larr; Back to Log In

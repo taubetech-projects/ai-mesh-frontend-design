@@ -9,8 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
-import { useAuth } from "@/shared/contexts/AuthContext";
+
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
+import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
 
 interface SidebarFooterProps {
   isCollapsed: boolean;
@@ -25,7 +26,7 @@ export function SidebarFooter({
   handleLogout,
   t,
 }: SidebarFooterProps) {
-  const { me } = useAuth();
+  const { me, isLoading } = useChatAuth();
   return (
     <div className="p-4 border-t border-sidebar-border space-y-4">
       {/* User Profile Section */}
@@ -65,13 +66,13 @@ export function SidebarFooter({
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-60">
-          <Link href={APP_ROUTES.PRICING} passHref legacyBehavior>
+          <Link href={CHAT_ROUTES.PRICING} passHref legacyBehavior>
             <DropdownMenuItem>
               <Sparkles className="mr-2 h-4 w-4" />
               <span>Upgrade Plan</span>
             </DropdownMenuItem>
           </Link>
-          <Link href={APP_ROUTES.SETTINGS} passHref legacyBehavior>
+          <Link href={CHAT_ROUTES.SETTINGS} passHref legacyBehavior>
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
               <span>{t.nav.settings}</span>

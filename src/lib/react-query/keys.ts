@@ -1,6 +1,6 @@
 export const queryKey = {
   conversations: () => ["conversations"] as const,
-  messages: (conversationId: number) =>
+  messages: (conversationId: number | null) =>
     ["conversations", conversationId, "messages"] as const,
 };
 

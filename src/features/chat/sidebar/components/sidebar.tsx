@@ -23,9 +23,9 @@ import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/
 import { useRouter } from "next/navigation";
 import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
 import { MessageView } from "@/features/chat/types/models";
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { CONVERSATION_TYPES } from "@/shared/constants/constants";
-import { useAuth } from "@/shared/contexts/AuthContext";
+import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
 import { useLogoutMutation } from "@/features/chat/auth/hooks/useAuthQueries";
 import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
 import { useModelPreferences } from "@/features/chat/settings/model-preferences/hooks/modelPreferencesHook";
@@ -39,7 +39,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeInterface }: SidebarProps) {
-  const { me } = useAuth();
+  const { me, isLoading } = useChatAuth();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isChatHistoryCollapsed, setIsChatHistoryCollapsed] = useState(false);
@@ -48,6 +48,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   const { selectedConvId } = useSelector(
     (store: any) => store.conversationSlice
   );
+  const { selectedModels } = useSelector((store: any) => store.chatInterface);
 
   const dispatch = useDispatch();
   const { mutate: deleteConversation } = useDeleteConversationApi(); // For deleting
@@ -113,21 +114,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     dispatch(setSelectedConvId(null));
     dispatch(clearChatState());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
-
-    if (modelPreferences && modelPreferences.length > 0) {
-      const activePreferences = modelPreferences
-        .filter((p: any) => p.isActive)
-        .map((p: any) => ({ provider: p.provider, model: p.modelId }));
-
-      if (activePreferences.length > 0) {
-        dispatch(setSelectedModels(activePreferences));
-      } else {
-        dispatch(setInitialSelectedModels());
-      }
-    } else {
-      dispatch(setInitialSelectedModels());
-    }
-    router.push(APP_ROUTES.CHAT);
+    router.push(CHAT_ROUTES.CHAT);
   };
 
   const handleDeleteConversation = () => {
@@ -136,6 +123,8 @@ export function Sidebar({ activeInterface }: SidebarProps) {
       setConversationIdToDelete(null);
     }
     setShowDeleteDialog(false); // Close the dialog
+    dispatch(clearChatState());
+    router.push(CHAT_ROUTES.CHAT);
   };
 
   const handleRenameConversation = (
@@ -155,7 +144,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   };
 
   const handleUpgradePlan = () => {
-    router.push(APP_ROUTES.PRICING);
+    router.push(CHAT_ROUTES.PRICING);
   };
 
   const logoutMutation = useLogoutMutation();
@@ -163,7 +152,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   async function handleLogout() {
     try {
       await logoutMutation.mutateAsync();
-      router.push(APP_ROUTES.SIGNIN);
+      router.push(CHAT_ROUTES.SIGNIN);
       router.refresh();
     } catch {
       alert("Logout failed. Please try again.");
@@ -240,7 +229,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
               setConversationIdToDelete(id);
               setShowDeleteDialog(true);
             }}
-            baseRoute={APP_ROUTES.CHAT}
+            baseRoute={CHAT_ROUTES.CHAT}
           />
 
           {/* Image History Section */}
@@ -269,7 +258,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
               setConversationIdToDelete(id);
               setShowDeleteDialog(true);
             }}
-            baseRoute={APP_ROUTES.CHAT}
+            baseRoute={CHAT_ROUTES.CHAT}
           />
         </div>
       )}

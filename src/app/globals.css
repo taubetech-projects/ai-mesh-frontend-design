@@ -22,7 +22,7 @@
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --text-area:oklch(0.922 0 0);
+  --text-area: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -39,6 +39,38 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --stream-front: oklch(49.439% 0.26475 264.022);
+  --success: oklch(0.623 0.17 145);
+  --success-foreground: oklch(0.985 0 0);
+
+  /* Custom tokens */
+  --card-hover: hsl(0 0% 12%);
+  --surface-elevated: hsl(0 0% 12%);
+  --text-tertiary: hsl(0 0% 45%);
+
+  /* Gradients */
+  --gradient-gold: linear-gradient(
+    135deg,
+    hsl(43, 74%, 49%) 0%,
+    hsl(35, 80%, 55%) 100%
+  );
+  --gradient-surface: linear-gradient(
+    180deg,
+    hsl(0, 0%, 12%) 0%,
+    hsl(0, 0%, 8%) 100%
+  );
+  --gradient-glow: radial-gradient(
+    ellipse at 50% 0%,
+    hsl(43, 74%, 49%, 0.15) 0%,
+    transparent 60%
+  );
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 hsl(0, 0%, 0%, 0.3);
+  --shadow-md: 0 4px 6px -1px hsl(0, 0%, 0%, 0.4),
+    0 2px 4px -2px hsl(0, 0%, 0%, 0.3);
+  --shadow-lg: 0 10px 15px -3px hsl(0, 0%, 0%, 0.5),
+    0 4px 6px -4px hsl(0, 0%, 0%, 0.4);
+  --shadow-glow: 0 0 20px hsl(43, 74%, 49%, 0.25);
 }
 
 .dark {
@@ -60,7 +92,7 @@
   --destructive-foreground: oklch(0.637 0.237 25.331);
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
-  --text-area:oklch(55.729% 0.00245 15.805);
+  --text-area: oklch(55.729% 0.00245 15.805);
   --ring: oklch(0.439 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
@@ -76,6 +108,8 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
   --stream-front: oklch(70.009% 0.15626 268.082);
+  --success: oklch(0.623 0.17 145);
+  --success-foreground: oklch(0.985 0 0);
 }
 
 @theme inline {
@@ -118,6 +152,12 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-stream-front: var(--stream-front);
+  --color-card-hover: var(--card-hover);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-success: var(--success);
+  --color-text-success-foreground: var(--success-foreground);
+
 }
 
 @layer base {

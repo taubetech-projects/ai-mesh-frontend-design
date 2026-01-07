@@ -1,4 +1,4 @@
-import { APP_ROUTES } from "@/shared/constants/routingConstants";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import type { UserGrantsView } from "../types/authModels";
 
 /**
@@ -52,6 +52,6 @@ export function authHeader(): Record<string, string> {
  * Middleware + /me do that.
  */
 export function ensureAuthenticatedClient(): never {
-  window.location.href = APP_ROUTES.SIGNIN;
+  window.location.href = CHAT_ROUTES.SIGNIN;
   throw new Error("Unauthorized");
 }

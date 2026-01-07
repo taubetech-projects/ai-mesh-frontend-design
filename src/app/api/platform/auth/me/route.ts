@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { ACCESS_COOKIE } from "@/lib/auth/cookies";
+import { PLATFORM_ACCESS_COOKIE } from "@/lib/auth/cookies";
 
 export async function GET() {
   const cookieStore = await cookies();
-  const access = cookieStore.get(ACCESS_COOKIE)?.value;
+  const access = cookieStore.get(PLATFORM_ACCESS_COOKIE)?.value;
   if (!access) return NextResponse.json(null, { status: 401 });
 
   const res = await fetch(

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import {
-  ACCESS_COOKIE,
-  REFRESH_COOKIE,
-  cookieOptions,
+  PLATFORM_ACCESS_COOKIE,
+  PLATFORM_REFRESH_COOKIE,
+  platformCookieOptions,
 } from "@/lib/auth/cookies";
 
 export async function POST(req: Request) {
@@ -28,7 +28,15 @@ export async function POST(req: Request) {
   const data = await res.json(); // { accessToken, refreshToken, tokenType, user }
 
   const next = NextResponse.json(data);
-  next.cookies.set(ACCESS_COOKIE, data.accessToken, cookieOptions());
-  next.cookies.set(REFRESH_COOKIE, data.refreshToken, cookieOptions());
+  next.cookies.set(
+    PLATFORM_ACCESS_COOKIE,
+    data.accessToken,
+    platformCookieOptions()
+  );
+  next.cookies.set(
+    PLATFORM_REFRESH_COOKIE,
+    data.refreshToken,
+    platformCookieOptions()
+  );
   return next;
 }

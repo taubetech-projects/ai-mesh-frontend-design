@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  ACCESS_COOKIE,
-  REFRESH_COOKIE,
-  cookieOptions,
+  PLATFORM_ACCESS_COOKIE,
+  PLATFORM_REFRESH_COOKIE,
+  platformCookieOptions,
 } from "@/lib/auth/cookies";
 
 export async function POST() {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value;
+  const refreshToken = cookieStore.get(PLATFORM_REFRESH_COOKIE)?.value;
 
   if (refreshToken) {
     try {
@@ -24,7 +24,13 @@ export async function POST() {
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(ACCESS_COOKIE, "", { ...cookieOptions(), maxAge: 0 });
-  res.cookies.set(REFRESH_COOKIE, "", { ...cookieOptions(), maxAge: 0 });
+  res.cookies.set(PLATFORM_ACCESS_COOKIE, "", {
+    ...platformCookieOptions(),
+    maxAge: 0,
+  });
+  res.cookies.set(PLATFORM_REFRESH_COOKIE, "", {
+    ...platformCookieOptions(),
+    maxAge: 0,
+  });
   return res;
 }

@@ -26,7 +26,6 @@ import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
 import { authHeader } from "@/features/chat/auth/utils/auth";
-import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
 import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 import { RootState } from "@/lib/store/store";
 import {
@@ -38,6 +37,7 @@ import { useRouter } from "next/navigation";
 import { ChatInputArea } from "./chat-input-area";
 import { ChatActionChips } from "./chat-action-chips";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
+import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
 
 export function HomeChatInterface() {
   const {
@@ -55,11 +55,11 @@ export function HomeChatInterface() {
     (store: any) => store.conversationSlice
   );
   const dispatch = useDispatch();
-  const createMessages = useCreateMessages(selectedConvId); // Will get convId at time of mutation
+  const createMessages = useCreateMessages(selectedConvId ?? null); // Will get convId at time of mutation
   const updateMessages = useUpdateMessages(selectedConvId);
-  const createConversation = useCreateConversationApi();
   const router = useRouter();
   const [isAnimating, setIsAnimating] = useState(false);
+  const createConversation = useCreateConversationApi();
 
   // 🔹 File handling
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -281,13 +281,12 @@ export function HomeChatInterface() {
         currentConvId = newConversation.id;
         dispatch(setSelectedConvId(newConversation.id));
         console.log("New conversation created and selected: ", currentConvId);
+        router.push(`/chat/${currentConvId}`);
       } catch (error) {
         console.error("Failed to create conversation:", error);
-        setIsAnimating(false);
         return; // Stop if conversation creation fails
       }
     }
-
     const bodyRoutes: RouteSel[] = selectedModels
       .filter((model: RouteSel) => model.model !== "consensus")
       .map((model: RouteSel) => ({
@@ -350,11 +349,11 @@ export function HomeChatInterface() {
       dispatch(setEditMessageId(null));
       dispatch(clearModelResponses());
 
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 500 - elapsedTime);
-      setTimeout(() => {
-        router.push(`/chat/${currentConvId}`);
-      }, remainingTime);
+      // const elapsedTime = Date.now() - startTime;
+      // const remainingTime = Math.max(0, 500 - elapsedTime);
+      // setTimeout(() => {
+      //   router.push(`/chat/${currentConvId}`);
+      // }, remainingTime);
     } catch (error) {
       console.error("Error sending message:", error);
       setIsAnimating(false);

@@ -83,6 +83,7 @@ export enum CHAT_STREAM_EVENT_TYPES {
   CONSENSUS = "consensus",
   CONVERSATION_SAVE_SUCCESS = "conversation.save.success",
   CONVERSATION_SAVE_FAILED = "conversation.save.failed",
+  CONVERSATION_CREATED_SUCCESS = "conversation.created.success",
 }
 
 export const BACKEND_BASE_URL = "http://localhost:8080/";
@@ -119,11 +120,16 @@ export const CHAT_API_PATHS = {
       conversationId: string | number | null,
       editedMessageId: number | null
     ) => {
-      if (editedMessageId !== null) {
-        return `${API_VERSION_V1}/${CHAT_API_STEM}/completions/streaming-and-non-streaming/${conversationId}?editedMessageId=${editedMessageId}`;
-      } else {
-        return `${API_VERSION_V1}/${CHAT_API_STEM}/completions/streaming-and-non-streaming/${conversationId}`;
+      let url = `${API_VERSION_V1}/${CHAT_API_STEM}/completions/streaming-and-non-streaming`;
+
+      if (conversationId) {
+        url += `/${conversationId}`;
       }
+
+      if (editedMessageId !== null) {
+        url += `?editedMessageId=${editedMessageId}`;
+      }
+      return url;
     },
   },
   USERS: {
