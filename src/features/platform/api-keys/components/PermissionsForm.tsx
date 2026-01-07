@@ -61,7 +61,7 @@ export function PermissionsForm({
 
       {type === "restricted" && (
         <div className="grid grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-200">
-          <div className="space-y-1">
+          <div className="space-y-1 overflow-y-auto overflow-x-auto gpt-scrollbar">
             <SelectionList
               title="Models"
               items={
@@ -76,7 +76,7 @@ export function PermissionsForm({
               <p className="text-xs text-destructive">{errors.models}</p>
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 overflow-y-auto overflow-x-auto gpt-scrollbar">
             <SelectionList
               title="Endpoints"
               items={

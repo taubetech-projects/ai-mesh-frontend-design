@@ -1,8 +1,17 @@
 "use client";
 
 import { DashboardLayout } from "@/features/platform/components/layouts";
-import { PageHeader, CodeBlock, StatusBadge } from "@/features/platform/components/platform";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  PageHeader,
+  CodeBlock,
+  StatusBadge,
+} from "@/features/platform/components/platform";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
 
 interface Endpoint {
   method: "GET" | "POST" | "PUT" | "DELETE";
@@ -106,6 +115,20 @@ const jsExample = `const response = await fetch('https://api.yourplatform.com/v1
       { role: 'user', content: 'Hello!' }
     ]
   })
+      body: JSON.stringify({
+    model: 'gpt-4-turbo',
+    messages: [
+      { role: 'system', content: 'You are a helpful assistant.' },
+      { role: 'user', content: 'Hello!' }
+    ]
+  })
+      body: JSON.stringify({
+    model: 'gpt-4-turbo',
+    messages: [
+      { role: 'system', content: 'You are a helpful assistant.' },
+      { role: 'user', content: 'Hello!' }
+    ]
+  })
 });
 
 const data = await response.json();
@@ -124,7 +147,9 @@ export default function Endpoints() {
           {/* Endpoints List */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border">
-              <h3 className="font-medium text-foreground">Available Endpoints</h3>
+              <h3 className="font-medium text-foreground">
+                Available Endpoints
+              </h3>
             </div>
             <div className="divide-y divide-border">
               {endpoints.map((endpoint, index) => (
@@ -146,11 +171,15 @@ export default function Endpoints() {
                     {endpoint.status !== "stable" && (
                       <StatusBadge
                         status={endpoint.status}
-                        variant={endpoint.status === "beta" ? "warning" : "destructive"}
+                        variant={
+                          endpoint.status === "beta" ? "warning" : "destructive"
+                        }
                       />
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{endpoint.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {endpoint.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -159,7 +188,9 @@ export default function Endpoints() {
           {/* Code Examples */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border">
-              <h3 className="font-medium text-foreground">Quick Start Examples</h3>
+              <h3 className="font-medium text-foreground">
+                Quick Start Examples
+              </h3>
             </div>
             <div className="p-4">
               <Tabs defaultValue="curl">
@@ -195,7 +226,8 @@ export default function Endpoints() {
             <StatusBadge status="Online" variant="success" />
           </div>
           <p className="text-sm text-muted-foreground mt-3">
-            All API requests should be made to this base URL. Make sure to include your API key in the Authorization header.
+            All API requests should be made to this base URL. Make sure to
+            include your API key in the Authorization header.
           </p>
         </div>
       </div>

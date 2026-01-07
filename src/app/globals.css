@@ -41,6 +41,8 @@
   --stream-front: oklch(49.439% 0.26475 264.022);
   --success: oklch(0.623 0.17 145);
   --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.718 0.178 91.429);
+  --info: oklch(0.269 0 0);
 
   /* Custom tokens */
   --card-hover: hsl(0 0% 12%);
@@ -157,6 +159,9 @@
   --color-text-tertiary: var(--text-tertiary);
   --color-text-success: var(--success);
   --color-text-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 
 }
 
@@ -166,6 +171,78 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .card-interactive {
+    @apply bg-card border border-border rounded-xl transition-all duration-200;
+  }
+
+  .card-interactive:hover {
+    @apply border-primary/30 bg-card-hover;
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground font-medium rounded-lg px-4 py-2 transition-all duration-200;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-1px);
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground transition-colors duration-150;
+  }
+
+  .sidebar-item:hover {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+
+  .sidebar-item.active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground font-medium;
+  }
+
+  .stat-card {
+    @apply bg-card border border-border rounded-xl p-5;
+  }
+
+  .table-row {
+    @apply border-b border-border transition-colors duration-150;
+  }
+
+  .table-row:hover {
+    @apply bg-secondary/50;
+  }
+
+  .badge-success {
+    @apply bg-success/20 text-success px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-warning {
+    @apply bg-warning/20 text-warning px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-info {
+    @apply bg-info/20 text-info px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-destructive {
+    @apply bg-destructive/20 text-destructive px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .input-field {
+    @apply bg-secondary border border-border rounded-lg px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
+  }
+
+  .code-block {
+    @apply bg-secondary/50 border border-border rounded-lg p-4 font-mono text-sm overflow-x-auto;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 20px hsl(43, 74%, 49%, 0.5);
   }
 }
 
