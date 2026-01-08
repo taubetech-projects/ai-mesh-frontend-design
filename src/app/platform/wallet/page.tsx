@@ -37,11 +37,7 @@ import {
   DeveloperWalletTransaction,
   WalletView,
 } from "@/features/platform/wallet/types/walletTypes";
-import {
-  formatCentsCurrency,
-  formatCurrency,
-  formatNanoCentsCurrency,
-} from "@/shared/utils/currency";
+import { formatNanoCentsCurrency, nanoToUsd } from "@/shared/utils/currency";
 import { formatDateYearMonthDay } from "@/shared/utils/dateFormat";
 
 interface Transaction {
@@ -187,12 +183,11 @@ export default function Wallet() {
             Top Up
           </Button>
         </PageHeader>
-
         {/* Balance Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <StatCard
             title="Available Balance"
-            value={formatCurrency(wallet?.balanceUsd, {
+            value={formatNanoCentsCurrency(wallet?.balanceNanoUsd, {
               prefix: "$",
               decimals: 2,
             })}
@@ -202,7 +197,7 @@ export default function Wallet() {
           />
           <StatCard
             title="Total Credits Added"
-            value={formatNanoCentsCurrency(wallet?.balanceNanoUsd, {
+            value={formatNanoCentsCurrency(wallet?.totalLifetimeCredits, {
               prefix: "$",
               decimals: 2,
             })}
@@ -211,7 +206,7 @@ export default function Wallet() {
           />
           <StatCard
             title="Total Usage"
-            value={formatCurrency(wallet?.balanceUsd, {
+            value={formatNanoCentsCurrency(wallet?.totalLifetimeUsage, {
               prefix: "$",
               decimals: 2,
             })}
@@ -219,27 +214,30 @@ export default function Wallet() {
             description="Lifetime spending"
           />
         </div>
-
         {/* Low Balance Alert */}
-        <div className="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-xl">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-warning/20">
-              <WalletIcon className="h-5 w-5 text-warning" />
+        {wallet?.balanceUsd !== undefined &&
+          wallet?.balanceUsd < nanoToUsd(wallet.lowBalanceThresholdNanoUsd) && (
+            <div className="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-xl">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-warning/20">
+                  <WalletIcon className="h-5 w-5 text-warning" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-foreground">
+                    Low Balance Alert
+                  </h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Your balance is running low. Consider topping up to avoid
+                    service interruption. Estimated usage at current rate: ~14
+                    days remaining.
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => setIsTopUpOpen(true)}>
+                  Top Up Now
+                </Button>
+              </div>
             </div>
-            <div className="flex-1">
-              <h4 className="font-medium text-foreground">Low Balance Alert</h4>
-              <p className="text-sm text-muted-foreground mt-1">
-                Your balance is running low. Consider topping up to avoid
-                service interruption. Estimated usage at current rate: ~14 days
-                remaining.
-              </p>
-            </div>
-            <Button size="sm" onClick={() => setIsTopUpOpen(true)}>
-              Top Up Now
-            </Button>
-          </div>
-        </div>
-
+          )}
         {/* Transaction History */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="p-4 border-b border-border">
@@ -250,7 +248,6 @@ export default function Wallet() {
             data={walletTransactions || []}
           />
         </div>
-
         {/* Top Up Dialog */}
         <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
           <DialogContent className="sm:max-w-md">

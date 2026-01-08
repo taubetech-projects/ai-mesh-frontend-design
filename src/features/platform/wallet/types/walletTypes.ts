@@ -1,7 +1,11 @@
 export type WalletView = {
   balanceUsd: number;
   balanceNanoUsd: number;
+  totalLifetimeCredits: number;
+  totalLifetimeUsage: number;
   currency: string;
+  lowBalanceThresholdNanoUsd: number;
+  lowBalanceNotifiedAt: string;
 };
 
 export type DeveloperWalletTransaction = {

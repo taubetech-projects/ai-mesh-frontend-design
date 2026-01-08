@@ -1,5 +1,5 @@
 "use client";
-import { Download, CreditCard, TrendingUp } from "lucide-react";
+import { Download, CreditCard, TrendingUp, WalletIcon } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import {
   PageHeader,
@@ -20,8 +20,16 @@ import {
   InvoicePreview,
   TokenUsageSummary,
 } from "@/features/platform/billing/types/invoiceTypes";
-import { formatNanoCentsCurrency } from "@/shared/utils/currency";
+import {
+  formatCurrency,
+  formatNanoCentsCurrency,
+} from "@/shared/utils/currency";
 import { formatBillingPeriod } from "@/shared/utils/dateFormat";
+import { useWalletQuery } from "@/features/platform/wallet/hooks/useWalletHook";
+import {
+  DeveloperWalletTransaction,
+  WalletView,
+} from "@/features/platform/wallet/types/walletTypes";
 
 interface Invoice {
   id: string;
@@ -56,8 +64,10 @@ const mockInvoices: Invoice[] = [
 ];
 
 export default function Billing() {
-  const { data } = useInvoicePreviewQuery();
-  const invoicePreview = data as InvoicePreview | undefined;
+  const { data: invoicePreviewData } = useInvoicePreviewQuery();
+  const invoicePreview = invoicePreviewData as InvoicePreview | undefined;
+  const { data: walletData } = useWalletQuery();
+  const wallet = walletData as WalletView | undefined;
 
   const invoiceColumns: Column<Invoice>[] = [
     {
@@ -170,7 +180,11 @@ export default function Billing() {
           />
           <StatCard
             title="Credit Balance"
-            value="$248.50"
+            value={formatCurrency(wallet?.balanceUsd, {
+              prefix: "$",
+              decimals: 2,
+            })}
+            icon={WalletIcon}
             description="Available credits"
           />
         </div>

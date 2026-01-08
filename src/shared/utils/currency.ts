@@ -83,3 +83,16 @@ export const formatCurrency = (
 // formatCurrency(invoicePreview?.totalAmountCents, { decimals: 2 }); // "0.00"
 // formatCurrency(invoicePreview?.totalAmountCents, { prefix: '$', decimals: 2 }); // "$0.00"
 // formatCurrency(invoicePreview?.totalAmountCents, { suffix: ' USD', decimals: 2 }); // "0.00 USD"
+
+export const nanoToUsd = (nanoAmount: number): number => {
+  return nanoAmount / 1_000_000_000;
+};
+// Usage
+// const usdAmount = nanoToUsd(wallet.balanceNanoUsd);
+// console.log(usdAmount); // e.g., 12.34
+export const usdToNano = (usdAmount: number): number => {
+  return Math.round(usdAmount * 1_000_000_000);
+};
+// Usage
+// const nanoAmount = usdToNano(12.34);
+// console.log(nanoAmount); // e.g., 12340000000
