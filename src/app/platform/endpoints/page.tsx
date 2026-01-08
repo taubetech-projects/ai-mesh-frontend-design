@@ -100,7 +100,7 @@ export default function Endpoints() {
     const url = `https://api.ai-mesh.com${endpoint.path}`;
     return {
       curl: `curl -X ${endpoint.httpMethod} ${url} \\\n  -H "Authorization: Bearer YOUR_API_KEY"`,
-      python: `import requests\n\nresponse = requests.${endpoint.httpMethod.toLowerCase()}("${url}", headers={"Authorization": "Bearer YOUR_API_KEY"})\nprint(response.json())`,
+      python: `import requests\n\nresponse = requests.${endpoint.httpMethod?.toLowerCase()}("${url}", headers={"Authorization": "Bearer YOUR_API_KEY"})\nprint(response.json())`,
       javascript: `const response = await fetch('${url}', {\n  method: '${endpoint.httpMethod}',\n  headers: { 'Authorization': 'Bearer YOUR_API_KEY' }\n});\nconsole.log(await response.json());`,
     };
   };

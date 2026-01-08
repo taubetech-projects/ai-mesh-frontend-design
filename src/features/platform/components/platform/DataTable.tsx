@@ -36,7 +36,12 @@ export function DataTable<T extends { id: string | number }>({
   };
 
   return (
-    <div className={cn("rounded-xl border border-border overflow-hidden", className)}>
+    <div
+      className={cn(
+        "rounded-xl border border-border overflow-hidden",
+        className
+      )}
+    >
       <Table>
         <TableHeader>
           <TableRow className="bg-secondary/50 hover:bg-secondary/50">
@@ -54,13 +59,10 @@ export function DataTable<T extends { id: string | number }>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((row) => (
+          {data.map((row, index) => (
             <TableRow
-              key={row.id}
-              className={cn(
-                "table-row",
-                onRowClick && "cursor-pointer"
-              )}
+              key={index}
+              className={cn("table-row", onRowClick && "cursor-pointer")}
               onClick={() => onRowClick?.(row)}
             >
               {columns.map((column, index) => (

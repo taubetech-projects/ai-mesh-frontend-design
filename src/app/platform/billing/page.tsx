@@ -1,9 +1,35 @@
 "use client";
-import { Download, CreditCard, TrendingUp } from "lucide-react";
+import { Download, CreditCard, TrendingUp, WalletIcon } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
-import { PageHeader, StatCard, DataTable, StatusBadge, Column } from "@/features/platform/components/platform";
+import {
+  PageHeader,
+  StatCard,
+  DataTable,
+  StatusBadge,
+  Column,
+} from "@/features/platform/components/platform";
 import { Button } from "@/shared/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
+import { useInvoicePreviewQuery } from "@/features/platform/billing/hooks/useBillingAndInvoicesHook";
+import {
+  InvoicePreview,
+  TokenUsageSummary,
+} from "@/features/platform/billing/types/invoiceTypes";
+import {
+  formatCurrency,
+  formatNanoCentsCurrency,
+} from "@/shared/utils/currency";
+import { formatBillingPeriod } from "@/shared/utils/dateFormat";
+import { useWalletQuery } from "@/features/platform/wallet/hooks/useWalletHook";
+import {
+  DeveloperWalletTransaction,
+  WalletView,
+} from "@/features/platform/wallet/types/walletTypes";
 
 interface Invoice {
   id: string;
@@ -11,14 +37,6 @@ interface Invoice {
   amount: string;
   status: "paid" | "pending" | "failed";
   period: string;
-}
-
-interface UsageItem {
-  id: string;
-  model: string;
-  requests: number;
-  tokens: number;
-  cost: string;
 }
 
 const mockInvoices: Invoice[] = [
@@ -45,15 +63,12 @@ const mockInvoices: Invoice[] = [
   },
 ];
 
-const mockUsage: UsageItem[] = [
-  { id: "1", model: "GPT-4 Turbo", requests: 12500, tokens: 2500000, cost: "$75.00" },
-  { id: "2", model: "GPT-4", requests: 3200, tokens: 640000, cost: "$38.40" },
-  { id: "3", model: "Claude 3 Opus", requests: 1800, tokens: 360000, cost: "$27.00" },
-  { id: "4", model: "Claude 3 Sonnet", requests: 8500, tokens: 1700000, cost: "$25.50" },
-  { id: "5", model: "Gemini Pro", requests: 15000, tokens: 3000000, cost: "$7.50" },
-];
-
 export default function Billing() {
+  const { data: invoicePreviewData } = useInvoicePreviewQuery();
+  const invoicePreview = invoicePreviewData as InvoicePreview | undefined;
+  const { data: walletData } = useWalletQuery();
+  const wallet = walletData as WalletView | undefined;
+
   const invoiceColumns: Column<Invoice>[] = [
     {
       header: "Invoice ID",
@@ -101,32 +116,35 @@ export default function Billing() {
     },
   ];
 
-  const usageColumns: Column<UsageItem>[] = [
+  const usageColumns: Column<TokenUsageSummary>[] = [
     {
       header: "Model",
       accessor: (row) => (
-        <span className="font-medium text-foreground">{row.model}</span>
+        <span className="font-medium text-foreground">
+          {row.modelName || "N/A"}
+        </span>
       ),
     },
     {
       header: "Requests",
-      accessor: (row) => row.requests.toLocaleString(),
+      accessor: (row) => row?.requests?.toLocaleString() || "0",
     },
     {
       header: "Tokens",
-      accessor: (row) => row.tokens.toLocaleString(),
+      accessor: (row) => row.tokens?.toLocaleString() || "0",
     },
     {
       header: "Cost",
       accessor: (row) => (
-        <span className="font-mono text-foreground">{row.cost}</span>
+        <span className="font-mono text-foreground">
+          {formatNanoCentsCurrency(row.amountNanoUsd, {
+            prefix: "$",
+            decimals: 4,
+          })}
+        </span>
       ),
     },
   ];
-
-  const totalUsage = mockUsage.reduce((acc, item) => {
-    return acc + parseFloat(item.cost.replace("$", ""));
-  }, 0);
 
   return (
     <DashboardLayout>
@@ -145,18 +163,28 @@ export default function Billing() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <StatCard
             title="Current Month Usage"
-            value={`$${totalUsage.toFixed(2)}`}
+            value={formatNanoCentsCurrency(invoicePreview?.totalAmountCents, {
+              prefix: "$",
+              decimals: 4,
+            })}
             icon={TrendingUp}
-            description="Billing period: Feb 1 - Feb 29"
+            description={formatBillingPeriod(
+              invoicePreview?.periodStart,
+              invoicePreview?.periodEnd
+            )}
           />
           <StatCard
             title="Total Requests"
-            value={mockUsage.reduce((acc, item) => acc + item.requests, 0).toLocaleString()}
+            value={invoicePreview?.totalRequests?.toLocaleString() || "0"}
             description="This billing period"
           />
           <StatCard
             title="Credit Balance"
-            value="$248.50"
+            value={formatCurrency(wallet?.balanceUsd, {
+              prefix: "$",
+              decimals: 2,
+            })}
+            icon={WalletIcon}
             description="Available credits"
           />
         </div>
@@ -171,13 +199,24 @@ export default function Billing() {
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <h3 className="font-medium text-foreground">Usage by Model</h3>
-                <span className="text-sm text-muted-foreground">February 2024</span>
+                <span className="text-sm text-muted-foreground">
+                  {formatBillingPeriod(
+                    invoicePreview?.periodStart,
+                    invoicePreview?.periodEnd
+                  )}
+                </span>
               </div>
-              <DataTable columns={usageColumns} data={mockUsage} />
+              <DataTable
+                columns={usageColumns}
+                data={invoicePreview?.lines || []}
+              />
               <div className="p-4 border-t border-border flex justify-between items-center bg-secondary/30">
                 <span className="font-medium text-foreground">Total</span>
                 <span className="font-mono font-medium text-foreground">
-                  ${totalUsage.toFixed(2)}
+                  {formatNanoCentsCurrency(invoicePreview?.totalAmountCents, {
+                    prefix: "$",
+                    decimals: 4,
+                  })}
                 </span>
               </div>
             </div>
@@ -190,15 +229,22 @@ export default function Billing() {
 
         {/* Billing Threshold */}
         <div className="mt-6 bg-card border border-border rounded-xl p-5">
-          <h3 className="font-medium text-foreground mb-3">Billing Threshold</h3>
+          <h3 className="font-medium text-foreground mb-3">
+            Billing Threshold
+          </h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-foreground">Current threshold: <span className="font-medium">$500.00</span></p>
+              <p className="text-foreground">
+                Current threshold: <span className="font-medium">$500.00</span>
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
-                You'll be charged when your usage reaches this amount or at the end of the billing period.
+                You'll be charged when your usage reaches this amount or at the
+                end of the billing period.
               </p>
             </div>
-            <Button variant="outline" size="sm">Update</Button>
+            <Button variant="outline" size="sm">
+              Update
+            </Button>
           </div>
         </div>
       </div>
