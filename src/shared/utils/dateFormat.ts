@@ -23,3 +23,15 @@ export const formatBillingPeriod = (
 // Usage
 // formatBillingPeriod(invoicePreview?.periodStart, invoicePreview?.periodEnd);
 // Returns: "Billing Period: Jan 01, 2024 - Jan 31, 2024"
+
+export const formatDateYearMonthDay = (
+  date: Date | string | undefined,
+  fallback: string = "N/A"
+): string => {
+  if (!date) {
+    return fallback;
+  }
+
+  const parsedDate = typeof date === "string" ? new Date(date) : date;
+  return format(parsedDate, "yyyy-MM-dd");
+};

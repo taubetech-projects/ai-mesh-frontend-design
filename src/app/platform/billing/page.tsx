@@ -20,9 +20,8 @@ import {
   InvoicePreview,
   TokenUsageSummary,
 } from "@/features/platform/billing/types/invoiceTypes";
-import { format } from "date-fns";
-import { formatCurrency } from "../utils/currency";
-import { formatBillingPeriod } from "../utils/dateFormat";
+import { formatNanoCentsCurrency } from "@/shared/utils/currency";
+import { formatBillingPeriod } from "@/shared/utils/dateFormat";
 
 interface Invoice {
   id: string;
@@ -59,7 +58,6 @@ const mockInvoices: Invoice[] = [
 export default function Billing() {
   const { data } = useInvoicePreviewQuery();
   const invoicePreview = data as InvoicePreview | undefined;
-  console.log("invoicePreview:", invoicePreview);
 
   const invoiceColumns: Column<Invoice>[] = [
     {
@@ -129,7 +127,10 @@ export default function Billing() {
       header: "Cost",
       accessor: (row) => (
         <span className="font-mono text-foreground">
-          {formatCurrency(row.amountNanoUsd, { prefix: "$", decimals: 4 })}
+          {formatNanoCentsCurrency(row.amountNanoUsd, {
+            prefix: "$",
+            decimals: 4,
+          })}
         </span>
       ),
     },
@@ -152,7 +153,7 @@ export default function Billing() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <StatCard
             title="Current Month Usage"
-            value={formatCurrency(invoicePreview?.totalAmountCents, {
+            value={formatNanoCentsCurrency(invoicePreview?.totalAmountCents, {
               prefix: "$",
               decimals: 4,
             })}
@@ -198,7 +199,7 @@ export default function Billing() {
               <div className="p-4 border-t border-border flex justify-between items-center bg-secondary/30">
                 <span className="font-medium text-foreground">Total</span>
                 <span className="font-mono font-medium text-foreground">
-                  {formatCurrency(invoicePreview?.totalAmountCents, {
+                  {formatNanoCentsCurrency(invoicePreview?.totalAmountCents, {
                     prefix: "$",
                     decimals: 4,
                   })}
