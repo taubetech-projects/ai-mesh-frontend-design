@@ -1,11 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import {
   PageHeader,
   CodeBlock,
   StatusBadge,
 } from "@/features/platform/components/platform";
+import { cn } from "@/features/platform/lib/utils";
+import {
+  useEndpoint,
+  useEndpoints,
+} from "@/features/platform/endpoints/endpointCatalog.queries";
 import {
   Tabs,
   TabsContent,
@@ -13,128 +19,94 @@ import {
   TabsTrigger,
 } from "@/shared/components/ui/tabs";
 
-interface Endpoint {
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  path: string;
-  description: string;
-  status: "stable" | "beta" | "deprecated";
-}
-
-const endpoints: Endpoint[] = [
-  {
-    method: "POST",
-    path: "/v1/chat/completions",
-    description: "Create a chat completion with the specified model",
-    status: "stable",
-  },
-  {
-    method: "POST",
-    path: "/v1/completions",
-    description: "Create a text completion",
-    status: "stable",
-  },
-  {
-    method: "POST",
-    path: "/v1/embeddings",
-    description: "Create embeddings for the given input",
-    status: "stable",
-  },
-  {
-    method: "GET",
-    path: "/v1/models",
-    description: "List all available models",
-    status: "stable",
-  },
-  {
-    method: "GET",
-    path: "/v1/models/:id",
-    description: "Get details about a specific model",
-    status: "stable",
-  },
-  {
-    method: "POST",
-    path: "/v1/images/generations",
-    description: "Generate images from a text prompt",
-    status: "beta",
-  },
-  {
-    method: "POST",
-    path: "/v1/audio/transcriptions",
-    description: "Transcribe audio to text",
-    status: "beta",
-  },
-];
-
 const methodColors: Record<string, string> = {
-  GET: "bg-info/20 text-info",
+  GET: "bg-warning/20 text-warning",
   POST: "bg-success/20 text-success",
   PUT: "bg-warning/20 text-warning",
   DELETE: "bg-destructive/20 text-destructive",
 };
 
-const curlExample = `curl -X POST https://api.yourplatform.com/v1/chat/completions \\
+// Static data map for endpoint examples
+const endpointExamplesMap: Record<string, Record<string, string>> = {
+  "/v1/chat/completions": {
+    curl: `curl -X POST https://api.ai-mesh.com/v1/chat/completions \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "gpt-4-turbo",
-    "messages": [
-      {"role": "system", "content": "You are a helpful assistant."},
-      {"role": "user", "content": "Hello!"}
-    ]
-  }'`;
-
-const pythonExample = `import requests
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'`,
+    python: `import requests
 
 response = requests.post(
-    "https://api.yourplatform.com/v1/chat/completions",
-    headers={
-        "Authorization": "Bearer YOUR_API_KEY",
-        "Content-Type": "application/json"
-    },
+    "https://api.ai-mesh.com/v1/chat/completions",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
     json={
-        "model": "gpt-4-turbo",
-        "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Hello!"}
-        ]
+        "model": "gpt-4",
+        "messages": [{"role": "user", "content": "Hello!"}]
     }
 )
-
-print(response.json())`;
-
-const jsExample = `const response = await fetch('https://api.yourplatform.com/v1/chat/completions', {
+print(response.json())`,
+    javascript: `const response = await fetch('https://api.ai-mesh.com/v1/chat/completions', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    model: 'gpt-4-turbo',
-    messages: [
-      { role: 'system', content: 'You are a helpful assistant.' },
-      { role: 'user', content: 'Hello!' }
-    ]
-  })
-      body: JSON.stringify({
-    model: 'gpt-4-turbo',
-    messages: [
-      { role: 'system', content: 'You are a helpful assistant.' },
-      { role: 'user', content: 'Hello!' }
-    ]
-  })
-      body: JSON.stringify({
-    model: 'gpt-4-turbo',
-    messages: [
-      { role: 'system', content: 'You are a helpful assistant.' },
-      { role: 'user', content: 'Hello!' }
-    ]
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: 'Hello!' }]
   })
 });
-
-const data = await response.json();
-console.log(data);`;
+console.log(await response.json());`,
+  },
+  "/v1/models": {
+    curl: `curl https://api.ai-mesh.com/v1/models \\
+  -H "Authorization: Bearer YOUR_API_KEY"`,
+    python: `import requests
+response = requests.get(
+    "https://api.ai-mesh.com/v1/models",
+    headers={"Authorization": "Bearer YOUR_API_KEY"}
+)
+print(response.json())`,
+    javascript: `const response = await fetch('https://api.ai-mesh.com/v1/models', {
+  headers: { 'Authorization': 'Bearer YOUR_API_KEY' }
+});
+console.log(await response.json());`,
+  },
+};
 
 export default function Endpoints() {
+  const { data: endpoints } = useEndpoints();
+  const [selectedEndpoint, setSelectedEndpoint] = useState<any>(null);
+
+  // Select the first endpoint initially when data loads
+  useEffect(() => {
+    if (endpoints && endpoints.length > 0 && !selectedEndpoint) {
+      setSelectedEndpoint(endpoints[0]);
+    }
+  }, [endpoints, selectedEndpoint]);
+
+  // Helper to get examples for the selected endpoint
+  const getExamples = (endpoint: any) => {
+    if (!endpoint) return { curl: "", python: "", javascript: "" };
+
+    // Return static examples if available
+    if (endpointExamplesMap[endpoint.path]) {
+      return endpointExamplesMap[endpoint.path];
+    }
+
+    // Fallback: Generate generic examples based on method and path
+    const url = `https://api.ai-mesh.com${endpoint.path}`;
+    return {
+      curl: `curl -X ${endpoint.httpMethod} ${url} \\\n  -H "Authorization: Bearer YOUR_API_KEY"`,
+      python: `import requests\n\nresponse = requests.${endpoint.httpMethod.toLowerCase()}("${url}", headers={"Authorization": "Bearer YOUR_API_KEY"})\nprint(response.json())`,
+      javascript: `const response = await fetch('${url}', {\n  method: '${endpoint.httpMethod}',\n  headers: { 'Authorization': 'Bearer YOUR_API_KEY' }\n});\nconsole.log(await response.json());`,
+    };
+  };
+
+  const currentExamples = getExamples(selectedEndpoint);
+
   return (
     <DashboardLayout>
       <div className="animate-fade-in">
@@ -152,30 +124,36 @@ export default function Endpoints() {
               </h3>
             </div>
             <div className="divide-y divide-border">
-              {endpoints.map((endpoint, index) => (
+              {endpoints?.map((endpoint, index) => (
                 <div
                   key={index}
-                  className="p-4 hover:bg-secondary/50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedEndpoint(endpoint)}
+                  className={cn(
+                    "p-4 hover:bg-secondary/50 transition-colors cursor-pointer border-l-2 border-transparent",
+                    selectedEndpoint === endpoint
+                      ? "bg-secondary/50 border-primary"
+                      : ""
+                  )}
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <span
                       className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        methodColors[endpoint.method]
+                        methodColors[endpoint.httpMethod]
                       }`}
                     >
-                      {endpoint.method}
+                      {endpoint.httpMethod?.toString().toUpperCase()}
                     </span>
                     <code className="text-sm text-foreground font-mono">
                       {endpoint.path}
                     </code>
-                    {endpoint.status !== "stable" && (
+                    {/* {endpoint.status !== "stable" && (
                       <StatusBadge
                         status={endpoint.status}
                         variant={
                           endpoint.status === "beta" ? "warning" : "destructive"
                         }
                       />
-                    )}
+                    )} */}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {endpoint.description}
@@ -189,7 +167,8 @@ export default function Endpoints() {
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border">
               <h3 className="font-medium text-foreground">
-                Quick Start Examples
+                Quick Start Examples{" "}
+                {selectedEndpoint && `- ${selectedEndpoint.path}`}
               </h3>
             </div>
             <div className="p-4">
@@ -201,15 +180,18 @@ export default function Endpoints() {
                 </TabsList>
 
                 <TabsContent value="curl">
-                  <CodeBlock code={curlExample} />
+                  <CodeBlock code={currentExamples.curl} />
                 </TabsContent>
 
                 <TabsContent value="python">
-                  <CodeBlock code={pythonExample} language="python" />
+                  <CodeBlock code={currentExamples.python} language="python" />
                 </TabsContent>
 
                 <TabsContent value="javascript">
-                  <CodeBlock code={jsExample} language="javascript" />
+                  <CodeBlock
+                    code={currentExamples.javascript}
+                    language="javascript"
+                  />
                 </TabsContent>
               </Tabs>
             </div>
