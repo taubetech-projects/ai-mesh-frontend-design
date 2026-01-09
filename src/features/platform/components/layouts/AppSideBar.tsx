@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  ChartBar,
 } from "lucide-react";
 import { cn } from "@/features/platform/lib/utils";
 import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
@@ -55,6 +56,7 @@ const navItems: NavItem[] = [
     ],
   },
   { title: "Wallet", href: PLATFORM_ROUTES.WALLET, icon: Wallet },
+  { title: "Usage", href: PLATFORM_ROUTES.USAGE, icon: ChartBar },
   { title: "Settings", href: PLATFORM_ROUTES.SETTINGS, icon: Settings },
 ];
 

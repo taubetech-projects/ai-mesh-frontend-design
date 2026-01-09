@@ -35,6 +35,7 @@ export enum PLATFORM_ROUTES {
   BILLING = "/platform/billing",
   WALLET = "/platform/wallet",
   DASHBOARD = "/platform/dashboard",
+  USAGE = "/platform/usage",
 
   SIGNUP = "/platform/auth/signup",
   SIGNIN = "/platform/auth/login",
