@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
 import { Progress } from "@/shared/components/ui/progress";
 import {
   Select,
@@ -12,10 +22,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
 import { Calendar } from "@/shared/components/ui/calendar";
-import { Calendar as CalendarIcon, Download, ChevronRight } from "lucide-react";
-import { format, subDays } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  Download,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
+import { format, subDays, eachDayOfInterval } from "date-fns";
 import { DateRange } from "react-day-picker";
 import {
   BarChart,
@@ -29,65 +48,8 @@ import {
 } from "recharts";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import { PageHeader } from "@/features/platform/components/platform";
-
-// Mock data for usage
-const dailySpendData = [
-  { date: "Dec 25", spend: 0.06 },
-  { date: "Dec 26", spend: 0.02 },
-  { date: "Dec 27", spend: 0.015 },
-  { date: "Dec 28", spend: 0.012 },
-  { date: "Dec 29", spend: 0.01 },
-  { date: "Dec 30", spend: 0.008 },
-  { date: "Dec 31", spend: 0.006 },
-  { date: "Jan 01", spend: 0.005 },
-  { date: "Jan 02", spend: 0.004 },
-  { date: "Jan 03", spend: 0.003 },
-  { date: "Jan 04", spend: 0.002 },
-  { date: "Jan 05", spend: 0.025 },
-  { date: "Jan 06", spend: 0.018 },
-  { date: "Jan 07", spend: 0.035 },
-  { date: "Jan 08", spend: 0.04 },
-  { date: "Jan 09", spend: 0.0 },
-];
-
-const tokenData = [
-  { day: "1", tokens: 800 },
-  { day: "2", tokens: 1200 },
-  { day: "3", tokens: 900 },
-  { day: "4", tokens: 1500 },
-  { day: "5", tokens: 1100 },
-  { day: "6", tokens: 1800 },
-  { day: "7", tokens: 1400 },
-  { day: "8", tokens: 2000 },
-  { day: "9", tokens: 1600 },
-  { day: "10", tokens: 1300 },
-];
-
-const requestData = [
-  { day: "1", requests: 12 },
-  { day: "2", requests: 15 },
-  { day: "3", requests: 8 },
-  { day: "4", requests: 20 },
-  { day: "5", requests: 18 },
-  { day: "6", requests: 25 },
-  { day: "7", requests: 22 },
-  { day: "8", requests: 30 },
-  { day: "9", requests: 16 },
-  { day: "10", requests: 10 },
-];
-
-const apiCapabilities = [
-  { name: "Responses and Chat Completions", requests: 182, tokens: "12.378K input tokens" },
-  { name: "Images", requests: 0, tokens: "0 images" },
-  { name: "Audio", requests: 0, tokens: "0 minutes" },
-  { name: "Embeddings", requests: 0, tokens: "0 tokens" },
-];
-
-const spendCategories = [
-  { name: "GPT-4o", spend: "$0.08", percentage: 57 },
-  { name: "GPT-4o-mini", spend: "$0.04", percentage: 29 },
-  { name: "Claude-3.5", spend: "$0.02", percentage: 14 },
-];
+import { useTokenUsage } from "@/features/platform/usage/usage.queries";
+import { TokenUsageEvent } from "@/features/platform/usage/usage.types";
 
 const groupByOptions = ["1d", "7d", "30d"];
 
@@ -101,9 +63,140 @@ export default function Usage() {
   const [selectedUser, setSelectedUser] = useState("all");
   const [groupBy, setGroupBy] = useState("1d");
   const [rightTabValue, setRightTabValue] = useState("users");
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
 
-  const totalSpend = dailySpendData.reduce((sum, item) => sum + item.spend, 0);
-  const budgetUsed = 0.05;
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [dateRange, selectedProject, selectedApiKey, selectedUser]);
+
+  const queryParams = {
+    page,
+    size: pageSize,
+    from: dateRange?.from?.toISOString(),
+    to: dateRange?.to?.toISOString(),
+    projectId: selectedProject === "all" ? undefined : selectedProject,
+    apiKeyId: selectedApiKey === "all" ? undefined : selectedApiKey,
+    billedUserId: selectedUser === "all" ? undefined : selectedUser,
+    sortDir: "DESC" as const,
+  };
+
+  const { data: usagePage, isLoading } = useTokenUsage(queryParams);
+  const usageData = usagePage?.data || [];
+
+  // --- Aggregations for Charts (Client-side based on current page) ---
+
+  const dailySpendData = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return [];
+
+    const map = new Map<string, number>();
+    usageData.forEach((item) => {
+      const date = format(new Date(item.createdAt), "MMM dd");
+      const cost = (item.costNanoUsd || 0) / 1e9;
+      map.set(date, (map.get(date) || 0) + cost);
+    });
+
+    try {
+      return eachDayOfInterval({
+        start: dateRange.from,
+        end: dateRange.to,
+      }).map((day) => {
+        const date = format(day, "MMM dd");
+        return { date, spend: map.get(date) || 0 };
+      });
+    } catch (error) {
+      return [];
+    }
+  }, [usageData, dateRange]);
+
+  const tokenData = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return [];
+
+    const map = new Map<string, number>();
+    usageData.forEach((item) => {
+      const day = format(new Date(item.createdAt), "dd");
+      map.set(day, (map.get(day) || 0) + (item.totalTokens || 0));
+    });
+
+    try {
+      return eachDayOfInterval({
+        start: dateRange.from,
+        end: dateRange.to,
+      }).map((d) => {
+        const day = format(d, "dd");
+        return { day, tokens: map.get(day) || 0 };
+      });
+    } catch (error) {
+      return [];
+    }
+  }, [usageData, dateRange]);
+
+  const requestData = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return [];
+
+    const map = new Map<string, number>();
+    usageData.forEach((item) => {
+      const day = format(new Date(item.createdAt), "dd");
+      map.set(day, (map.get(day) || 0) + 1);
+    });
+
+    try {
+      return eachDayOfInterval({
+        start: dateRange.from,
+        end: dateRange.to,
+      }).map((d) => {
+        const day = format(d, "dd");
+        return { day, requests: map.get(day) || 0 };
+      });
+    } catch (error) {
+      return [];
+    }
+  }, [usageData, dateRange]);
+
+  const apiCapabilities = useMemo(() => {
+    const map = new Map<string, { requests: number; tokens: number }>();
+    usageData.forEach((item) => {
+      const mode = item.mode || "Unknown";
+      const current = map.get(mode) || { requests: 0, tokens: 0 };
+      map.set(mode, {
+        requests: current.requests + 1,
+        tokens: current.tokens + (item.totalTokens || 0),
+      });
+    });
+    return Array.from(map.entries()).map(([name, stats]) => ({
+      name,
+      requests: stats.requests,
+      tokens: `${stats.tokens.toLocaleString()} tokens`,
+    }));
+  }, [usageData]);
+
+  const spendCategories = useMemo(() => {
+    const map = new Map<string, number>();
+    let total = 0;
+    usageData.forEach((item) => {
+      const model = item.modelName || "Unknown";
+      const cost = (item.costNanoUsd || 0) / 1e9;
+      map.set(model, (map.get(model) || 0) + cost);
+      total += cost;
+    });
+    return Array.from(map.entries()).map(([name, spend]) => ({
+      name,
+      spend: `$${spend.toFixed(4)}`,
+      percentage: total > 0 ? (spend / total) * 100 : 0,
+    }));
+  }, [usageData]);
+
+  const totalSpend =
+    usageData.reduce((sum, item) => sum + (item.costNanoUsd || 0), 0) / 1e9;
+  const totalTokens = usageData.reduce(
+    (sum, item) => sum + (item.totalTokens || 0),
+    0
+  );
+  const totalRequests = usageData.length;
+
+  // Budget is static for now as it's not in the hook
+  const budgetUsed = totalSpend;
   const budgetTotal = 120;
   const budgetPercentage = (budgetUsed / budgetTotal) * 100;
 
@@ -127,7 +220,7 @@ export default function Usage() {
         {/* Header with filters */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <PageHeader title="Usage" />
-          
+
           <div className="flex flex-wrap items-center gap-3">
             {/* Project Filter */}
             <Select value={selectedProject} onValueChange={setSelectedProject}>
@@ -204,7 +297,7 @@ export default function Usage() {
             {/* Export Button */}
             <Button variant="outline" className="bg-secondary border-border">
               <Download className="mr-2 h-4 w-4" />
-              Export
+              Export Page
             </Button>
           </div>
         </div>
@@ -219,11 +312,13 @@ export default function Usage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Total Spend</p>
                     <p className="text-3xl font-bold text-foreground">
-                      ${totalSpend.toFixed(2)}
+                      ${totalSpend.toFixed(4)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Group by</span>
+                    <span className="text-sm text-muted-foreground">
+                      Group by
+                    </span>
                     <div className="flex bg-secondary rounded-lg p-1">
                       {groupByOptions.map((option) => (
                         <button
@@ -244,28 +339,40 @@ export default function Usage() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dailySpendData}>
-                      <XAxis
-                        dataKey="date"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "var(--foreground)", fontSize: 12 }}
-                        tickFormatter={(value) => `$${value}`}
-                      />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--secondary)" }} />
-                      <Bar
-                        dataKey="spend"
-                        fill="var(--chart-3)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {isLoading ? (
+                    <div className="h-full flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={dailySpendData}>
+                        <XAxis
+                          dataKey="date"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{
+                            fill: "var(--muted-foreground)",
+                            fontSize: 12,
+                          }}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "var(--foreground)", fontSize: 12 }}
+                          tickFormatter={(value) => `$${value}`}
+                        />
+                        <Tooltip
+                          content={<CustomTooltip />}
+                          cursor={{ fill: "var(--secondary)" }}
+                        />
+                        <Bar
+                          dataKey="spend"
+                          fill="var(--chart-3)"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -277,9 +384,17 @@ export default function Usage() {
                 <TabsTrigger value="categories">Spend categories</TabsTrigger>
               </TabsList>
               <TabsContent value="capabilities" className="mt-4">
+                {apiCapabilities.length === 0 && !isLoading && (
+                  <div className="text-center p-4 text-muted-foreground">
+                    No data available for this period.
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {apiCapabilities.map((capability) => (
-                    <Card key={capability.name} className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer">
+                    <Card
+                      key={capability.name}
+                      className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer"
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
@@ -307,14 +422,26 @@ export default function Usage() {
               <TabsContent value="categories" className="mt-4">
                 <Card className="bg-card border-border">
                   <CardContent className="p-4">
+                    {spendCategories.length === 0 && !isLoading && (
+                      <div className="text-center p-4 text-muted-foreground">
+                        No spend data available.
+                      </div>
+                    )}
                     <div className="space-y-4">
                       {spendCategories.map((category) => (
                         <div key={category.name} className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-foreground font-medium">{category.name}</span>
-                            <span className="text-muted-foreground">{category.spend}</span>
+                            <span className="text-foreground font-medium">
+                              {category.name}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {category.spend}
+                            </span>
                           </div>
-                          <Progress value={category.percentage} className="h-2" />
+                          <Progress
+                            value={category.percentage}
+                            className="h-2"
+                          />
                         </div>
                       ))}
                     </div>
@@ -332,12 +459,16 @@ export default function Usage() {
                 <p className="text-sm text-muted-foreground">January budget</p>
                 <p className="text-2xl font-bold text-foreground mt-1">
                   ${budgetUsed.toFixed(2)}{" "}
-                  <span className="text-muted-foreground font-normal">/ ${budgetTotal}</span>
+                  <span className="text-muted-foreground font-normal">
+                    / ${budgetTotal}
+                  </span>
                 </p>
                 <Progress value={budgetPercentage} className="h-2 mt-3" />
                 <p className="text-sm text-muted-foreground mt-2">
                   Resets in 22 days.{" "}
-                  <button className="text-chart-3 hover:underline">Edit budget</button>
+                  <button className="text-chart-3 hover:underline">
+                    Edit budget
+                  </button>
                 </p>
               </CardContent>
             </Card>
@@ -346,7 +477,9 @@ export default function Usage() {
             <Card className="bg-card border-border">
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">Total tokens</p>
-                <p className="text-2xl font-bold text-foreground mt-1">12,378</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
+                  {totalTokens.toLocaleString()}
+                </p>
                 <div className="h-[60px] mt-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={tokenData}>
@@ -367,7 +500,9 @@ export default function Usage() {
             <Card className="bg-card border-border">
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">Total requests</p>
-                <p className="text-2xl font-bold text-foreground mt-1">182</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
+                  {totalRequests}
+                </p>
                 <div className="h-[60px] mt-2">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={requestData}>
@@ -387,18 +522,28 @@ export default function Usage() {
               <CardContent className="p-4">
                 <Tabs value={rightTabValue} onValueChange={setRightTabValue}>
                   <TabsList className="bg-card border w-full">
-                    <TabsTrigger value="users" className="flex-1">Users</TabsTrigger>
-                    <TabsTrigger value="services" className="flex-1">Services</TabsTrigger>
-                    <TabsTrigger value="apikeys" className="flex-1">API Keys</TabsTrigger>
+                    <TabsTrigger value="users" className="flex-1">
+                      Users
+                    </TabsTrigger>
+                    <TabsTrigger value="services" className="flex-1">
+                      Services
+                    </TabsTrigger>
+                    <TabsTrigger value="apikeys" className="flex-1">
+                      API Keys
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="users" className="mt-4">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">john@example.com</span>
+                        <span className="text-foreground">
+                          john@example.com
+                        </span>
                         <span className="text-muted-foreground">$0.08</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">jane@example.com</span>
+                        <span className="text-foreground">
+                          jane@example.com
+                        </span>
                         <span className="text-muted-foreground">$0.04</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
@@ -432,6 +577,93 @@ export default function Usage() {
                     </div>
                   </TabsContent>
                 </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Request Log Table (New Section for Pagination) */}
+          <div className="xl:col-span-4">
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle>Request Log</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-secondary text-muted-foreground">
+                      <tr>
+                        <th className="p-3 font-medium">Date</th>
+                        <th className="p-3 font-medium">Model</th>
+                        <th className="p-3 font-medium">Mode</th>
+                        <th className="p-3 font-medium">Tokens</th>
+                        <th className="p-3 font-medium">Cost</th>
+                        <th className="p-3 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan={6} className="p-4 text-center">
+                            Loading...
+                          </td>
+                        </tr>
+                      ) : usageData.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="p-4 text-center text-muted-foreground"
+                          >
+                            No records found.
+                          </td>
+                        </tr>
+                      ) : (
+                        usageData.map((event) => (
+                          <tr
+                            key={event.id}
+                            className="border-t border-border hover:bg-secondary/50"
+                          >
+                            <td className="p-3">
+                              {format(
+                                new Date(event.createdAt),
+                                "MMM dd, HH:mm:ss"
+                              )}
+                            </td>
+                            <td className="p-3">{event.modelName}</td>
+                            <td className="p-3">{event.mode}</td>
+                            <td className="p-3">{event.totalTokens}</td>
+                            <td className="p-3">
+                              ${((event.costNanoUsd || 0) / 1e9).toFixed(6)}
+                            </td>
+                            <td className="p-3">{event.status}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex items-center justify-end space-x-2 py-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0 || isLoading}
+                  >
+                    Previous
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    Page {page + 1} of {usagePage?.totalPages || 1}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={
+                      page >= (usagePage?.totalPages || 1) - 1 || isLoading
+                    }
+                  >
+                    Next
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
