@@ -44,14 +44,14 @@ export default function Projects() {
   const deleteProject = useDeleteProjectMutation();
   const updateProject = useProjectUpdateMutation();
   const { data: ownedProjects } = useOwnedProjectsQuery();
-  const { data: memberProjects } = useMemberOfProjectsQuery();
+  // const { data: memberProjects } = useMemberOfProjectsQuery();
 
-  const allProjects = [...(ownedProjects || []), ...(memberProjects || [])];
+  // const allProjects = [...(ownedProjects || []), ...(memberProjects || [])];
   const projects = Array.from(
-    new Map(allProjects.map((p) => [p.id, p])).values()
+    new Map(ownedProjects?.map((p) => [p.id, p])).values()
   );
 
-  const filteredProjects = projects.filter(
+  const filteredProjects = projects?.filter(
     (project) =>
       project.name.toLowerCase().includes(search.toLowerCase()) ||
       project.description.toLowerCase().includes(search.toLowerCase())
@@ -90,7 +90,7 @@ export default function Projects() {
           </Button>
         </PageHeader>
 
-        {projects.length > 0 ? (
+        {projects?.length > 0 ? (
           <>
             <SearchInput
               value={search}
@@ -143,7 +143,7 @@ export default function Projects() {
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Key className="h-3.5 w-3.5" />
                       <span>
-                        {Array.isArray(project.apiKeys)
+                        {Array.isArray(project?.apiKeys)
                           ? project.apiKeys.length
                           : project.apiKeys || 0}{" "}
                         keys

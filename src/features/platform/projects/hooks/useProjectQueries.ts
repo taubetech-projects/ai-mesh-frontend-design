@@ -7,18 +7,27 @@ import {
 import { PlatformProjectService } from "../api/platformProjectService";
 import { platformProjectKeys } from "./queryKeys";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 export function useOwnedProjectsQuery() {
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
   return useQuery({
-    queryKey: platformProjectKeys.owned(),
-    queryFn: () => PlatformProjectService.owned(),
+    queryKey: [...platformProjectKeys.owned(), selectedTeam?.id],
+    queryFn: () => PlatformProjectService.getAll(selectedTeam?.id),
+    enabled: !!selectedTeam?.id,
   });
 }
 
 export function useDeleteProjectMutation() {
   const qc = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
   return useMutation({
-    mutationFn: (id: string) => PlatformProjectService.delete(id),
+    mutationFn: (id: string) => {
+      if (!selectedTeam?.id) throw new Error("No team selected");
+      return PlatformProjectService.delete(selectedTeam.id, id);
+    },
     onSuccess: () => {
       toast.success("Project deleted successfully!");
       qc.invalidateQueries({ queryKey: platformProjectKeys.all });
@@ -28,13 +37,16 @@ export function useDeleteProjectMutation() {
 
 export function useProjectUpdateMutation() {
   const qc = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
   return useMutation({
     mutationFn: (project: ProjectResponse) => {
+      if (!selectedTeam?.id) throw new Error("No team selected");
       const data: ProjectUpdateRequest = {
         name: project.name,
         description: project.description,
       };
-      return PlatformProjectService.update(project.id, data);
+      return PlatformProjectService.update(selectedTeam.id, project.id, data);
     },
     onSuccess: () => {
       toast.success("Project updated successfully!");
@@ -52,9 +64,13 @@ export function useMemberOfProjectsQuery() {
 
 export function useCreateProjectMutation() {
   const qc = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
   return useMutation({
-    mutationFn: (data: CreateProjectRequest) =>
-      PlatformProjectService.create(data),
+    mutationFn: (data: CreateProjectRequest) => {
+      if (!selectedTeam?.id) throw new Error("No team selected");
+      return PlatformProjectService.create(selectedTeam.id, data);
+    },
     onSuccess: () => {
       toast.success("Project created successfully!");
       qc.invalidateQueries({ queryKey: platformProjectKeys.all });

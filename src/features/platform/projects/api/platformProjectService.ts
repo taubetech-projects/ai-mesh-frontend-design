@@ -5,35 +5,41 @@ import {
   ProjectUpdateRequest,
 } from "../types/projectTypes";
 
-const basePath = "/v1/api/platform/projects";
+const basePath = "/v1/api/platform";
 
 export const PlatformProjectService = {
-  create: async (data: CreateProjectRequest): Promise<ProjectResponse> => {
+  create: async (
+    teamId: string,
+    data: CreateProjectRequest
+  ): Promise<ProjectResponse> => {
     const res = await platformProxyApi.post<ProjectResponse>(
-      `${basePath}`,
+      `${basePath}/teams/${teamId}/projects`,
       data
     );
     return res.data;
   },
 
   update: async (
+    teamId: string,
     projectId: string,
     data: ProjectUpdateRequest
   ): Promise<ProjectResponse> => {
-    const res = await platformProxyApi.put<ProjectResponse>(
-      `${basePath}/${projectId}`,
+    const res = await platformProxyApi.patch<ProjectResponse>(
+      `${basePath}/teams/${teamId}/projects/${projectId}`,
       data
     );
     return res.data;
   },
 
-  delete: async (projectId: string): Promise<void> => {
-    await platformProxyApi.delete(`${basePath}/${projectId}`);
+  delete: async (teamId: string, projectId: string): Promise<void> => {
+    await platformProxyApi.delete(
+      `${basePath}/teams/${teamId}/projects/${projectId}`
+    );
   },
 
-  owned: async (): Promise<ProjectResponse[]> => {
+  getAll: async (teamId: string): Promise<ProjectResponse[]> => {
     const res = await platformProxyApi.get<ProjectResponse[]>(
-      `${basePath}/owned`
+      `${basePath}/teams/${teamId}/projects`
     );
     return res.data;
   },

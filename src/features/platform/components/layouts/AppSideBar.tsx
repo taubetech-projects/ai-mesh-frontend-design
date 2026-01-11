@@ -75,7 +75,6 @@ export function PlatformSidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const dispatch = useDispatch();
-  // Note: Ensure 'team' reducer is added to your Redux store configuration
   const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
   const { data: teams, isLoading: isTeamsLoading } = useMyTeams();
   console.log("selectedTeam", selectedTeam);
