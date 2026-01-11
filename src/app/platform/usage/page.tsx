@@ -50,6 +50,15 @@ import { DashboardLayout } from "@/features/platform/components/layouts";
 import { PageHeader } from "@/features/platform/components/platform";
 import { useTokenUsage } from "@/features/platform/usage/usage.queries";
 import { TokenUsageEvent } from "@/features/platform/usage/usage.types";
+import {
+  useMemberOfProjectsQuery,
+  useOwnedProjectsQuery,
+} from "@/features/platform/projects/hooks/useProjectQueries";
+import {
+  useAllApiKeys,
+  useProjectApiKeys,
+} from "@/features/platform/api-keys/hooks/useProjectApiKeys";
+import { useEndpoints } from "@/features/platform/endpoints/endpointCatalog.queries";
 
 const groupByOptions = ["1d", "7d", "30d"];
 
@@ -83,7 +92,25 @@ export default function Usage() {
   };
 
   const { data: usagePage, isLoading } = useTokenUsage(queryParams);
+  const { data: ownedProjects } = useOwnedProjectsQuery();
+  const { data: memberProjects } = useMemberOfProjectsQuery();
+  const { data: allKeys } = useAllApiKeys();
+  const { data: projectApiKeys } = useProjectApiKeys(selectedProject || "");
+  const { data: endpoints } = useEndpoints();
+
   const usageData = usagePage?.data || [];
+
+  const allProjects = [...(ownedProjects || []), ...(memberProjects || [])];
+  const projects = Array.from(
+    new Map(allProjects.map((p) => [p.id, p])).values()
+  );
+
+  const apiKeysList =
+    selectedProject === "all" ? allKeys || [] : projectApiKeys || [];
+
+  useEffect(() => {
+    setSelectedApiKey("all");
+  }, [selectedProject]);
 
   // --- Aggregations for Charts (Client-side based on current page) ---
 
@@ -155,21 +182,43 @@ export default function Usage() {
   }, [usageData, dateRange]);
 
   const apiCapabilities = useMemo(() => {
-    const map = new Map<string, { requests: number; tokens: number }>();
-    usageData.forEach((item) => {
-      const mode = item.mode || "Unknown";
-      const current = map.get(mode) || { requests: 0, tokens: 0 };
-      map.set(mode, {
-        requests: current.requests + 1,
-        tokens: current.tokens + (item.totalTokens || 0),
-      });
+    if (!endpoints) return [];
+
+    const usageMap = new Map<string, { requests: number; tokens: number }>();
+
+    const codeToId = new Map<string, string>();
+    endpoints.forEach((e) => {
+      codeToId.set(e.path, e.id);
     });
-    return Array.from(map.entries()).map(([name, stats]) => ({
-      name,
-      requests: stats.requests,
-      tokens: `${stats.tokens.toLocaleString()} tokens`,
-    }));
-  }, [usageData]);
+
+    usageData.forEach((item: any) => {
+      let id = item.endpointId;
+
+      if (!id) {
+        const code = item.endpointCode || item.mode;
+        if (code) {
+          id = codeToId.get(code) || codeToId.get(code.toLowerCase());
+        }
+      }
+
+      if (id) {
+        const current = usageMap.get(id) || { requests: 0, tokens: 0 };
+        usageMap.set(id, {
+          requests: current.requests + 1,
+          tokens: current.tokens + (item.totalTokens || 0),
+        });
+      }
+    });
+
+    return endpoints.map((endpoint) => {
+      const stats = usageMap.get(endpoint.id) || { requests: 0, tokens: 0 };
+      return {
+        name: endpoint.description,
+        requests: stats.requests,
+        tokens: `${stats.tokens.toLocaleString()} tokens`,
+      };
+    });
+  }, [usageData, endpoints]);
 
   const spendCategories = useMemo(() => {
     const map = new Map<string, number>();
@@ -229,9 +278,11 @@ export default function Usage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All projects</SelectItem>
-                <SelectItem value="project-1">Project Alpha</SelectItem>
-                <SelectItem value="project-2">Project Beta</SelectItem>
-                <SelectItem value="project-3">Project Gamma</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -242,9 +293,11 @@ export default function Usage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All API Keys</SelectItem>
-                <SelectItem value="key-1">Production Key</SelectItem>
-                <SelectItem value="key-2">Development Key</SelectItem>
-                <SelectItem value="key-3">Test Key</SelectItem>
+                {apiKeysList.map((apiKey: any) => (
+                  <SelectItem key={apiKey.id} value={apiKey.id}>
+                    {apiKey.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

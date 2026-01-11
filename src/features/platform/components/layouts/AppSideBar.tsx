@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -22,6 +22,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/features/platform/lib/utils";
 import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
+import { useDispatch, useSelector } from "react-redux";
+import { useMyTeams } from "@/features/platform/team/team.queries";
+import { setSelectedTeam } from "@/features/platform/lib/teamSlice";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 
 interface NavItem {
   title: string;
@@ -65,6 +74,18 @@ export function PlatformSidebar() {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  const dispatch = useDispatch();
+  // Note: Ensure 'team' reducer is added to your Redux store configuration
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+  const { data: teams, isLoading: isTeamsLoading } = useMyTeams();
+  console.log("selectedTeam", selectedTeam);
+
+  useEffect(() => {
+    if (teams && Array.isArray(teams) && teams.length > 0 && !selectedTeam) {
+      dispatch(setSelectedTeam(teams[0]));
+    }
+  }, [teams, selectedTeam, dispatch]);
+
   const isActive = (href: string) => {
     return pathname === href || pathname?.startsWith(href + "/");
   };
@@ -80,13 +101,32 @@ export function PlatformSidebar() {
   const SidebarContent = () => (
     <>
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider">
-            Team
-          </div>
-          <ChevronDown className="h-3 w-3 text-muted-foreground" />
-        </div>
-        <div className="font-medium text-foreground mt-1">Personal team</div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-full text-left outline-none group">
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">
+                  Team
+                </div>
+                <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+              <div className="font-medium text-foreground mt-1 truncate">
+                {selectedTeam?.name ||
+                  (isTeamsLoading ? "Loading..." : "Select Team")}
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="start">
+            {teams?.map((team: any) => (
+              <DropdownMenuItem
+                key={team.id}
+                onClick={() => dispatch(setSelectedTeam(team))}
+              >
+                {team.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin">
