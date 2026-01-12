@@ -31,8 +31,10 @@ import { useDeleteConversationApi } from "@/features/chat/conversation/hooks/con
 import { DeleteConfirmationDialog } from "@/shared/components/delete-confirmation-dialog";
 import { CreateProjectDialog } from "@/features/platform/projects/components/CreateProjectDialog";
 import { EditProjectDialog } from "@/features/platform/projects/components/EditProjectDialog";
+import { useSelector } from "react-redux";
 
 export default function Projects() {
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -58,7 +60,7 @@ export default function Projects() {
   );
 
   const handleCreateProject = async (data: CreateProjectRequest) => {
-    await createProject.mutateAsync(data);
+    await createProject.mutateAsync({data : data, teamId: selectedTeam});
   };
 
   const handleUpdateProject = async (data: ProjectResponse) => {

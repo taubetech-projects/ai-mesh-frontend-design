@@ -26,7 +26,7 @@ export const PlatformProjectKeyService = {
 
   createKey: async (projectId: string, body: ApiKeyCreateRequest) => {
     const res = await platformProxyApi.post(
-      `${basePath}/${projectId}/api-keys`,
+      `${basePath}/projects/${projectId}/api-keys`,
       body
     );
     return res.data;

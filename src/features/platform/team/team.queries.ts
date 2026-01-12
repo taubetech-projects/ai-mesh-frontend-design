@@ -13,11 +13,13 @@ import { toast } from "sonner";
 /* =======================
    Queries
 ======================= */
-export const useMyTeams = () =>
+export const useMyTeams = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: teamKeys.listMine(),
     queryFn: TeamService.getMyTeams,
+    enabled: options?.enabled ?? true,
   });
+
 
 export const useTeam = (teamId: UUID) =>
   useQuery({
@@ -61,6 +63,7 @@ export const useUpdateTeam = (teamId: UUID) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
+      toast.success("Team updated successfully!");
     },
   });
 };
@@ -73,6 +76,7 @@ export const useDeleteTeam = () => {
       TeamService.deleteTeam(teamId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
+      toast.success("Team deleted successfully!");
     },
   });
 };
@@ -91,6 +95,7 @@ export const useUpdateMember = (teamId: UUID) => {
       TeamService.updateMember(teamId, memberUserId, req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
+      toast.success("Member updated successfully!");
     },
   });
 };
@@ -103,6 +108,7 @@ export const useRemoveMember = (teamId: UUID) => {
       TeamService.removeMember(teamId, memberUserId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
+      toast.success("Member removed successfully!");
     },
   });
 };
@@ -116,6 +122,7 @@ export const useTransferOwnership = (teamId: UUID) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
+      toast.success("Ownership transferred successfully!");
     },
   });
 };

@@ -8,6 +8,7 @@ import { PlatformProjectService } from "../api/platformProjectService";
 import { platformProjectKeys } from "./queryKeys";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
+import { UUID } from "../../team/team.types";
 
 export function useOwnedProjectsQuery() {
   const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
@@ -64,12 +65,12 @@ export function useMemberOfProjectsQuery() {
 
 export function useCreateProjectMutation() {
   const qc = useQueryClient();
-  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+  // const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
   return useMutation({
-    mutationFn: (data: CreateProjectRequest) => {
-      if (!selectedTeam?.id) throw new Error("No team selected");
-      return PlatformProjectService.create(selectedTeam.id, data);
+    mutationFn: ({data, teamId} :{data: CreateProjectRequest, teamId: string}) => {
+      // if (!selectedTeam?.id) throw new Error("No team selected");
+      return PlatformProjectService.create(teamId, data);
     },
     onSuccess: () => {
       toast.success("Project created successfully!");

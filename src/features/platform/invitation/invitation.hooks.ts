@@ -1,0 +1,105 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { InvitationService } from "./invitation.service";
+import { invitationKeys } from "./invitation.keys";
+import { teamKeys } from "../team/team.keys";
+import { CreateInviteRequest, TokenBody } from "./invitation.types";
+import { UUID } from "../team/team.types";
+import { useSelector } from "react-redux";
+import { toast } from "sonner";
+
+export const useTeamInvites = (teamId: UUID) =>
+  useQuery({
+    queryKey: invitationKeys.team(teamId),
+    queryFn: () => InvitationService.listTeamInvites(teamId),
+    enabled: !!teamId,
+  });
+
+export const useSentInvites = () =>
+  useQuery({
+    queryKey: invitationKeys.sent(),
+    queryFn: InvitationService.listSentInvites,
+  });
+
+export const useReceivedInvites = () =>
+  useQuery({
+    queryKey: invitationKeys.received(),
+    queryFn: InvitationService.listReceivedInvites,
+  });
+
+/* =======================
+   Mutations
+======================= */
+export const useCreateInvites = (selectedTeam: UUID) => {
+  const qc = useQueryClient();
+  // const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
+  return useMutation({
+    mutationFn: (req: CreateInviteRequest) =>
+      InvitationService.createInvites(selectedTeam, req),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam) });
+      qc.invalidateQueries({ queryKey: invitationKeys.sent() });
+      toast.success("Invites sent successfully!");
+    },
+  });
+};
+
+export const useResendInvite = () => {
+  const qc = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
+  return useMutation({
+    mutationFn: (invitationId: UUID) =>
+      InvitationService.resendInvite(selectedTeam, invitationId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam) });
+      toast.success("Invite resent successfully!");
+    },
+  });
+};
+
+export const useRevokeInvite = () => {
+  const qc = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
+  return useMutation({
+    mutationFn: (inviteId: UUID) =>
+      InvitationService.revokeInvite(selectedTeam, inviteId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam) });
+      qc.invalidateQueries({ queryKey: invitationKeys.sent() });
+      toast.success("Invite revoked successfully!");
+    },
+  });
+};
+
+export const useIssueInviteToken = () =>
+  useMutation({
+    mutationFn: (invitationId: UUID) =>
+      InvitationService.issueToken(invitationId),
+  });
+
+export const useAcceptInvite = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (req: TokenBody) => InvitationService.acceptInvite(req),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invitationKeys.received() });
+      qc.invalidateQueries({ queryKey: teamKeys.listMine() });
+      toast.success("Invite accepted successfully!");
+    },
+  });
+};
+
+export const useDeclineInvite = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (req: TokenBody) => InvitationService.declineInvite(req),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invitationKeys.received() });
+      toast.success("Invite declined successfully!");
+    },
+  });
+};

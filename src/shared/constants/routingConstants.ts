@@ -45,4 +45,6 @@ export enum PLATFORM_ROUTES {
   VERIFY_EMAIL = "/platform/auth/signup/verify-email",
   OAUTH2SUCESS = "/platform/auth/oauth2-success",
   GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google",
+
+  ONBOARDING = "/platform/onboarding",
 }
