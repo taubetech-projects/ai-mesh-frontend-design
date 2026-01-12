@@ -8,6 +8,7 @@ import {
   TeamTransferOwnershipRequest,
   UUID,
 } from "./team.types";
+import { toast } from "sonner";
 
 /* =======================
    Queries
@@ -43,7 +44,11 @@ export const useCreateTeam = () => {
       TeamService.createTeam(req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
+      toast.success("Team created successfully");
     },
+    onError: (error: any) => {
+      toast.error("Failed to create team")
+    }
   });
 };
 

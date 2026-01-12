@@ -19,18 +19,33 @@ import {
   Menu,
   X,
   ChartBar,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/features/platform/lib/utils";
 import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
 import { useDispatch, useSelector } from "react-redux";
-import { useMyTeams } from "@/features/platform/team/team.queries";
+import {
+  useMyTeams,
+  useCreateTeam,
+} from "@/features/platform/team/team.queries";
 import { setSelectedTeam } from "@/features/platform/lib/teamSlice";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/shared/components/ui/dropdown-menu";
+import { Button } from "@/shared/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { Input } from "@/shared/components/ui/input";
 
 interface NavItem {
   title: string;
@@ -77,7 +92,22 @@ export function PlatformSidebar() {
   const dispatch = useDispatch();
   const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
   const { data: teams, isLoading: isTeamsLoading } = useMyTeams();
+  const createTeamMutation = useCreateTeam();
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamDescription, setNewTeamDescription] = useState("");
   console.log("selectedTeam", selectedTeam);
+
+  const handleCreateTeam = async () => {
+    if (!newTeamName) return;
+    await createTeamMutation.mutateAsync({
+      name: newTeamName,
+      description: newTeamDescription,
+    });
+    setIsCreateTeamOpen(false);
+    setNewTeamName("");
+    setNewTeamDescription("");
+  };
 
   useEffect(() => {
     if (teams && Array.isArray(teams) && teams.length > 0 && !selectedTeam) {
@@ -124,6 +154,11 @@ export function PlatformSidebar() {
                 {team.name}
               </DropdownMenuItem>
             ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setIsCreateTeamOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Team
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -224,6 +259,45 @@ export function PlatformSidebar() {
       >
         <SidebarContent />
       </aside>
+
+      <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Team</DialogTitle>
+            <DialogDescription>
+              Create a new team to collaborate with others.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="name" className="text-sm font-medium">Team Name</label>
+              <Input
+                id="name"
+                value={newTeamName}
+                onChange={(e) => setNewTeamName(e.target.value)}
+                placeholder="Enter team name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="description" className="text-sm font-medium">Description (Optional)</label>
+              <Input
+                id="description"
+                value={newTeamDescription}
+                onChange={(e) => setNewTeamDescription(e.target.value)}
+                placeholder="Enter team description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateTeamOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateTeam} disabled={!newTeamName}>
+              Create Team
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
