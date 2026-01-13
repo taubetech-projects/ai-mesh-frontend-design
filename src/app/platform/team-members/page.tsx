@@ -61,6 +61,7 @@ import {
   useCreateInvites,
   useDeclineInvite,
   useReceivedInvites,
+  useRevokeInvite,
   useSentInvites,
 } from "@/features/platform/invitation/invitation.hooks";
 import { useTeamMembers } from "@/features/platform/team/team.queries";
@@ -121,6 +122,7 @@ export default function TeamMembers() {
   const createInvitations = useCreateInvites(selectedTeam?.id);
   const acceptInvite = useAcceptInvite();
   const declineInvite = useDeclineInvite();
+  const revokeInvite = useRevokeInvite();
 
   const teamMembers: TeamMember[] = (rawMembers || []).map(
     (member: TeamMembership) => ({
@@ -195,7 +197,10 @@ export default function TeamMembers() {
 
   const handleAcceptInvite = (tokenHash: string) => {
     acceptInvite.mutateAsync({ token: tokenHash });
-    // setInvites((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleRevokeInvite = (id: string) => {
+    revokeInvite.mutateAsync(id);
   };
 
   const memberColumns: Column<TeamMember>[] = [
@@ -339,14 +344,8 @@ export default function TeamMembers() {
           </Button>
         ) : (
           <StatusBadge
-            status={
-              row?.status
-            }
-            variant={
-              row.status === "ACCEPTED"
-                ? "success"
-                : "warning"
-            }
+            status={row?.status}
+            variant={row.status === "ACCEPTED" ? "success" : "warning"}
           />
         ),
       className: "w-24",
@@ -366,6 +365,70 @@ export default function TeamMembers() {
         ),
       className: "w-24",
     },
+  ];
+
+  const recievedInvitesColumns: Column<Invitation>[] = [
+    {
+      header: "Email",
+      accessor: (row) => (
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <span>{row?.invitedEmail}</span>
+        </div>
+      ),
+    },
+    {
+      header: "Role",
+      accessor: (row) => <span className="capitalize">{row?.roleToGrant}</span>,
+    },
+    {
+      header: "Sent",
+      accessor: (row) => (
+        <span className="text-muted-foreground">
+          {row?.createdAt
+            ? new Date(row.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      header: "Expires",
+      accessor: (row) => (
+        <span className="text-muted-foreground">
+          {row?.expiresAt
+            ? new Date(row.expiresAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      header: "",
+      accessor: (row) =>
+        row?.status === "PENDING" ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleRevokeInvite(row?.id)}
+            className="text-destructive "
+          >
+            Revoke
+          </Button>
+        ) : (
+          <StatusBadge
+            status={row?.status}
+            variant={row.status === "ACCEPTED" ? "success" : "warning"}
+          />
+        ),
+      className: "w-24",
+    }
   ];
 
   return (
@@ -389,6 +452,9 @@ export default function TeamMembers() {
             <TabsTrigger value="invites">
               Recieved Invites ({receivedInvites?.length})
             </TabsTrigger>
+            <TabsTrigger value="sentInvites">
+              Sent Invites ({sentInvites?.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members">
@@ -408,6 +474,20 @@ export default function TeamMembers() {
           <TabsContent value="invites">
             {invites.length > 0 ? (
               <DataTable columns={inviteColumns} data={receivedInvites ?? []} />
+            ) : (
+              <EmptyState
+                icon={Mail}
+                title="No pending invites"
+                description="All invitations have been accepted or expired."
+                actionLabel="Send Invite"
+                onAction={() => setIsInviteOpen(true)}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="sentInvites">
+            {sentInvites?.length ?? 0 > 0 ? (
+              <DataTable columns={recievedInvitesColumns} data={sentInvites ?? []} />
             ) : (
               <EmptyState
                 icon={Mail}
