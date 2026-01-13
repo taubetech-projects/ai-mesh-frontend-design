@@ -40,6 +40,8 @@ export interface TeamMembership {
   id: UUID;
   teamId: UUID;
   userId: UUID;
+  userName: string;
+  userEmail: string;
   role: TeamMemberRole;
   accessMode: TeamMemberAccessMode;
   status: TeamMemberStatus;

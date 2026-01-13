@@ -29,12 +29,11 @@ export const useTeam = (teamId: UUID) =>
     enabled: !!teamId,
   });
 
-export const useTeamMembers = () => {
-  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+export const useTeamMembers = (teamId: UUID) => {
   return useQuery({
-    queryKey: teamKeys.members(selectedTeam.id),
-    queryFn: () => TeamService.getMembers(selectedTeam.id),
-    enabled: !!selectedTeam,
+    queryKey: teamKeys.members(teamId),
+    queryFn: () => TeamService.getMembers(teamId),
+    enabled: !!teamId,
   });
 };
 

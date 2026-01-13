@@ -8,6 +8,7 @@ import {
   Shield,
   Users,
   Trash2,
+  Lock,
 } from "lucide-react";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import {
@@ -61,65 +62,38 @@ import {
   useSentInvites,
 } from "@/features/platform/invitation/invitation.hooks";
 import { useTeamMembers } from "@/features/platform/team/team.queries";
-import { CreateInviteRequest } from "@/features/platform/invitation/invitation.types";
+import { CreateInviteRequest, TeamMemberInvitationStatus } from "@/features/platform/invitation/invitation.types";
+import { TeamMemberAccessMode, TeamMemberRole, TeamMembership } from "@/features/platform/team/team.types";
 
 interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: "owner" | "admin" | "member";
-  status: "active" | "pending";
-  joinedAt: string;
-  avatar?: string;
+  role: TeamMemberRole;
+  status: TeamMemberInvitationStatus;
+  accessMode: TeamMemberAccessMode;
+  createdAt: string;
 }
 
 interface Invite {
   id: string;
   email: string;
-  role: "admin" | "member";
+  role: "ADMIN" | "MEMBER";
   sentAt: string;
   expiresAt: string;
 }
-
-const mockMembers: TeamMember[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    role: "owner",
-    status: "active",
-    joinedAt: "2024-01-01",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "admin",
-    status: "active",
-    joinedAt: "2024-01-10",
-  },
-  {
-    id: "3",
-    name: "Bob Johnson",
-    email: "bob@example.com",
-    role: "member",
-    status: "active",
-    joinedAt: "2024-01-15",
-  },
-];
 
 const mockInvites: Invite[] = [
   {
     id: "1",
     email: "alice@example.com",
-    role: "member",
+    role: "MEMBER",
     sentAt: "2024-01-20",
     expiresAt: "2024-01-27",
   },
 ];
 
 export default function TeamMembers() {
-  const [members, setMembers] = useState<TeamMember[]>(mockMembers);
   const [invites, setInvites] = useState<Invite[]>(mockInvites);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmails, setInviteEmails] = useState<string[]>([""]);
@@ -130,8 +104,19 @@ export default function TeamMembers() {
 
   //hooks
   const { data: projects } = useOwnedProjectsQuery();
-  const createInvitations = useCreateInvites(selectedTeam.id);
-  const { data: teamMembers } = useTeamMembers();
+  const createInvitations = useCreateInvites(selectedTeam?.id);
+  const { data: rawMembers } = useTeamMembers(selectedTeam?.id);
+
+  const teamMembers: TeamMember[] = (rawMembers || []).map((member: TeamMembership) => ({
+    id: member.id,
+    name: member.userName ||  "Unknown",
+    email: member.userEmail || "Unknown",
+    role: (member.role as TeamMemberRole) || "MEMBER",
+    status: (member.status as TeamMemberInvitationStatus) || "ACTIVE",
+    accessMode: member.accessMode as TeamMemberAccessMode,
+    createdAt: member.createdAt
+    }));
+
   const { data: sentInvites } = useSentInvites();
   const { data: receivedInvites } = useReceivedInvites();
 
@@ -183,7 +168,6 @@ export default function TeamMembers() {
   };
 
   const handleRemoveMember = (id: string) => {
-    setMembers((prev) => prev.filter((m) => m.id !== id));
     toast({
       title: "Member Removed",
       description: "The team member has been removed.",
@@ -220,6 +204,10 @@ export default function TeamMembers() {
       ),
     },
     {
+      header: "Email",
+      accessor: (row) => row.email,
+    },
+    {
       header: "Role",
       accessor: (row) => (
         <div className="flex items-center gap-2">
@@ -229,22 +217,27 @@ export default function TeamMembers() {
       ),
     },
     {
-      header: "Joined",
-      accessor: "joinedAt",
+      header: "Access Mode",
+      accessor: (row) => (
+        <div className="flex items-center gap-2">
+          <Lock className="h-4 w-4 text-muted-foreground" />
+          <span className="capitalize">{row.accessMode}</span>
+        </div>
+      ),
     },
     {
       header: "Status",
       accessor: (row) => (
         <StatusBadge
-          status={row.status === "active" ? "Active" : "Pending"}
-          variant={row.status === "active" ? "success" : "warning"}
+          status={row.status === "ACTIVE" as TeamMemberInvitationStatus ? "Active" : "Pending"}
+          variant={row.status === "ACTIVE" as TeamMemberInvitationStatus ? "success" : "warning"}
         />
       ),
     },
     {
       header: "",
       accessor: (row) =>
-        row.role !== "owner" && (
+        row.role !== "OWNER" && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="p-1 hover:bg-secondary rounded">
@@ -320,7 +313,7 @@ export default function TeamMembers() {
         <Tabs defaultValue="members" className="space-y-6">
           <TabsList>
             <TabsTrigger value="members">
-              Members ({members.length})
+              Members ({teamMembers?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="invites">
               Pending Invites ({invites.length})
@@ -328,8 +321,8 @@ export default function TeamMembers() {
           </TabsList>
 
           <TabsContent value="members">
-            {members.length > 0 ? (
-              <DataTable columns={memberColumns} data={members} />
+            {teamMembers?.length ?? 0 > 0 ? (
+              <DataTable columns={memberColumns} data={teamMembers ?? []} />
             ) : (
               <EmptyState
                 icon={Users}
@@ -424,14 +417,14 @@ export default function TeamMembers() {
                       size="sm"
                       className="h-auto p-0"
                       onClick={() => {
-                        if (selectedProjectIds.length === projects.length) {
+                        if (projects && selectedProjectIds.length === projects.length) {
                           setSelectedProjectIds([]);
-                        } else {
+                        } else if (projects) {
                           setSelectedProjectIds(projects.map((p: any) => p.id));
                         }
                       }}
                     >
-                      {selectedProjectIds.length === projects.length
+                      {projects && selectedProjectIds.length === projects.length
                         ? "Deselect All"
                         : "Select All"}
                     </Button>
