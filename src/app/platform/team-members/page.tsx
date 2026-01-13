@@ -57,13 +57,23 @@ import {
 import { useOwnedProjectsQuery } from "@/features/platform/projects/hooks/useProjectQueries";
 import { useSelector } from "react-redux";
 import {
+  useAcceptInvite,
   useCreateInvites,
+  useDeclineInvite,
   useReceivedInvites,
   useSentInvites,
 } from "@/features/platform/invitation/invitation.hooks";
 import { useTeamMembers } from "@/features/platform/team/team.queries";
-import { CreateInviteRequest, TeamMemberInvitationStatus } from "@/features/platform/invitation/invitation.types";
-import { TeamMemberAccessMode, TeamMemberRole, TeamMembership } from "@/features/platform/team/team.types";
+import {
+  CreateInviteRequest,
+  Invitation,
+  TeamMemberInvitationStatus,
+} from "@/features/platform/invitation/invitation.types";
+import {
+  TeamMemberAccessMode,
+  TeamMemberRole,
+  TeamMembership,
+} from "@/features/platform/team/team.types";
 
 interface TeamMember {
   id: string;
@@ -104,21 +114,25 @@ export default function TeamMembers() {
 
   //hooks
   const { data: projects } = useOwnedProjectsQuery();
-  const createInvitations = useCreateInvites(selectedTeam?.id);
   const { data: rawMembers } = useTeamMembers(selectedTeam?.id);
-
-  const teamMembers: TeamMember[] = (rawMembers || []).map((member: TeamMembership) => ({
-    id: member.id,
-    name: member.userName ||  "Unknown",
-    email: member.userEmail || "Unknown",
-    role: (member.role as TeamMemberRole) || "MEMBER",
-    status: (member.status as TeamMemberInvitationStatus) || "ACTIVE",
-    accessMode: member.accessMode as TeamMemberAccessMode,
-    createdAt: member.createdAt
-    }));
-
   const { data: sentInvites } = useSentInvites();
   const { data: receivedInvites } = useReceivedInvites();
+
+  const createInvitations = useCreateInvites(selectedTeam?.id);
+  const acceptInvite = useAcceptInvite();
+  const declineInvite = useDeclineInvite();
+
+  const teamMembers: TeamMember[] = (rawMembers || []).map(
+    (member: TeamMembership) => ({
+      id: member.id,
+      name: member.userName || "Unknown",
+      email: member.userEmail || "Unknown",
+      role: (member.role as TeamMemberRole) || "MEMBER",
+      status: (member.status as TeamMemberInvitationStatus) || "ACTIVE",
+      accessMode: member.accessMode as TeamMemberAccessMode,
+      createdAt: member.createdAt,
+    })
+  );
 
   const handleAddEmail = () => {
     setInviteEmails([...inviteEmails, ""]);
@@ -174,12 +188,14 @@ export default function TeamMembers() {
     });
   };
 
-  const handleCancelInvite = (id: string) => {
-    setInvites((prev) => prev.filter((i) => i.id !== id));
-    toast({
-      title: "Invite Cancelled",
-      description: "The invitation has been cancelled.",
-    });
+  const handleCancelInvite = (tokenHash: string) => {
+    declineInvite.mutateAsync({ token: tokenHash });
+    // setInvites((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleAcceptInvite = (tokenHash: string) => {
+    acceptInvite.mutateAsync({ token: tokenHash });
+    // setInvites((prev) => prev.filter((i) => i.id !== id));
   };
 
   const memberColumns: Column<TeamMember>[] = [
@@ -229,8 +245,16 @@ export default function TeamMembers() {
       header: "Status",
       accessor: (row) => (
         <StatusBadge
-          status={row.status === "ACTIVE" as TeamMemberInvitationStatus ? "Active" : "Pending"}
-          variant={row.status === "ACTIVE" as TeamMemberInvitationStatus ? "success" : "warning"}
+          status={
+            row.status === ("ACTIVE" as TeamMemberInvitationStatus)
+              ? "Active"
+              : "Pending"
+          }
+          variant={
+            row.status === ("ACTIVE" as TeamMemberInvitationStatus)
+              ? "success"
+              : "warning"
+          }
         />
       ),
     },
@@ -259,40 +283,87 @@ export default function TeamMembers() {
     },
   ];
 
-  const inviteColumns: Column<Invite>[] = [
+  const inviteColumns: Column<Invitation>[] = [
     {
       header: "Email",
       accessor: (row) => (
         <div className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-muted-foreground" />
-          <span>{row.email}</span>
+          <span>{row?.invitedEmail}</span>
         </div>
       ),
     },
     {
       header: "Role",
-      accessor: (row) => <span className="capitalize">{row.role}</span>,
+      accessor: (row) => <span className="capitalize">{row?.roleToGrant}</span>,
     },
     {
       header: "Sent",
-      accessor: "sentAt",
+      accessor: (row) => (
+        <span className="text-muted-foreground">
+          {row?.createdAt
+            ? new Date(row.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "-"}
+        </span>
+      ),
     },
     {
       header: "Expires",
-      accessor: "expiresAt",
+      accessor: (row) => (
+        <span className="text-muted-foreground">
+          {row?.expiresAt
+            ? new Date(row.expiresAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "-"}
+        </span>
+      ),
     },
     {
       header: "",
-      accessor: (row) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleCancelInvite(row.id)}
-          className="text-destructive hover:text-destructive"
-        >
-          Cancel
-        </Button>
-      ),
+      accessor: (row) =>
+        row?.status === "PENDING" ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleAcceptInvite(row?.tokenHash)}
+            className="text-success"
+          >
+            Accept
+          </Button>
+        ) : (
+          <StatusBadge
+            status={
+              row?.status
+            }
+            variant={
+              row.status === "ACCEPTED"
+                ? "success"
+                : "warning"
+            }
+          />
+        ),
+      className: "w-24",
+    },
+    {
+      header: "",
+      accessor: (row) =>
+        row?.status === "PENDING" && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCancelInvite(row?.tokenHash)}
+            className="text-destructive"
+          >
+            Decline
+          </Button>
+        ),
       className: "w-24",
     },
   ];
@@ -316,7 +387,7 @@ export default function TeamMembers() {
               Members ({teamMembers?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="invites">
-              Pending Invites ({invites.length})
+              Recieved Invites ({receivedInvites?.length})
             </TabsTrigger>
           </TabsList>
 
@@ -336,7 +407,7 @@ export default function TeamMembers() {
 
           <TabsContent value="invites">
             {invites.length > 0 ? (
-              <DataTable columns={inviteColumns} data={invites} />
+              <DataTable columns={inviteColumns} data={receivedInvites ?? []} />
             ) : (
               <EmptyState
                 icon={Mail}
@@ -417,7 +488,10 @@ export default function TeamMembers() {
                       size="sm"
                       className="h-auto p-0"
                       onClick={() => {
-                        if (projects && selectedProjectIds.length === projects.length) {
+                        if (
+                          projects &&
+                          selectedProjectIds.length === projects.length
+                        ) {
                           setSelectedProjectIds([]);
                         } else if (projects) {
                           setSelectedProjectIds(projects.map((p: any) => p.id));

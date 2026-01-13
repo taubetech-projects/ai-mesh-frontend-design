@@ -44,6 +44,7 @@ export interface Invitation {
   accessModeToGrant: TeamMemberAccessMode;
   expiresAt?: string;
   status: TeamMemberInvitationStatus;
+  tokenHash: string;
   acceptedByUserId?: UUID;
   acceptedAt?: string;
   createdAt: string;
