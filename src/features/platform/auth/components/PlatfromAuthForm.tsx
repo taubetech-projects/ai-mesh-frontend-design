@@ -223,10 +223,6 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
             response.email
           )}`
         );
-        // toast.success("Signup successful! Redirecting to login...");
-        // setTimeout(() => {
-        //     router.push("/login");
-        // }, 2000); // 2-second delay before redirecting
       } else {
         setError("Signup failed: No token received.");
       }

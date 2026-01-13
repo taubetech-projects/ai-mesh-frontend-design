@@ -50,9 +50,9 @@ export const useResendInvite = () => {
 
   return useMutation({
     mutationFn: (invitationId: UUID) =>
-      InvitationService.resendInvite(selectedTeam, invitationId),
+      InvitationService.resendInvite(selectedTeam.id, invitationId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam) });
+      qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam.id) });
       toast.success("Invite resent successfully!");
     },
   });
@@ -64,9 +64,9 @@ export const useRevokeInvite = () => {
 
   return useMutation({
     mutationFn: (inviteId: UUID) =>
-      InvitationService.revokeInvite(selectedTeam, inviteId),
+      InvitationService.revokeInvite(selectedTeam.id, inviteId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam) });
+      qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam.id) });
       qc.invalidateQueries({ queryKey: invitationKeys.sent() });
       toast.success("Invite revoked successfully!");
     },

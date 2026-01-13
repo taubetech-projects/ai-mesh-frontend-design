@@ -7,8 +7,10 @@ import {
   UpdateMemberRequest,
   TeamTransferOwnershipRequest,
   UUID,
+  TeamMembership,
 } from "./team.types";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 /* =======================
    Queries
@@ -20,7 +22,6 @@ export const useMyTeams = (options?: { enabled?: boolean }) =>
     enabled: options?.enabled ?? true,
   });
 
-
 export const useTeam = (teamId: UUID) =>
   useQuery({
     queryKey: teamKeys.detail(teamId),
@@ -28,12 +29,14 @@ export const useTeam = (teamId: UUID) =>
     enabled: !!teamId,
   });
 
-export const useTeamMembers = (teamId: UUID) =>
-  useQuery({
-    queryKey: teamKeys.members(teamId),
-    queryFn: () => TeamService.getMembers(teamId),
-    enabled: !!teamId,
+export const useTeamMembers = () => {
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+  return useQuery({
+    queryKey: teamKeys.members(selectedTeam.id),
+    queryFn: () => TeamService.getMembers(selectedTeam.id),
+    enabled: !!selectedTeam,
   });
+};
 
 /* =======================
    Mutations
@@ -42,15 +45,14 @@ export const useCreateTeam = () => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (req: CreateTeamRequest) =>
-      TeamService.createTeam(req),
+    mutationFn: (req: CreateTeamRequest) => TeamService.createTeam(req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
       toast.success("Team created successfully");
     },
     onError: (error: any) => {
-      toast.error("Failed to create team")
-    }
+      toast.error("Failed to create team");
+    },
   });
 };
 
@@ -58,8 +60,7 @@ export const useUpdateTeam = (teamId: UUID) => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (req: UpdateTeamRequest) =>
-      TeamService.updateTeam(teamId, req),
+    mutationFn: (req: UpdateTeamRequest) => TeamService.updateTeam(teamId, req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
@@ -72,8 +73,7 @@ export const useDeleteTeam = () => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (teamId: UUID) =>
-      TeamService.deleteTeam(teamId),
+    mutationFn: (teamId: UUID) => TeamService.deleteTeam(teamId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
       toast.success("Team deleted successfully!");
@@ -91,8 +91,7 @@ export const useUpdateMember = (teamId: UUID) => {
     }: {
       memberUserId: UUID;
       req: UpdateMemberRequest;
-    }) =>
-      TeamService.updateMember(teamId, memberUserId, req),
+    }) => TeamService.updateMember(teamId, memberUserId, req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
       toast.success("Member updated successfully!");
