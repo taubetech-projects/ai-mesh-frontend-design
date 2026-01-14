@@ -7,6 +7,10 @@ import { UUID } from "../team/team.types";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
+import {
+  handleApiErrorToast,
+  showSuccessToast,
+} from "@/shared/utils/toast.helper";
 
 export const useTeamInvites = (teamId: UUID) =>
   useQuery({
@@ -40,11 +44,9 @@ export const useCreateInvites = (selectedTeam: UUID) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam) });
       qc.invalidateQueries({ queryKey: invitationKeys.sent() });
-      toast.success("Invites sent successfully!");
+      showSuccessToast("Invites sent successfully!");
     },
-    onError: (e : ErrorResponse) => {
-      toast.error(e.detail);
-    }
+    onError: handleApiErrorToast,
   });
 };
 
@@ -57,8 +59,9 @@ export const useResendInvite = () => {
       InvitationService.resendInvite(selectedTeam.id, invitationId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam.id) });
-      toast.success("Invite resent successfully!");
+      showSuccessToast("Invite resent successfully!");
     },
+    onError: handleApiErrorToast,
   });
 };
 
@@ -72,11 +75,9 @@ export const useRevokeInvite = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invitationKeys.team(selectedTeam.id) });
       qc.invalidateQueries({ queryKey: invitationKeys.sent() });
-      toast.success("Invite revoked successfully!");
+      showSuccessToast("Invite revoked successfully!");
     },
-    onError: () => {
-      toast.error("Failed to revoke invite.");
-    },
+    onError: handleApiErrorToast,
   });
 };
 
@@ -84,6 +85,10 @@ export const useIssueInviteToken = () =>
   useMutation({
     mutationFn: (invitationId: UUID) =>
       InvitationService.issueToken(invitationId),
+    onSuccess: () => {
+      showSuccessToast("Invite token issued successfully!");
+    },
+    onError: handleApiErrorToast,
   });
 
 export const useAcceptInvite = () => {
@@ -94,8 +99,9 @@ export const useAcceptInvite = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invitationKeys.received() });
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
-      toast.success("Invite accepted successfully!");
+      showSuccessToast("Invite accepted successfully!");
     },
+    onError: handleApiErrorToast,
   });
 };
 
@@ -106,7 +112,8 @@ export const useDeclineInvite = () => {
     mutationFn: (req: TokenBody) => InvitationService.declineInvite(req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: invitationKeys.received() });
-      toast.success("Invite declined successfully!");
+      showSuccessToast("Invite declined successfully!");
     },
+    onError: handleApiErrorToast,
   });
 };

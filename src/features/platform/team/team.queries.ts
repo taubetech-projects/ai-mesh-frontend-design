@@ -7,10 +7,11 @@ import {
   UpdateMemberRequest,
   TeamTransferOwnershipRequest,
   UUID,
-  TeamMembership,
 } from "./team.types";
-import { toast } from "sonner";
-import { useSelector } from "react-redux";
+import {
+  handleApiErrorToast,
+  showSuccessToast,
+} from "@/shared/utils/toast.helper";
 
 /* =======================
    Queries
@@ -47,11 +48,9 @@ export const useCreateTeam = () => {
     mutationFn: (req: CreateTeamRequest) => TeamService.createTeam(req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
-      toast.success("Team created successfully");
+      showSuccessToast("Team created successfully");
     },
-    onError: (error: any) => {
-      toast.error("Failed to create team");
-    },
+    onError: handleApiErrorToast,
   });
 };
 
@@ -63,7 +62,7 @@ export const useUpdateTeam = (teamId: UUID) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
-      toast.success("Team updated successfully!");
+      showSuccessToast("Team updated successfully!");
     },
   });
 };
@@ -75,8 +74,9 @@ export const useDeleteTeam = () => {
     mutationFn: (teamId: UUID) => TeamService.deleteTeam(teamId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.listMine() });
-      toast.success("Team deleted successfully!");
+      showSuccessToast("Team deleted successfully!");
     },
+    onError: handleApiErrorToast,
   });
 };
 
@@ -93,11 +93,9 @@ export const useUpdateMember = (teamId: UUID) => {
     }) => TeamService.updateMember(teamId, memberUserId, req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
-      toast.success("Member updated successfully!");
+      showSuccessToast("Member updated successfully!");
     },
-    onError: () => {
-      toast.error("You don't have permission to update this resource.");
-    },
+    onError: handleApiErrorToast,
   });
 };
 
@@ -109,8 +107,9 @@ export const useRemoveMember = (teamId: UUID) => {
       TeamService.removeMember(teamId, memberUserId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
-      toast.success("Member removed successfully!");
+      showSuccessToast("Member removed successfully!");
     },
+    onError: handleApiErrorToast,
   });
 };
 
@@ -123,10 +122,8 @@ export const useTransferOwnership = (teamId: UUID) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
-      toast.success("Ownership transferred successfully!");
+      showSuccessToast("Ownership transferred successfully!");
     },
-    onError: () => {
-      toast.error("Failed to transfer ownership.");
-    },
+    onError: handleApiErrorToast,
   });
 };
