@@ -50,3 +50,23 @@ export interface Invitation {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  userId: UUID;
+  role: TeamMemberRole;
+  status: TeamMemberInvitationStatus;
+  accessMode: TeamMemberAccessMode;
+  createdAt: string;
+  projects: UUID[];
+}
+
+export interface Invite {
+  id: string;
+  email: string;
+  role: "ADMIN" | "MEMBER";
+  sentAt: string;
+  expiresAt: string;
+}
