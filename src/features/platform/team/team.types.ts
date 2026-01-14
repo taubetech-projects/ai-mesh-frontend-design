@@ -44,6 +44,7 @@ export interface TeamMembership {
   userEmail: string;
   role: TeamMemberRole;
   accessMode: TeamMemberAccessMode;
+  projectIds: UUID[];
   status: TeamMemberStatus;
   createdAt: string;
   updatedAt: string;
@@ -53,4 +54,5 @@ export interface UpdateMemberRequest {
   role?: TeamMemberRole;
   accessMode?: TeamMemberAccessMode;
   status?: TeamMemberStatus;
+  projectIds?: UUID[];
 }

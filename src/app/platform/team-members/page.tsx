@@ -64,7 +64,11 @@ import {
   useRevokeInvite,
   useSentInvites,
 } from "@/features/platform/invitation/invitation.hooks";
-import { useTeamMembers } from "@/features/platform/team/team.queries";
+import {
+  useTeamMembers,
+  useTransferOwnership,
+  useUpdateMember,
+} from "@/features/platform/team/team.queries";
 import {
   CreateInviteRequest,
   Invitation,
@@ -74,16 +78,20 @@ import {
   TeamMemberAccessMode,
   TeamMemberRole,
   TeamMembership,
+  UpdateMemberRequest,
+  UUID,
 } from "@/features/platform/team/team.types";
 
 interface TeamMember {
   id: string;
   name: string;
   email: string;
+  userId: UUID;
   role: TeamMemberRole;
   status: TeamMemberInvitationStatus;
   accessMode: TeamMemberAccessMode;
   createdAt: string;
+  projects: UUID[];
 }
 
 interface Invite {
@@ -110,6 +118,14 @@ export default function TeamMembers() {
   const [inviteEmails, setInviteEmails] = useState<string[]>([""]);
   const [inviteRole, setInviteRole] = useState<"ADMIN" | "MEMBER">("MEMBER");
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const [memberToUpdate, setMemberToUpdate] = useState<TeamMember | null>(null);
+  const [updateRole, setUpdateRole] = useState<"ADMIN" | "MEMBER">("MEMBER");
+  const [updateProjectIds, setUpdateProjectIds] = useState<string[]>([]);
+  const [updateAccessMode, setUpdateAccessMode] =
+    useState<TeamMemberAccessMode>("ALL_PROJECTS");
+  const [inviteAccessMode, setInviteAccessMode] =
+    useState<TeamMemberAccessMode>("ALL_PROJECTS");
 
   const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
@@ -123,16 +139,20 @@ export default function TeamMembers() {
   const acceptInvite = useAcceptInvite();
   const declineInvite = useDeclineInvite();
   const revokeInvite = useRevokeInvite();
+  const transferOwnership = useTransferOwnership(selectedTeam?.id);
+  const updateMember = useUpdateMember(selectedTeam?.id);
 
   const teamMembers: TeamMember[] = (rawMembers || []).map(
     (member: TeamMembership) => ({
       id: member.id,
       name: member.userName || "Unknown",
       email: member.userEmail || "Unknown",
+      userId: member.userId,
       role: (member.role as TeamMemberRole) || "MEMBER",
       status: (member.status as TeamMemberInvitationStatus) || "ACTIVE",
       accessMode: member.accessMode as TeamMemberAccessMode,
       createdAt: member.createdAt,
+      projects: member.projectIds,
     })
   );
 
@@ -167,8 +187,9 @@ export default function TeamMembers() {
       const body: CreateInviteRequest = {
         emails: validEmails,
         role: inviteRole,
-        accessMode: inviteRole === "ADMIN" ? "ALL_PROJECTS" : "SCOPED_PROJECTS",
-        projectIds: inviteRole === "ADMIN" ? [] : selectedProjectIds,
+        accessMode: inviteAccessMode,
+        projectIds:
+          inviteAccessMode === "ALL_PROJECTS" ? [] : selectedProjectIds,
         expiresHours: 24,
       };
       console.log("Invite request: ", body);
@@ -177,6 +198,7 @@ export default function TeamMembers() {
       setIsInviteOpen(false);
       setInviteEmails([""]);
       setSelectedProjectIds([]);
+      setInviteAccessMode("ALL_PROJECTS");
     } catch (error) {
       // Error handling is typically done in the mutation hook or global error handler
       console.error(error);
@@ -188,6 +210,35 @@ export default function TeamMembers() {
       title: "Member Removed",
       description: "The team member has been removed.",
     });
+  };
+
+  const openUpdateDialog = (member: TeamMember) => {
+    setMemberToUpdate(member);
+    setUpdateRole(member.role === "OWNER" ? "ADMIN" : member.role);
+    setUpdateAccessMode(member.accessMode);
+    setUpdateProjectIds(member.projects?.map((p) => p) ?? []);
+    setIsUpdateOpen(true);
+  };
+
+  const handleUpdateMember = async () => {
+    if (!memberToUpdate) return;
+    try {
+      const body: UpdateMemberRequest = {
+        role: updateRole,
+        accessMode: updateAccessMode,
+        projectIds: updateAccessMode === "ALL_PROJECTS" ? [] : updateProjectIds,
+      };
+      console.log("Update request: ", body);
+      await updateMember.mutateAsync({memberUserId : memberToUpdate.userId, req : body});
+      setIsUpdateOpen(false);
+      setMemberToUpdate(null);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleTransferOwnership = (ownerUserId: string ) => {
+    transferOwnership.mutateAsync({ newOwnerUserId: ownerUserId });
   };
 
   const handleCancelInvite = (tokenHash: string) => {
@@ -209,7 +260,7 @@ export default function TeamMembers() {
       accessor: (row) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={row.avatar} />
+            {/* <AvatarImage src={row.avatar} /> */}
             <AvatarFallback className="bg-primary/20 text-primary text-sm">
               {row.name
                 .split(" ")
@@ -274,7 +325,12 @@ export default function TeamMembers() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Change Role</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTransferOwnership(row.userId)}>
+                Make Owner
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openUpdateDialog(row)}>
+                Change Permission
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleRemoveMember(row.id)}
                 className="text-destructive"
@@ -428,7 +484,7 @@ export default function TeamMembers() {
           />
         ),
       className: "w-24",
-    }
+    },
   ];
 
   return (
@@ -487,7 +543,10 @@ export default function TeamMembers() {
 
           <TabsContent value="sentInvites">
             {sentInvites?.length ?? 0 > 0 ? (
-              <DataTable columns={recievedInvitesColumns} data={sentInvites ?? []} />
+              <DataTable
+                columns={recievedInvitesColumns}
+                data={sentInvites ?? []}
+              />
             ) : (
               <EmptyState
                 icon={Mail}
@@ -559,70 +618,218 @@ export default function TeamMembers() {
                 </Select>
               </div>
 
-              {inviteRole === "MEMBER" && projects && projects.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Select Projects</Label>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="h-auto p-0"
-                      onClick={() => {
-                        if (
-                          projects &&
-                          selectedProjectIds.length === projects.length
-                        ) {
-                          setSelectedProjectIds([]);
-                        } else if (projects) {
-                          setSelectedProjectIds(projects.map((p: any) => p.id));
-                        }
-                      }}
-                    >
-                      {projects && selectedProjectIds.length === projects.length
-                        ? "Deselect All"
-                        : "Select All"}
-                    </Button>
-                  </div>
-                  <div className="border rounded-md p-3 max-h-[200px] overflow-y-auto space-y-2">
-                    {projects.map((project: any) => (
-                      <div key={project.id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id={`project-${project.id}`}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          checked={selectedProjectIds.includes(project.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedProjectIds([
-                                ...selectedProjectIds,
-                                project.id,
-                              ]);
-                            } else {
-                              setSelectedProjectIds(
-                                selectedProjectIds.filter(
-                                  (id) => id !== project.id
-                                )
-                              );
-                            }
-                          }}
-                        />
-                        <Label
-                          htmlFor={`project-${project.id}`}
-                          className="font-normal cursor-pointer"
+              <div className="space-y-2">
+                <Label htmlFor="update-permission">Permission</Label>
+                <Select
+                  value={inviteAccessMode}
+                  onValueChange={(value: TeamMemberAccessMode) =>
+                    setInviteAccessMode(value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL_PROJECTS">All Permission</SelectItem>
+                    <SelectItem value="SCOPED_PROJECTS">
+                      Scoped Permission
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {inviteAccessMode === "SCOPED_PROJECTS" &&
+                projects &&
+                projects.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Select Projects</Label>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0"
+                        onClick={() => {
+                          if (
+                            projects &&
+                            selectedProjectIds.length === projects.length
+                          ) {
+                            setSelectedProjectIds([]);
+                          } else if (projects) {
+                            setSelectedProjectIds(
+                              projects.map((p: any) => p.id)
+                            );
+                          }
+                        }}
+                      >
+                        {projects &&
+                        selectedProjectIds.length === projects.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </Button>
+                    </div>
+                    <div className="border rounded-md p-3 max-h-[200px] overflow-y-auto space-y-2">
+                      {projects.map((project: any) => (
+                        <div
+                          key={project.id}
+                          className="flex items-center gap-2"
                         >
-                          {project.name}
-                        </Label>
-                      </div>
-                    ))}
+                          <input
+                            type="checkbox"
+                            id={`project-${project.id}`}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            checked={selectedProjectIds.includes(project.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedProjectIds([
+                                  ...selectedProjectIds,
+                                  project.id,
+                                ]);
+                              } else {
+                                setSelectedProjectIds(
+                                  selectedProjectIds.filter(
+                                    (id) => id !== project.id
+                                  )
+                                );
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor={`project-${project.id}`}
+                            className="font-normal cursor-pointer"
+                          >
+                            {project.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={handleInvite}>Send Invite</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isUpdateOpen} onOpenChange={setIsUpdateOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Change Permissions</DialogTitle>
+              <DialogDescription>
+                Update role and project access for {memberToUpdate?.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="update-role">Role</Label>
+                <Select
+                  value={updateRole}
+                  onValueChange={(value: "ADMIN" | "MEMBER") =>
+                    setUpdateRole(value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MEMBER">Member</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="update-dialog-permission">Permission</Label>
+                <Select
+                  value={updateAccessMode}
+                  onValueChange={(value: TeamMemberAccessMode) =>
+                    setUpdateAccessMode(value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL_PROJECTS">All Permission</SelectItem>
+                    <SelectItem value="SCOPED_PROJECTS">
+                      Scoped Permission
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {updateAccessMode === "SCOPED_PROJECTS" &&
+                projects &&
+                projects.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Select Projects</Label>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0"
+                        onClick={() => {
+                          if (
+                            projects &&
+                            updateProjectIds.length === projects.length
+                          ) {
+                            setUpdateProjectIds([]);
+                          } else if (projects) {
+                            setUpdateProjectIds(projects.map((p: any) => p.id));
+                          }
+                        }}
+                      >
+                        {projects && updateProjectIds.length === projects.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </Button>
+                    </div>
+                    <div className="border rounded-md p-3 max-h-[200px] overflow-y-auto space-y-2">
+                      {projects.map((project: any) => (
+                        <div
+                          key={project.id}
+                          className="flex items-center gap-2"
+                        >
+                          <input
+                            type="checkbox"
+                            id={`update-project-${project.id}`}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            checked={updateProjectIds.includes(project.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setUpdateProjectIds([
+                                  ...updateProjectIds,
+                                  project.id,
+                                ]);
+                              } else {
+                                setUpdateProjectIds(
+                                  updateProjectIds.filter(
+                                    (id) => id !== project.id
+                                  )
+                                );
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor={`update-project-${project.id}`}
+                            className="font-normal cursor-pointer"
+                          >
+                            {project.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsUpdateOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateMember}>Confirm</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

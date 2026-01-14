@@ -95,6 +95,9 @@ export const useUpdateMember = (teamId: UUID) => {
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
       toast.success("Member updated successfully!");
     },
+    onError: () => {
+      toast.error("You don't have permission to update this resource.");
+    },
   });
 };
 
@@ -121,6 +124,9 @@ export const useTransferOwnership = (teamId: UUID) => {
       qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) });
       qc.invalidateQueries({ queryKey: teamKeys.members(teamId) });
       toast.success("Ownership transferred successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to transfer ownership.");
     },
   });
 };

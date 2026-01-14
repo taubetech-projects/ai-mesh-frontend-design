@@ -6,6 +6,7 @@ import { CreateInviteRequest, TokenBody } from "./invitation.types";
 import { UUID } from "../team/team.types";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
+import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 
 export const useTeamInvites = (teamId: UUID) =>
   useQuery({
@@ -41,6 +42,9 @@ export const useCreateInvites = (selectedTeam: UUID) => {
       qc.invalidateQueries({ queryKey: invitationKeys.sent() });
       toast.success("Invites sent successfully!");
     },
+    onError: (e : ErrorResponse) => {
+      toast.error(e.detail);
+    }
   });
 };
 
