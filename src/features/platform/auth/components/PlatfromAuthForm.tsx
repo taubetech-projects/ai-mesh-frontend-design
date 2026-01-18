@@ -11,6 +11,7 @@ import {
   PLATFORM_ROUTES,
 } from "@/shared/constants/routingConstants";
 import { useLoginMutation, useSignupMutation } from "../hooks/useAuthQueries";
+import { useMyTeams } from "../../team/team.queries";
 
 // --- SVG Icons ---
 const UserIcon = ({ className }: { className: string }) => (
@@ -138,6 +139,15 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  //hooks
+  const {
+    data: teams,
+    refetch: refetchTeams,
+    isFetching: isFetchingTeams,
+  } = useMyTeams({
+    enabled: false,
+  });
+
   const handleGoogleSignIn = () => {
     window.location.href = PLATFORM_ROUTES.GOOGLE_SIGNIN;
   };
@@ -154,9 +164,13 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
       console.log("Login response:", response);
       if (response && response.accessToken) {
         toast.success("Login successful! Welcome to our platform...");
-        setTimeout(() => {
-          router.push(PLATFORM_ROUTES.HOME);
-        }, 1000);
+        // 🔥 Explicitly fetch teams AFTER token is available
+        const { data: teams } = await refetchTeams();
+        if (teams?.length === undefined || teams?.length === 0) {
+          router.push(PLATFORM_ROUTES.ONBOARDING);
+        } else {
+          router.push(PLATFORM_ROUTES.DASHBOARD);
+        }
       } else {
         setError("Login failed: No token received.");
       }
@@ -209,10 +223,6 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
             response.email
           )}`
         );
-        // toast.success("Signup successful! Redirecting to login...");
-        // setTimeout(() => {
-        //     router.push("/login");
-        // }, 2000); // 2-second delay before redirecting
       } else {
         setError("Signup failed: No token received.");
       }

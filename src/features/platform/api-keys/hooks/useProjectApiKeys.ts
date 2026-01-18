@@ -3,6 +3,8 @@ import { PlatformProjectKeyService } from "../api/projectKeyService";
 import { ApiKeyCreateRequest, ApiKeyView } from "../types/apiKeyTypes";
 import { projectApiKeyKeys } from "./queryKeys";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { ErrorResponse } from "@/features/chat/auth/types/authModels";
 
 /* =======================
    Queries
@@ -10,9 +12,12 @@ import { toast } from "sonner";
 
 // GET /v1/api/platform/projects/keys
 export const useAllApiKeys = () => {
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
   return useQuery({
-    queryKey: projectApiKeyKeys.listAllForUser(),
-    queryFn: PlatformProjectKeyService.getAllKeys,
+    queryKey: [...projectApiKeyKeys.listAllForUser(), selectedTeam?.id],
+    queryFn: () => PlatformProjectKeyService.getAllKeys(selectedTeam?.id),
+    enabled: !!selectedTeam?.id,
   });
 };
 
@@ -35,10 +40,27 @@ export const useApiKey = (keyId: string) => {
 };
 
 // GET /v1/api/platform/projects/keys/search?keyName={keyName}&projectId={projectId}&active={active}
-export const useSearchApiKeys = (keyName: string | null, projectId: string | null, active: boolean | null) => {
+export const useSearchApiKeys = (
+  keyName: string | null,
+  projectId: string | null,
+  active: boolean | null
+) => {
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
   return useQuery({
-    queryKey: projectApiKeyKeys.search(keyName, projectId, active),
-    queryFn: () => PlatformProjectKeyService.serachKeys(keyName, projectId, active),
+    queryKey: projectApiKeyKeys.search(
+      keyName,
+      projectId,
+      active,
+      selectedTeam?.id
+    ),
+    queryFn: () =>
+      PlatformProjectKeyService.serachKeys(
+        keyName,
+        projectId,
+        active,
+        selectedTeam?.id
+      ),
   });
 };
 
@@ -49,6 +71,7 @@ export const useSearchApiKeys = (keyName: string | null, projectId: string | nul
 // POST /v1/api/platform/projects/{projectId}/keys
 export const useCreateApiKey = (projectId: string) => {
   const queryClient = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
   return useMutation({
     mutationFn: (body: ApiKeyCreateRequest) =>
@@ -59,7 +82,7 @@ export const useCreateApiKey = (projectId: string) => {
         queryKey: projectApiKeyKeys.listByProject(projectId),
       });
       queryClient.invalidateQueries({
-        queryKey: projectApiKeyKeys.listAllForUser(),
+        queryKey: [...projectApiKeyKeys.listAllForUser(), selectedTeam?.id],
       });
       toast("Your new API key has been created successfully.");
     },
@@ -72,6 +95,7 @@ export const useCreateApiKey = (projectId: string) => {
 // PATCH /v1/api/platform/projects/keys/{keyId}
 export const useUpdateApiKey = () => {
   const queryClient = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
   return useMutation({
     mutationFn: PlatformProjectKeyService.updateKey,
@@ -82,6 +106,9 @@ export const useUpdateApiKey = () => {
       });
 
       queryClient.invalidateQueries({
+        queryKey: [...projectApiKeyKeys.listAllForUser(), selectedTeam?.id],
+      });
+      queryClient.invalidateQueries({
         queryKey: projectApiKeyKeys.lists(),
       });
     },
@@ -90,6 +117,7 @@ export const useUpdateApiKey = () => {
 
 export const useRevokeApiKey = () => {
   const queryClient = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
   return useMutation({
     mutationFn: PlatformProjectKeyService.revokeKey,
@@ -100,23 +128,43 @@ export const useRevokeApiKey = () => {
       });
 
       queryClient.invalidateQueries({
+        queryKey: [...projectApiKeyKeys.listAllForUser(), selectedTeam?.id],
+      });
+      queryClient.invalidateQueries({
         queryKey: projectApiKeyKeys.lists(),
       });
-    }});
-}
+    },
+
+    onError: (error: ErrorResponse) => {
+      let message = "Failed to revoke API key.";
+      if (error?.detail) message = error.detail;
+      toast(message);
+    },
+  });
+};
 
 // DELETE /v1/api/platform/projects/keys/{keyId}
 export const useDeleteApiKey = () => {
   const queryClient = useQueryClient();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
   return useMutation({
     mutationFn: PlatformProjectKeyService.deleteKey,
 
     onSuccess: () => {
       queryClient.invalidateQueries({
+        queryKey: [...projectApiKeyKeys.listAllForUser(), selectedTeam?.id],
+      });
+      queryClient.invalidateQueries({
         queryKey: projectApiKeyKeys.lists(),
       });
       toast("The API key has been deleted.");
+    },
+
+    onError: (error : ErrorResponse) => {
+      let message = "Failed to revoke API key.";
+      if (error?.detail) message = error.detail;
+      toast(message);
     },
   });
 };

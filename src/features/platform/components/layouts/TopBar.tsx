@@ -10,9 +10,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { useLogoutMutation } from "../../auth/hooks/useAuthQueries";
+import { useRouter } from "next/navigation";
+import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
 
 export function TopBar() {
   const [isDark, setIsDark] = useState(true);
+  const logOut = useLogoutMutation();
+  const router = useRouter();
+
+  function toggleTheme() {
+    setIsDark(!isDark);
+  }
+
+  function handleLogout() {
+    logOut.mutate();
+    router.push(PLATFORM_ROUTES.SIGNIN);
+  }
 
   return (
     <header className="h-16 border-b border-border flex items-center justify-between px-6 lg:px-8 bg-background/80 backdrop-blur-sm sticky top-0 z-30">
@@ -63,7 +77,7 @@ export function TopBar() {
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Sign out</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onClick = {handleLogout}>Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

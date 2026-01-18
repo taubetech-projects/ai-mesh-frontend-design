@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -18,9 +18,34 @@ import {
   ChevronRight,
   Menu,
   X,
+  ChartBar,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/features/platform/lib/utils";
 import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  useMyTeams,
+  useCreateTeam,
+} from "@/features/platform/team/team.queries";
+import { setSelectedTeam } from "@/features/platform/lib/teamSlice";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/shared/components/ui/dropdown-menu";
+import { Button } from "@/shared/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { Input } from "@/shared/components/ui/input";
 
 interface NavItem {
   title: string;
@@ -55,6 +80,7 @@ const navItems: NavItem[] = [
     ],
   },
   { title: "Wallet", href: PLATFORM_ROUTES.WALLET, icon: Wallet },
+  { title: "Usage", href: PLATFORM_ROUTES.USAGE, icon: ChartBar },
   { title: "Settings", href: PLATFORM_ROUTES.SETTINGS, icon: Settings },
 ];
 
@@ -62,6 +88,32 @@ export function PlatformSidebar() {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const dispatch = useDispatch();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+  const { data: teams, isLoading: isTeamsLoading } = useMyTeams();
+  const createTeamMutation = useCreateTeam();
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamDescription, setNewTeamDescription] = useState("");
+  console.log("selectedTeam", selectedTeam);
+
+  const handleCreateTeam = async () => {
+    if (!newTeamName) return;
+    await createTeamMutation.mutateAsync({
+      name: newTeamName,
+      description: newTeamDescription,
+    });
+    setIsCreateTeamOpen(false);
+    setNewTeamName("");
+    setNewTeamDescription("");
+  };
+
+  useEffect(() => {
+    if (teams && Array.isArray(teams) && teams.length > 0 && !selectedTeam) {
+      dispatch(setSelectedTeam(teams[0]));
+    }
+  }, [teams, selectedTeam, dispatch]);
 
   const isActive = (href: string) => {
     return pathname === href || pathname?.startsWith(href + "/");
@@ -78,13 +130,37 @@ export function PlatformSidebar() {
   const SidebarContent = () => (
     <>
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider">
-            Team
-          </div>
-          <ChevronDown className="h-3 w-3 text-muted-foreground" />
-        </div>
-        <div className="font-medium text-foreground mt-1">Personal team</div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-full text-left outline-none group">
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">
+                  Team
+                </div>
+                <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+              <div className="font-medium text-foreground mt-1 truncate">
+                {selectedTeam?.name ||
+                  (isTeamsLoading ? "Loading..." : "Select Team")}
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="start">
+            {teams?.map((team: any) => (
+              <DropdownMenuItem
+                key={team.id}
+                onClick={() => dispatch(setSelectedTeam(team))}
+              >
+                {team.name}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setIsCreateTeamOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Team
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin">
@@ -183,6 +259,45 @@ export function PlatformSidebar() {
       >
         <SidebarContent />
       </aside>
+
+      <Dialog open={isCreateTeamOpen} onOpenChange={setIsCreateTeamOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Team</DialogTitle>
+            <DialogDescription>
+              Create a new team to collaborate with others.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="name" className="text-sm font-medium">Team Name</label>
+              <Input
+                id="name"
+                value={newTeamName}
+                onChange={(e) => setNewTeamName(e.target.value)}
+                placeholder="Enter team name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="description" className="text-sm font-medium">Description (Optional)</label>
+              <Input
+                id="description"
+                value={newTeamDescription}
+                onChange={(e) => setNewTeamDescription(e.target.value)}
+                placeholder="Enter team description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateTeamOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateTeam} disabled={!newTeamName}>
+              Create Team
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
