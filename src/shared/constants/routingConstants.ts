@@ -7,7 +7,7 @@ export enum CHAT_ROUTES {
   RESET_PASSWORD = "/chat/auth/reset-password",
   VERIFY_EMAIL = "/chat/auth/signup/verify-email",
   OAUTH2SUCESS = "/chat/auth/oauth2-success",
-  GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google",
+  GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google-chat",
 
   PLAYGROUND = "/platform/playground",
 
@@ -44,7 +44,7 @@ export enum PLATFORM_ROUTES {
   RESET_PASSWORD = "/platform/auth/reset-password",
   VERIFY_EMAIL = "/platform/auth/signup/verify-email",
   OAUTH2SUCESS = "/platform/auth/oauth2-success",
-  GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google",
+  GOOGLE_SIGNIN = "http://localhost:8080/oauth2/authorization/google-platform",
 
   ONBOARDING = "/platform/onboarding",
 }

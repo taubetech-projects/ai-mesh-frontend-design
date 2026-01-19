@@ -10,6 +10,7 @@ import {
   ModelCreateRequest,
   ModelUpdateRequest,
 } from "../types/modelTypes";
+import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.helper";
 
 export function useModels() {
   return useQuery({
@@ -37,7 +38,9 @@ export function useCreateModel() {
       queryClient.invalidateQueries({
         queryKey: modelCatalogKeys.all,
       });
+      showSuccessToast("Your new model has been created successfully.");
     },
+    onError : handleApiErrorToast
   });
 }
 
@@ -61,7 +64,9 @@ export function useUpdateModel() {
       queryClient.invalidateQueries({
         queryKey: modelCatalogKeys.list(),
       });
+      showSuccessToast("Your model has been updated successfully.");
     },
+    onError: handleApiErrorToast
   });
 }
 
@@ -76,7 +81,9 @@ export function useDeleteModel() {
       queryClient.invalidateQueries({
         queryKey: modelCatalogKeys.all,
       });
+      showSuccessToast("Your model has been deleted.");
     },
+    onError: handleApiErrorToast
   });
 }
 

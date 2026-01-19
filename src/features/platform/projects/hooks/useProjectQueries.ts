@@ -9,6 +9,7 @@ import { platformProjectKeys } from "./queryKeys";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { UUID } from "../../team/team.types";
+import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.helper";
 
 export function useOwnedProjectsQuery() {
   const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
@@ -30,9 +31,10 @@ export function useDeleteProjectMutation() {
       return PlatformProjectService.delete(selectedTeam.id, id);
     },
     onSuccess: () => {
-      toast.success("Project deleted successfully!");
+      showSuccessToast("Project deleted successfully!");
       qc.invalidateQueries({ queryKey: platformProjectKeys.all });
     },
+    onError: handleApiErrorToast,
   });
 }
 
@@ -50,9 +52,10 @@ export function useProjectUpdateMutation() {
       return PlatformProjectService.update(selectedTeam.id, project.id, data);
     },
     onSuccess: () => {
-      toast.success("Project updated successfully!");
+      showSuccessToast("Project updated successfully!");
       qc.invalidateQueries({ queryKey: platformProjectKeys.all });
     },
+    onError: handleApiErrorToast,
   });
 }
 
@@ -68,13 +71,14 @@ export function useCreateProjectMutation() {
   // const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
   return useMutation({
-    mutationFn: ({data, teamId} :{data: CreateProjectRequest, teamId: string}) => {
+    mutationFn: ({data, teamId} :{data: CreateProjectRequest, teamId: UUID}) => {
       // if (!selectedTeam?.id) throw new Error("No team selected");
       return PlatformProjectService.create(teamId, data);
     },
     onSuccess: () => {
-      toast.success("Project created successfully!");
+      showSuccessToast("Project created successfully!");
       qc.invalidateQueries({ queryKey: platformProjectKeys.all });
     },
+    onError: handleApiErrorToast,
   });
 }

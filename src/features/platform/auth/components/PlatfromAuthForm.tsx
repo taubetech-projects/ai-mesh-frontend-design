@@ -128,7 +128,7 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
     ? "Don't have an account?"
     : "Already have an account?";
   const switchActionText = isLogin ? "Sign Up" : "Log In";
-  const switchLink = isLogin ? "/auth/signup" : "/auth/login";
+  const switchLink = isLogin ? "/platform/auth/signup" : "/platform/auth/login";
 
   const [identifier, setIdentifier] = useState(""); // For username or email on login
   const [username, setUsername] = useState("");

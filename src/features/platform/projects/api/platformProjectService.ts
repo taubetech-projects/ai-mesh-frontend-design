@@ -4,12 +4,13 @@ import {
   ProjectResponse,
   ProjectUpdateRequest,
 } from "../types/projectTypes";
+import { UUID } from "../../team/team.types";
 
 const basePath = "/v1/api/platform";
 
 export const PlatformProjectService = {
   create: async (
-    teamId: string,
+    teamId: UUID,
     data: CreateProjectRequest
   ): Promise<ProjectResponse> => {
     const res = await platformProxyApi.post<ProjectResponse>(

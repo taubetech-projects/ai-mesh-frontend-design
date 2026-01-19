@@ -9,6 +9,7 @@ import {
 } from "@/features/chat/conversation/api/conversationApi";
 import { queryKey } from "@/lib/react-query/keys";
 import { CONVERSATION_TYPES, STALE_TIME } from "@/shared/constants/constants";
+import { handleApiErrorToast } from "@/shared/utils/toast.helper";
 
 // Custom hooks for CRUD operations
 export const useCreateConversationApi = () => {
@@ -23,7 +24,7 @@ export const useCreateConversationApi = () => {
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() });
     },
     onError: (error: unknown) => {
-      console.error("Error creating conversation:", error);
+      handleApiErrorToast(error);
     },
   });
 };
@@ -64,6 +65,9 @@ export const useUpdateConversationApi = () => {
       updateConversationApi(id, conversation),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after an update
+    onError: (error: unknown) => {
+      handleApiErrorToast(error);
+    }
   });
 };
 
@@ -73,5 +77,9 @@ export const useDeleteConversationApi = () => {
     mutationFn: (id: string) => deleteConversationApi(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after deletion
+
+    onError: (error: unknown) => {
+      handleApiErrorToast(error);
+    }
   });
 };

@@ -3,6 +3,7 @@ import { WalletService } from "../api/walletService";
 import { walletKeys } from "./queryKeys";
 import { toast } from "sonner";
 import { DepositRequest } from "../types/walletTypes";
+import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.helper";
 
 /* =======================
    Queries
@@ -38,10 +39,8 @@ export const useCreateWalletMutation = () => {
       queryClient.invalidateQueries({
         queryKey: walletKeys.me(),
       });
-      toast("Your new wallet has been created successfully.");
+      showSuccessToast("Your new wallet has been created successfully.");
     },
-    onError: () => {
-      toast("Failed to create wallet. Please try again.");
-    },
+    onError: handleApiErrorToast
   });
 };

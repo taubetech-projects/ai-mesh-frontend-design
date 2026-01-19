@@ -10,6 +10,7 @@ import type {
   ResetPasswordRequest,
   RefreshRequest,
 } from "@/features/platform/auth/types/authModels";
+import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.helper";
 
 /* ---------------------------
  * Queries
@@ -35,6 +36,7 @@ export function useLoginMutation() {
       // Ensure cookies are set -> then refresh /me
       await qc.invalidateQueries({ queryKey: qk.me() });
     },
+    onError: handleApiErrorToast
   });
 }
 
@@ -46,13 +48,16 @@ export function useLogoutMutation() {
       // Immediately drop auth state
       qc.setQueryData(qk.me(), null);
       await qc.invalidateQueries({ queryKey: qk.me() });
+      showSuccessToast("You have been logged out.");
     },
+    onError: handleApiErrorToast
   });
 }
 
 export function useSignupMutation() {
   return useMutation({
     mutationFn: (data: SignupRequest) => PlatformAuthService.signup(data),
+    onError: handleApiErrorToast
   });
 }
 
@@ -60,6 +65,7 @@ export function useResendEmailMutation() {
   return useMutation({
     mutationFn: (data: ResendEmailRequest) =>
       PlatformAuthService.resendEmail(data),
+    onError: handleApiErrorToast
   });
 }
 
@@ -67,6 +73,7 @@ export function useForgotPasswordMutation() {
   return useMutation({
     mutationFn: (data: ForgotPasswordRequest) =>
       PlatformAuthService.forgotPassword(data),
+    onError: handleApiErrorToast
   });
 }
 
@@ -74,6 +81,7 @@ export function useResetPasswordMutation() {
   return useMutation({
     mutationFn: (data: ResetPasswordRequest) =>
       PlatformAuthService.resetPassword(data),
+    onError: handleApiErrorToast
   });
 }
 
@@ -90,9 +98,10 @@ export function useRefreshTokenMutation() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: qk.me() });
     },
-    onError: () => {
+    onError: (error : any) => {
       // If refresh fails, consider user logged out
       qc.setQueryData(qk.me(), null);
+      handleApiErrorToast(error);
     },
   });
 }

@@ -17,7 +17,6 @@ export const PlatformAuthService = {
   login: (data: LoginRequest) =>
     platformAuth.login<LoginRequest, TokenResponse>(data),
   me: () => platformAuth.me<Me>(),
-
   refreshToken: (data: RefreshRequest) =>
     platformAuth.refreshToken<RefreshRequest, TokenResponse>(data),
   logout: () => platformAuth.logout(),
