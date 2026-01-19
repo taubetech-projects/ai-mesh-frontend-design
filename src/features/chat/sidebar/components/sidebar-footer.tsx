@@ -27,6 +27,7 @@ export function SidebarFooter({
   t,
 }: SidebarFooterProps) {
   const { me, isLoading } = useChatAuth();
+  console.log("My Data :", me);
   return (
     <div className="p-4 border-t border-sidebar-border space-y-4">
       {/* User Profile Section */}

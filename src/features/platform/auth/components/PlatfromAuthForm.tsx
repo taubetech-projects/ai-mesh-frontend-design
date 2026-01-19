@@ -163,7 +163,7 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
       });
       console.log("Login response:", response);
       if (response && response.accessToken) {
-        toast.success("Login successful! Welcome to our platform...");
+        // toast.success("Login successful! Welcome to our platform...");
         // 🔥 Explicitly fetch teams AFTER token is available
         const { data: teams } = await refetchTeams();
         if (teams?.length === undefined || teams?.length === 0) {
@@ -215,9 +215,9 @@ export const PlatformAuthForm = ({ view }: { view: "login" | "signup" }) => {
         password,
       });
       if (response) {
-        toast.info(
-          "Signup successful! Please check your email for verification."
-        );
+        // toast.info(
+        //   "Signup successful! Please check your email for verification."
+        // );
         router.push(
           `${PLATFORM_ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(
             response.email

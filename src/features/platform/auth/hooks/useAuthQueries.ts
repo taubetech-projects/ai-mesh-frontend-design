@@ -35,6 +35,7 @@ export function useLoginMutation() {
     onSuccess: async () => {
       // Ensure cookies are set -> then refresh /me
       await qc.invalidateQueries({ queryKey: qk.me() });
+      showSuccessToast("Login successful! Welcome to our platform...");
     },
     onError: handleApiErrorToast
   });
@@ -57,7 +58,10 @@ export function useLogoutMutation() {
 export function useSignupMutation() {
   return useMutation({
     mutationFn: (data: SignupRequest) => PlatformAuthService.signup(data),
-    onError: handleApiErrorToast
+    onError: handleApiErrorToast,
+    onSuccess: () => {
+      showSuccessToast("Signup successful! Please check your email for verification.");
+    }
   });
 }
 

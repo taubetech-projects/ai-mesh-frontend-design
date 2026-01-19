@@ -10,7 +10,6 @@ import {
   Check,
   ArrowRight,
   ArrowLeft,
-  Copy,
   Plus,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
@@ -39,6 +38,7 @@ import { useCreateApiKey } from "@/features/platform/api-keys/hooks/useProjectAp
 import { ApiKeyCreateResponse } from "@/features/platform/api-keys/types/apiKeyTypes";
 import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
 import { CreateProjectRequest } from "@/features/platform/projects/types/projectTypes";
+import { ApiKeyDisplay } from "@/features/platform/api-keys/components/ApiKeyDisplay";
 
 interface Step {
   id: number;
@@ -210,11 +210,6 @@ export default function Onboarding() {
     }
   };
 
-  const handleCopyApiKey = () => {
-    navigator.clipboard.writeText(generatedApiKey);
-    toast({ title: "Copied", description: "API key copied to clipboard!" });
-  };
-
   const handlePurchaseCredits = () => {
     if (!selectedPackage) {
       toast({
@@ -349,25 +344,7 @@ export default function Onboarding() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                <Label>Your API Key</Label>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 p-3 bg-muted rounded-md font-mono text-sm break-all">
-                    {generatedApiKey}
-                  </code>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyApiKey}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  ⚠️ Make sure to copy your API key now. You won't be able to
-                  see it again!
-                </p>
-              </div>
+              <ApiKeyDisplay apiKey={generatedApiKey} />
             )}
 
             {generatedApiKey && (
@@ -418,7 +395,7 @@ export default function Onboarding() {
                     "cursor-pointer transition-all hover:border-primary/50",
                     selectedPackage === pkg.id &&
                       "border-primary ring-1 ring-primary",
-                    pkg.popular && "relative"
+                    pkg.popular && "relative",
                   )}
                   onClick={() => setSelectedPackage(pkg.id)}
                 >
@@ -507,8 +484,8 @@ export default function Onboarding() {
                         currentStep === step.id
                           ? "bg-primary text-primary-foreground"
                           : completedSteps.includes(step.id)
-                          ? "bg-primary/20 text-primary"
-                          : "bg-muted text-muted-foreground"
+                            ? "bg-primary/20 text-primary"
+                            : "bg-muted text-muted-foreground",
                       )}
                     >
                       {completedSteps.includes(step.id) ? (
@@ -523,7 +500,7 @@ export default function Onboarding() {
                           "text-sm font-medium",
                           currentStep === step.id
                             ? "text-foreground"
-                            : "text-muted-foreground"
+                            : "text-muted-foreground",
                         )}
                       >
                         {step.title}
@@ -539,7 +516,7 @@ export default function Onboarding() {
                         "flex-1 h-0.5 mx-4 mt-[-40px]",
                         completedSteps.includes(step.id)
                           ? "bg-primary"
-                          : "bg-muted"
+                          : "bg-muted",
                       )}
                     />
                   )}

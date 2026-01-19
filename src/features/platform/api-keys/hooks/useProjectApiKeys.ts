@@ -5,7 +5,10 @@ import { projectApiKeyKeys } from "./queryKeys";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
-import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.helper";
+import {
+  handleApiErrorToast,
+  showSuccessToast,
+} from "@/shared/utils/toast.helper";
 
 /* =======================
    Queries
@@ -44,7 +47,7 @@ export const useApiKey = (keyId: string) => {
 export const useSearchApiKeys = (
   keyName: string | null,
   projectId: string | null,
-  active: boolean | null
+  active: boolean | null,
 ) => {
   const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
 
@@ -53,14 +56,14 @@ export const useSearchApiKeys = (
       keyName,
       projectId,
       active,
-      selectedTeam?.id
+      selectedTeam?.id,
     ),
     queryFn: () =>
       PlatformProjectKeyService.serachKeys(
         keyName,
         projectId,
         active,
-        selectedTeam?.id
+        selectedTeam?.id,
       ),
   });
 };
@@ -85,9 +88,12 @@ export const useCreateApiKey = (projectId: string) => {
       queryClient.invalidateQueries({
         queryKey: [...projectApiKeyKeys.listAllForUser(), selectedTeam?.id],
       });
+      queryClient.invalidateQueries({
+        queryKey: projectApiKeyKeys.lists(),
+      });
       showSuccessToast("Your new API key has been created successfully.");
     },
-    onError: handleApiErrorToast
+    onError: handleApiErrorToast,
   });
 };
 
@@ -112,7 +118,7 @@ export const useUpdateApiKey = () => {
       });
       showSuccessToast("Your API key has been updated successfully.");
     },
-    onError: handleApiErrorToast
+    onError: handleApiErrorToast,
   });
 };
 
@@ -136,7 +142,7 @@ export const useRevokeApiKey = () => {
       });
       showSuccessToast("The API key has been revoked.");
     },
-    onError: handleApiErrorToast
+    onError: handleApiErrorToast,
   });
 };
 
@@ -158,6 +164,6 @@ export const useDeleteApiKey = () => {
       showSuccessToast("The API key has been deleted.");
     },
 
-    onError: handleApiErrorToast
+    onError: handleApiErrorToast,
   });
 };
