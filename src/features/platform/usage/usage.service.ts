@@ -24,4 +24,15 @@ export const usageService = {
 
     return res.data;
   },
+  exportPdf: async (params: UsageQueryParams): Promise<Blob> => {
+    const res = await platformProxyApi.get(
+      `${BASE_PATH}/export/csv`,
+      {
+        params,
+        responseType: "blob", // 👈 CRITICAL
+      }
+    );
+
+    return res.data;
+  },
 };
