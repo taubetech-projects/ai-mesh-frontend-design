@@ -102,7 +102,7 @@ export default function Wallet() {
   const { data: walletData } = useMyTeamWalletQuery(selectedTeam?.id);
   const { data: transactionsData } = useTransactionsQuery();
   const topUp = useCreateTopUpMutation(selectedTeam?.id);
-
+  console.log("walletData", walletData);
   const wallet = walletData as WalletView | undefined;
 
   const walletTransactions = transactionsData as Transaction[] | undefined;

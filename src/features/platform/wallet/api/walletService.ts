@@ -10,8 +10,8 @@ import {
 const basePath = "/v1/api/platform";
 
 export const WalletService = {
-  getMyTeamWallet: async (teamId: string): Promise<WalletView[]> => {
-    const res = await platformProxyApi.get(`${basePath}/teams/${teamId}/wallet`);
+  getMyTeamWallet: async (teamId: string): Promise<WalletView> => {
+    const res = await platformProxyApi.get(`${basePath}/teams/${teamId}/wallet/balance`);
     return res.data;
   },
 
