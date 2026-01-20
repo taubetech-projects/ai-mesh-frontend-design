@@ -1,3 +1,5 @@
+import { UUID } from "../../team/team.types";
+
 export type WalletView = {
   balanceUsd: number;
   balanceNanoUsd: number;
@@ -22,3 +24,14 @@ export type DepositRequest = {
   amountUsd: number;
   currency: string;
 };
+
+export type TopUpRequest = {
+  amountMajor: number;
+  currency: string;
+}
+
+export type TopUpResponse = {
+    checkoutUrl: string;
+    sessionId: string;
+    transactionId: UUID;
+}

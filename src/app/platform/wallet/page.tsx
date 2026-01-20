@@ -31,14 +31,18 @@ import { Label } from "@/shared/components/ui/label";
 import { toast } from "@/shared/hooks/use-toast";
 import {
   useTransactionsQuery,
-  useWalletQuery,
+  useMyTeamWalletQuery,
+  useCreateTopUpMutation,
 } from "@/features/platform/wallet/hooks/useWalletHook";
 import {
   DeveloperWalletTransaction,
+  TopUpResponse,
   WalletView,
 } from "@/features/platform/wallet/types/walletTypes";
 import { formatNanoCentsCurrency, nanoToUsd } from "@/shared/utils/currency";
 import { formatDateYearMonthDay } from "@/shared/utils/dateFormat";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 
 interface Transaction {
   id: string;
@@ -87,24 +91,27 @@ const mockTransactions: Transaction[] = [
 const topUpAmounts = [25, 50, 100, 250, 500, 1000];
 
 export default function Wallet() {
+  const router = useRouter();
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
+
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(100);
   const [customAmount, setCustomAmount] = useState("");
 
-  const { data: walletData } = useWalletQuery();
+  //hooks
+  const { data: walletData } = useMyTeamWalletQuery(selectedTeam?.id);
+  const { data: transactionsData } = useTransactionsQuery();
+  const topUp = useCreateTopUpMutation(selectedTeam?.id);
+
   const wallet = walletData as WalletView | undefined;
 
-  const { data: transactionsData } = useTransactionsQuery();
   const walletTransactions = transactionsData as Transaction[] | undefined;
 
   const handleTopUp = () => {
     const amount = customAmount ? parseFloat(customAmount) : selectedAmount;
     if (!amount || amount <= 0) return;
-
-    toast({
-      title: "Top-up Successful",
-      description: `$${amount.toFixed(2)} has been added to your wallet.`,
-    });
+    const result = topUp.mutateAsync({ amountMajor: amount, currency: "USD" });
+    console.log("result", result);
     setIsTopUpOpen(false);
     setSelectedAmount(100);
     setCustomAmount("");
