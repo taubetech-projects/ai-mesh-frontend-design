@@ -77,7 +77,7 @@ export function ModelColumns({ outputFormat }: { outputFormat: string }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full gpt-scrollbar">
       <div
         // was: className={`flex-1 flex ${getContainerClass()}`} ...
         className={`flex-1 grid overflow-x-auto ${getContainerClass()}`}

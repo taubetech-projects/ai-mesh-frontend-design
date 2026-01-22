@@ -7,7 +7,7 @@ import store from "@/lib/store/store";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 export default function PlaygroundPage() {
   return (
-    <DashboardLayout>
+    <DashboardLayout needTopBar={false}>
       <div className="flex h-screen bg-background">
         <Provider store={store}>
           {/* <Sidebar activeInterface={"CHAT"} /> */}

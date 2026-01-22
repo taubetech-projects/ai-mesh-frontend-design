@@ -20,7 +20,13 @@ import {
 import { ModelProvider } from "@/features/chat/types/models";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
+import { X, Settings2, Sliders, Info } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addModel,
@@ -35,7 +41,6 @@ import {
   updatePlaygroundIsStreaming,
   updateProviderSpecific,
 } from "@/features/platform/playground/store/playground-interface-slice";
-import { te } from "date-fns/locale";
 import { RootState } from "@/lib/store/store";
 
 export function PlaygroundSettings() {
@@ -57,7 +62,7 @@ export function PlaygroundSettings() {
   const handleModelToggle = (
     provider: string,
     modelId: string,
-    checked: boolean
+    checked: boolean,
   ) => {
     if (checked) {
       dispatch(addModel(provider, modelId));
@@ -67,52 +72,64 @@ export function PlaygroundSettings() {
   };
 
   return (
-    <div className="p-4 bg-muted rounded-lg border border-border relative">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-medium text-foreground">
-          Playground Settings
-        </h3>
+    <div className="w-full p-6 bg-background/95 backdrop-blur-md rounded-xl border border-border shadow-2xl relative animate-in fade-in slide-in-from-bottom-2 duration-200">
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-border/50">
+        <div className="flex items-center gap-2 text-foreground">
+          <Settings2 className="w-4 h-4" />
+          <h3 className="text-sm font-semibold tracking-tight">
+            Configuration
+          </h3>
+        </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 text-muted-foreground hover:bg-muted-foreground/20 hover:text-foreground"
+          className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
           onClick={() => dispatch(togglePlaygroundSettings(false))}
         >
           <X className="h-4 w-4" />
-          <span className="sr-only">Close playground settings</span>
+          <span className="sr-only">Close</span>
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left side */}
-        <div className="md:col-span-1 space-y-2">
-          <Label htmlFor="system-prompt" className="text-xs font-medium">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left side: System Prompt */}
+        <div className="lg:col-span-4 flex flex-col gap-3">
+          <Label
+            htmlFor="system-prompt"
+            className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+          >
             System Prompt
           </Label>
           <Textarea
             id="system-prompt"
-            placeholder="You are a helpful assistant."
+            placeholder="You are a helpful AI assistant..."
             value={systemPrompt}
             onChange={(e) => dispatch(updateSystemPrompt(e.target.value))}
-            className="h-48 resize-none bg-background border border-text-area"
+            className="flex-1 min-h-[240px] resize-none bg-muted/30 border-border focus:border-primary/50 focus:ring-primary/20 transition-all font-mono text-sm"
           />
         </div>
 
-        {/* Right side */}
-        <div className="md:col-span-2 grid grid-cols-2 gap-x-4 gap-y-4">
+        {/* Right side: Parameters */}
+        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6 content-start">
           {/* Select Models */}
-          <div className="space-y-2 col-span-2">
-            <Label className="text-xs font-medium">Select Models</Label>
+          <div className="col-span-full space-y-2">
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Active Models
+            </Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full justify-start font-normal bg-background border-border"
+                  className="w-full justify-between font-normal bg-muted/30 border-border hover:bg-muted/50"
                 >
-                  <span className="truncate">
+                  <span className="truncate flex items-center gap-2">
+                    <Sliders className="w-3.5 h-3.5 text-muted-foreground" />
                     {selectedModels.length > 0
                       ? selectedModels.map((sm) => sm.model).join(", ")
                       : "Select models..."}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-2 bg-background px-2 py-0.5 rounded-md border border-border">
+                    {selectedModels.length} selected
                   </span>
                 </Button>
               </DropdownMenuTrigger>
@@ -126,7 +143,7 @@ export function PlaygroundSettings() {
                       <DropdownMenuCheckboxItem
                         key={model.id}
                         checked={selectedModels.some(
-                          (sm) => sm.model === model.id
+                          (sm) => sm.model === model.id,
                         )}
                         onCheckedChange={(checked) =>
                           handleModelToggle(provider.name, model.id, checked)
@@ -144,8 +161,11 @@ export function PlaygroundSettings() {
           </div>
 
           {/* Other Dropdowns */}
-          <div className="space-y-2">
-            <Label htmlFor="temperature" className="text-xs font-medium">
+          <div className="space-y-2.5">
+            <Label
+              htmlFor="temperature"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Temperature
             </Label>
             <Input
@@ -154,12 +174,15 @@ export function PlaygroundSettings() {
               step="0.1"
               value={temperature}
               onChange={(e) => dispatch(updateTemperature(e.target.value))}
-              className="bg-background border-border"
+              className="bg-muted/30 border-border"
               placeholder="0.7"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="input-format" className="text-xs font-medium">
+          <div className="space-y-2.5">
+            <Label
+              htmlFor="input-format"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Input Format
             </Label>
             <Select
@@ -168,7 +191,7 @@ export function PlaygroundSettings() {
             >
               <SelectTrigger
                 id="input-format"
-                className="bg-background border-border"
+                className="bg-muted/30 border-border"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -178,8 +201,11 @@ export function PlaygroundSettings() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="output-format" className="text-xs font-medium">
+          <div className="space-y-2.5">
+            <Label
+              htmlFor="output-format"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Output Format
             </Label>
             <Select
@@ -188,7 +214,7 @@ export function PlaygroundSettings() {
             >
               <SelectTrigger
                 id="output-format"
-                className="bg-background border-border"
+                className="bg-muted/30 border-border"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -198,17 +224,35 @@ export function PlaygroundSettings() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="reasoning-effort" className="text-xs font-medium">
-              Reasoning Effort
-            </Label>
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-1.5">
+              <Label
+                htmlFor="reasoning-effort"
+                className="text-xs font-medium text-muted-foreground"
+              >
+                Reasoning Effort
+              </Label>
+              <TooltipProvider>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground/70 hover:text-foreground transition-colors cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px] text-xs">
+                    <p>
+                      Controls the depth of reasoning the model employs before
+                      generating a response.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <Select
               value={reasoningEffort}
               onValueChange={(value) => dispatch(updateReasoningEffort(value))}
             >
               <SelectTrigger
                 id="reasoning-effort"
-                className="bg-background border-border"
+                className="bg-muted/30 border-border"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -219,8 +263,11 @@ export function PlaygroundSettings() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="max-tokens" className="text-xs font-medium">
+          <div className="space-y-2.5">
+            <Label
+              htmlFor="max-tokens"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Max Tokens
             </Label>
             <Input
@@ -228,12 +275,15 @@ export function PlaygroundSettings() {
               type="number"
               value={maxTokens}
               onChange={(e) => dispatch(updateMaxTokens(e.target.value))}
-              className="bg-background border-border"
+              className="bg-muted/30 border-border"
               placeholder="4096"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="is-streaming" className="text-xs font-medium">
+          <div className="space-y-2.5">
+            <Label
+              htmlFor="is-streaming"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Streaming
             </Label>
             <Select
@@ -244,7 +294,7 @@ export function PlaygroundSettings() {
             >
               <SelectTrigger
                 id="is-streaming"
-                className="bg-background border-border"
+                className="bg-muted/30 border-border"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -254,8 +304,11 @@ export function PlaygroundSettings() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="provider-specific" className="text-xs font-medium">
+          <div className="space-y-2.5">
+            <Label
+              htmlFor="provider-specific"
+              className="text-xs font-medium text-muted-foreground"
+            >
               Provider Specific
             </Label>
             <Select
@@ -266,7 +319,7 @@ export function PlaygroundSettings() {
             >
               <SelectTrigger
                 id="provider-specific"
-                className="bg-background border-border"
+                className="bg-muted/30 border-border"
               >
                 <SelectValue />
               </SelectTrigger>
