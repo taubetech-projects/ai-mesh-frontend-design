@@ -3,9 +3,14 @@
 import { ModelColumns } from "@/features/chat/components/model-columns";
 import { ModelSelector } from "@/features/chat/components/chat-model-selector";
 import {
+  ChatMode,
+  ChatModeSelector,
+} from "@/features/chat/components/chat-mode-selector";
+import {
   ChatRequestBody,
   ContentItem,
   FileUploadItem,
+  ModelProvider,
   RouteSel,
 } from "@/features/chat/types/models";
 import { useLanguage } from "@/shared/contexts/language-context";
@@ -15,14 +20,18 @@ import {
   setEditMessageId,
   toggleModelSelector,
   updateInputMessage,
+  addModel,
+  removeModel,
+  setSelectedModels,
   triggerFileUploading,
   startRecorder,
   stopRecorder,
   clearChatState,
+  initialSelectedModels,
 } from "@/features/chat/store/chat-interface-slice";
 import { useCreateMessages } from "@/features/chat/text-chat/hooks/useCreateMessages";
 import { useUpdateMessages } from "@/features/chat/text-chat/hooks/useUpdateMessages";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
 import { authHeader } from "@/features/chat/auth/utils/auth";
@@ -49,6 +58,7 @@ export function HomeChatInterface() {
     triggerSend,
     uploadingFiles,
     showRecorder,
+    providers,
   } = useSelector((store: any) => store.chatInterface);
   const { activeInterface } = useSelector((store: RootState) => store.ui);
   const { selectedConvId } = useSelector(
@@ -61,10 +71,85 @@ export function HomeChatInterface() {
   const [isAnimating, setIsAnimating] = useState(false);
   const createConversation = useCreateConversationApi();
 
+  // Track previous multi-select models to restore them
+  const previousMultiModels = useRef<RouteSel[]>([]);
+  // Also track previous chat mode to know where we came from
+  const previousMode = useRef<ChatMode>("multi");
+
   // 🔹 File handling
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isImageGenSelected, setIsImageGenSelected] = useState(false);
   const [isWebSearchSelected, setIsWebSearchSelected] = useState(false);
+  const [chatMode, setChatMode] = useState<ChatMode>("multi");
+
+  const handleModeChange = (mode: ChatMode) => {
+    // Save current selection if we are leaving "multi" mode
+    if (chatMode === "multi" && mode !== "multi") {
+      // Filter out consensus if it happens to be there (unlikely in multi but possible if manually added)
+      const cleanMulti = selectedModels.filter(
+        (m: RouteSel) => m.model !== "consensus"
+      );
+      if (cleanMulti.length > 0) {
+        previousMultiModels.current = cleanMulti;
+      }
+    }
+
+    setChatMode(mode);
+    previousMode.current = chatMode;
+
+    if (mode === "single") {
+      // Enforce single selection
+      if (selectedModels.length > 1) {
+        // Keep the first one, disregard others
+        const firstModel = selectedModels.find(
+          (m: RouteSel) => m.model !== "consensus"
+        );
+        if (firstModel) {
+          dispatch(setSelectedModels([firstModel]));
+        } else if (selectedModels.length > 0) {
+           // Fallback to first available
+          dispatch(setSelectedModels([selectedModels[0]]));
+        }
+      } else if (selectedModels.length === 0) {
+         // If nothing selected, maybe select default?
+         dispatch(setSelectedModels([initialSelectedModels[0]]));
+      }
+    } else if (mode === "multi") {
+      // Switching to multi
+      // Restore previous models if available, otherwise use defaults
+      // But only if we are currently looking at a "single" leftover (or consensus)
+      // If the user manually selected multiple while in another mode (shouldn't happen in single), we might respect it?
+      // User requirement: "on the multi chat i want to show all the models from my model preferences"
+      
+      let modelsToRestore = previousMultiModels.current;
+      if (modelsToRestore.length === 0) {
+        modelsToRestore = initialSelectedModels;
+      }
+
+      // Filter out consensus from restoration just in case
+      modelsToRestore = modelsToRestore.filter(m => m.model !== "consensus");
+
+      // Apply restoration
+      dispatch(setSelectedModels(modelsToRestore));
+      
+    } else if (mode === "consensus") {
+      // Add consensus model if not present
+      const isConsensusSelected = selectedModels.some(
+        (m: RouteSel) => m.model === "consensus"
+      );
+      if (!isConsensusSelected) {
+        // Find consensus provider
+        const consensusProvider = providers.find((p: ModelProvider) =>
+          p.models.some((m) => m.id === "consensus")
+        );
+        if (consensusProvider) {
+          dispatch(addModel(consensusProvider, "consensus"));
+        } else {
+          console.warn("Consensus provider/model not found");
+        }
+      }
+    }
+  };
 
   const handleGenerateImageClick = () => {
     setIsImageGenSelected(!isImageGenSelected);
@@ -417,6 +502,17 @@ export function HomeChatInterface() {
         </div>
 
         <div className="w-full max-w-4xl p-4 pointer-events-auto relative">
+          {/* Chat Mode Selector */}
+          <div
+            className={`flex justify-center transition-all duration-500 ease-in-out ${
+              isAnimating
+                ? "opacity-0 h-0 mb-0 overflow-hidden"
+                : "opacity-100 mb-4 h-auto"
+            }`}
+          >
+            <ChatModeSelector mode={chatMode} onModeChange={handleModeChange} />
+          </div>
+
           {/* Gradient effect behind input box */}
           <div
             className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[100%] bg-gradient-to-r from-teal-500/20 via-purple-500/20 to-pink-500/20 blur-3xl -z-10 rounded-full pointer-events-none transition-opacity duration-500 ${
@@ -431,7 +527,7 @@ export function HomeChatInterface() {
               style={{ pointerEvents: "auto" }}
             >
               <div className="max-w-4xl w-full">
-                <ModelSelector />
+                <ModelSelector isSingleMode={chatMode === "single"} />
               </div>
             </div>
           )}
@@ -455,13 +551,21 @@ export function HomeChatInterface() {
           />
 
           {/* Chip Buttons */}
-          <ChatActionChips
-            isImageGenSelected={isImageGenSelected}
-            onToggleImageGen={handleGenerateImageClick}
-            isWebSearchSelected={isWebSearchSelected}
-            onToggleWebSearch={handleWebSearchClick}
-            className="mt-3 justify-center"
-          />
+          <div
+            className={`transition-all duration-500 ease-in-out ${
+              isAnimating
+                ? "opacity-0 h-0 mt-0 overflow-hidden"
+                : "opacity-100 mt-3 h-auto"
+            }`}
+          >
+            <ChatActionChips
+              isImageGenSelected={isImageGenSelected}
+              onToggleImageGen={handleGenerateImageClick}
+              isWebSearchSelected={isWebSearchSelected}
+              onToggleWebSearch={handleWebSearchClick}
+              className="justify-center"
+            />
+          </div>
         </div>
         <div
           className={`w-full transition-all duration-500 ease-in-out ${

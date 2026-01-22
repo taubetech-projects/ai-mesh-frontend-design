@@ -172,7 +172,7 @@ interface ChatInterfaceState {
   currentMessageVersion: number;
 }
 
-const initialSelectedModels: RouteSel[] = [
+export const initialSelectedModels: RouteSel[] = [
   { provider: "openai", model: "gpt-5-nano" },
   { provider: "gemini", model: "gemini-2.5-flash-lite" },
 ];

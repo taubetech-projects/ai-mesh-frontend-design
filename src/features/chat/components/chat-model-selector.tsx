@@ -11,11 +11,15 @@ import {
   addModel,
   removeModel,
   toggleModelSelector,
+  setSelectedModels,
 } from "@/features/chat/store/chat-interface-slice";
+import { cn } from "@/lib/utils/utils";
 
-interface ModelSelectorProps {}
+interface ModelSelectorProps {
+  isSingleMode?: boolean;
+}
 
-export function ModelSelector({}: ModelSelectorProps) {
+export function ModelSelector({ isSingleMode = false }: ModelSelectorProps) {
   const { providers, selectedModels } = useSelector(
     (store: any) => store.chatInterface
   );
@@ -26,15 +30,28 @@ export function ModelSelector({}: ModelSelectorProps) {
     if (checked) {
       const provider = getProviderByModelId(modelId);
       if (provider) {
-        dispatch(addModel(provider, modelId));
+        if (isSingleMode) {
+          // In single mode, replace the selection
+          dispatch(
+            setSelectedModels([{ provider: provider.id, model: modelId }])
+          );
+        } else {
+          dispatch(addModel(provider, modelId));
+        }
       }
     } else {
+      // In single mode, prevent deselecting the last model if it's the only one?
+      // Or just allow empty. Use case: "always can chat with one model only".
+      // Usually radio behavior doesn't allow deselecting.
+      if (isSingleMode && selectedModels.length === 1) {
+          return; // Prevent deselecting the only model in single mode to avoid empty state
+      }
       dispatch(removeModel(modelId));
     }
   };
 
-  // Function to find provider name from a model id
-  function getProviderByModelId(modelId: string): string | undefined {
+  // Function to find provider from a model id
+  function getProviderByModelId(modelId: string): ModelProvider | undefined {
     for (const provider of providers) {
       if (
         provider.models.some((model: ModelProvider) => model.id === modelId)
@@ -60,9 +77,10 @@ export function ModelSelector({}: ModelSelectorProps) {
   };
 
   return (
-    <Card className="p-4 bg-muted relative">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-sm font-medium">{t.models.selectModels}</h3>
+    <Card className="p-3 bg-background/95 backdrop-blur-sm border shadow-xl relative max-w-2xl mx-auto max-h-[300px] flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-1 flex-shrink-0">
+        <h3 className="text-sm font-semibold tracking-wide text-foreground">{t.models.selectModels}</h3>
         <Button
           variant="ghost"
           size="icon"
@@ -73,39 +91,48 @@ export function ModelSelector({}: ModelSelectorProps) {
           <span className="sr-only">Close model selector</span>
         </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+      {/* Content - Scrollable if too tall */}
+      <div className="flex-1 overflow-y-auto pr-1 space-y-4 gpt-scrollbar pb-2">
         {providers.map((provider: ModelProvider) => (
           <div key={provider.id} className="space-y-2">
-            <h4 className="text-xl font-medium text-muted-foreground flex items-center gap-1">
-              {/*<span className="text-lg">{getProviderIcon(provider.id)}</span> */}
-              <img
-                src={getProviderIcon(provider.id)}
-                alt={`${provider.name} icon`}
-                className="w-5 h-5"
-              />
-              {provider.name}
-            </h4>
-            <div className="space-y-2">
-              {provider.models.map((model) => (
-                <div key={model.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={model.id}
-                    checked={selectedModels.some(
-                      (routeSel: RouteSel) => routeSel.model === model.id
-                    )}
-                    onCheckedChange={(checked) =>
-                      handleModelToggle(model.id, checked as boolean)
-                    }
+            {/* Provider Header */}
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-5 h-5 relative rounded-md overflow-hidden flex-shrink-0 bg-muted/20">
+                 <img
+                    src={getProviderIcon(provider.id)}
+                    alt={`${provider.name} icon`}
+                    className="w-full h-full object-contain"
                   />
-                  <label
-                    htmlFor={model.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer"
+              </div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {provider.name}
+              </h4>
+            </div>
+
+            {/* Models - Horizontal Scroll */}
+            <div className="flex gap-2 overflow-x-auto pb-2 px-1 no-scrollbar" style={{ scrollbarWidth: "none" }}>
+              {provider.models.map((model) => {
+                const isSelected = selectedModels.some(
+                  (routeSel: RouteSel) => routeSel.model === model.id
+                );
+                return (
+                  <button
+                    key={model.id}
+                    onClick={() => handleModelToggle(model.id, !isSelected)}
+                    className={cn(
+                      "flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-200",
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted hover:text-foreground"
+                    )}
                   >
-                    {/*<span>{model.icon}</span> */}
-                    {model.name}
-                  </label>
-                </div>
-              ))}
+                    {/* Optional: Model Icon if different from provider, but usually redundant here */}
+                    {/* <img src={model.icon} className="w-3 h-3" /> */}
+                    <span>{model.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
