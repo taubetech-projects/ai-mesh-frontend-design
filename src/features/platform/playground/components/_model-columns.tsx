@@ -7,6 +7,7 @@ import type { ModelProvider, RouteSel } from "@/features/chat/types/models";
 import { ChatArea } from "./_chat-area";
 import { useDispatch, useSelector } from "react-redux";
 import { removeModel } from "@/features/platform/playground/store/playground-interface-slice";
+import { RootState } from "@/lib/store/store";
 
 interface ModelColumnsProps {
   // setSelectedModels: (models: RouteSel[]) => void;
@@ -14,7 +15,7 @@ interface ModelColumnsProps {
 
 export function ModelColumns({ outputFormat }: { outputFormat: string }) {
   const { selectedModels, providers } = useSelector(
-    (store: any) => store.playgroundInterface
+    (store: RootState) => store.playgroundSlice
   );
 
   const dispatch = useDispatch();

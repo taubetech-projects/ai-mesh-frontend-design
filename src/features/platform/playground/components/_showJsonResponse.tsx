@@ -4,13 +4,14 @@ import { Fragment, useState } from "react";
 import { ChevronDown, ChevronUp, ArrowDown, Check, Copy } from "lucide-react"; // or any icon lib
 import JSONPretty from "react-json-pretty";
 import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store/store";
 
 interface JsonAreaProps {
   activeModel: string;
 }
 export function ChatAreaJsonResponse({ activeModel }: JsonAreaProps) {
   const { textMessagesWithMsgId, jsonMessagesWithMsgId } = useSelector(
-    (store: any) => store.playgroundInterface
+    (store: RootState) => store.playgroundSlice
   );
 
   const [expandedJsonIndex, setExpandedJsonIndex] = useState<number | null>(0);

@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import chatInterfaceReducer from "@/features/chat/store/chat-interface-slice";
 import conversationSliceReducer from "@/features/chat/conversation/store/conversation-slice";
+import playgroundInterfaceReducer from "@/features/platform/playground/store/playground-interface-slice";
 import uiReducer from "@/features/chat/store/ui-slice"; // Import the new reducer
 import imageGenerationReducer from "@/features/chat/store/image-generation-slice"; // Import the image generation reducer
 import toastSlice from "@/shared/hooks/toast-slice";
@@ -14,6 +15,7 @@ const store = configureStore({
     imageGeneration: imageGenerationReducer, // Add the image generation reducer
     toast: toastSlice,
     team: teamReducer,
+    playgroundSlice: playgroundInterfaceReducer,
   },
 });
 

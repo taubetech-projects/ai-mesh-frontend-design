@@ -36,6 +36,7 @@ import {
   updateProviderSpecific,
 } from "@/features/platform/playground/store/playground-interface-slice";
 import { te } from "date-fns/locale";
+import { RootState } from "@/lib/store/store";
 
 export function PlaygroundSettings() {
   const {
@@ -50,7 +51,7 @@ export function PlaygroundSettings() {
     inputFormat,
     outputFormat,
     reasoningEffort,
-  } = useSelector((store: any) => store.playgroundInterface);
+  } = useSelector((store: RootState) => store.playgroundSlice);
 
   const dispatch = useDispatch();
   const handleModelToggle = (
