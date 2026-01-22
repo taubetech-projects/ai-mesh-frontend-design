@@ -344,6 +344,20 @@ const chatInterfaceSlice = createSlice({
       state.modelResponses = {};
       state.editedMessageId = null;
     },
+    resetAllStates(state) {
+      state.messages = {};
+      state.inputMessage = "";
+      state.modelResponses = {};
+      state.editedMessageId = null;
+      state.showModelSelector = false;
+      state.selectedModels = initialSelectedModels;
+      state.isStreaming = false;
+      state.isSent = false;
+      state.triggerSend = false;
+      state.uploadingFiles = false;
+      state.showRecorder = false;
+      state.currentMessageVersion = 0;
+    },
   },
 });
 
@@ -367,5 +381,6 @@ export const {
   stopRecorder,
   setCurrentMessageVersion,
   clearChatState,
+  resetAllStates,
 } = chatInterfaceSlice.actions;
 export default chatInterfaceSlice.reducer;

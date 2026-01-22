@@ -18,6 +18,7 @@ import {
   clearChatState,
   setSelectedModels,
   setInitialSelectedModels,
+  resetAllStates,
 } from "@/features/chat/store/chat-interface-slice";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import { useRouter } from "next/navigation";
@@ -112,7 +113,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
 
   const handleNewChat = () => {
     dispatch(setSelectedConvId(null));
-    dispatch(clearChatState());
+    dispatch(resetAllStates());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
     router.push(CHAT_ROUTES.CHAT);
   };
