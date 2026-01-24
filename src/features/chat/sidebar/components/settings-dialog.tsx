@@ -17,11 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { X, Settings, Bell, User, Grid3x3, Database, Shield, Users, UserCircle, Star, UsersRound } from "lucide-react";
+import { X, Settings, Bell, User, Grid3x3, Database, Shield, Users, UserCircle, Star, UsersRound, Coins } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { ModelPreferences } from "../../settings/model-preferences/components/ModelPreferences";
 import { TeamManagement } from "../../teams/components/TeamManagement";
 import { useTeamPermissions } from "../../teams/hooks/use-team-permissions";
+import { TokenSharingDashboard } from "../../token-sharing/components/TokenSharingDashboard";
+import { useTokenSharingPermission } from "../../token-sharing/hooks/use-token-sharing-permission";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -35,6 +37,7 @@ export type SettingsTab =
   | "personalization"
   | "model-preferences"
   | "teams"
+  | "token-sharing"
   | "apps"
   | "data-controls"
   | "security"
@@ -47,6 +50,7 @@ const allTabs = [
   { id: "personalization" as const, label: "Personalization", icon: User, requiresPermission: false },
   { id: "model-preferences" as const, label: "Model Preferences", icon: Star, requiresPermission: false },
   { id: "teams" as const, label: "Teams", icon: UsersRound, requiresPermission: true },
+  { id: "token-sharing" as const, label: "Token Sharing", icon: Coins, requiresPermission: true },
   { id: "apps" as const, label: "Apps", icon: Grid3x3, requiresPermission: false },
   { id: "data-controls" as const, label: "Data controls", icon: Database, requiresPermission: false },
   { id: "security" as const, label: "Security", icon: Shield, requiresPermission: false },
@@ -60,6 +64,7 @@ export function SettingsDialog({
   initialTab = "general",
 }: SettingsDialogProps) {
   const { canViewTeams } = useTeamPermissions();
+  const { canRead: canViewTokenSharing } = useTokenSharingPermission();
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [appearance, setAppearance] = useState("system");
   const [accentColor, setAccentColor] = useState("default");
@@ -71,6 +76,7 @@ export function SettingsDialog({
   // Filter tabs based on permissions
   const tabs = allTabs.filter(tab => {
     if (tab.id === "teams") return canViewTeams;
+    if (tab.id === "token-sharing") return canViewTokenSharing;
     return true;
   });
 
@@ -127,6 +133,7 @@ export function SettingsDialog({
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-6 min-h-0">
             {activeTab === "teams" && <TeamManagement />}
+            {activeTab === "token-sharing" && <TokenSharingDashboard />}
             {activeTab === "general" && <GeneralSettings 
               appearance={appearance}
               setAppearance={setAppearance}
