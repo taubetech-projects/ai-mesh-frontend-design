@@ -1,17 +1,15 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { Settings, User, Sparkles, LogOut } from "lucide-react";
-import { LanguageSelector } from "@/shared/components/language-selector";
-import { ThemeToggle } from "../../../../shared/components/theme-toggle";
-import Link from "next/link";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
+import { User } from "lucide-react";
 
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
+import { ProfileMenu } from "./profile-menu";
+import { UserInfoDialog } from "./user-info-dialog";
+import { SettingsDialog, SettingsTab } from "./settings-dialog";
+import { useRouter } from "next/navigation";
 
 interface SidebarFooterProps {
   isCollapsed: boolean;
@@ -27,12 +25,43 @@ export function SidebarFooter({
   t,
 }: SidebarFooterProps) {
   const { me, isLoading } = useChatAuth();
-  console.log("My Data :", me);
+  const router = useRouter();
+  const [userInfoDialogOpen, setUserInfoDialogOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTab>("general");
+
+  const userName = me?.username || "User";
+  const userEmail = me?.email || "user@example.com";
+
+  const handleUserInfoClick = () => {
+    setUserInfoDialogOpen(true);
+  };
+
+  const handlePersonalizationClick = () => {
+    setSettingsInitialTab("personalization");
+    setSettingsDialogOpen(true);
+  };
+
+  const handleSettingsClick = () => {
+    setSettingsInitialTab("general");
+    setSettingsDialogOpen(true);
+  };
+
+  const handleHelpClick = () => {
+    // Navigate to help page or open help menu
+    router.push("/help");
+  };
+
+  const handleUserInfoSave = (data: any) => {
+    console.log("User info saved:", data);
+    // TODO: Implement API call to save user info
+  };
+
   return (
     <div className="p-4 border-t border-sidebar-border space-y-4">
       {/* User Profile Section */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <ProfileMenu
+        trigger={
           <div
             className={`flex items-center ${
               isCollapsed ? "justify-center" : "justify-between gap-2"
@@ -45,16 +74,19 @@ export function SidebarFooter({
               <>
                 <div className="flex flex-col flex-1 min-w-0 text-left">
                   <span className="text-sm font-medium text-sidebar-foreground truncate">
-                    {me?.username || "User"}
+                    {userName}
                   </span>
                   <span className="text-xs text-muted-foreground truncate">
-                    {me?.roles || "Free User"}
+                    {me?.roles || "Free"}
                   </span>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleUpgradePlan}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpgradePlan();
+                  }}
                   onPointerDown={(e) => {
                     e.stopPropagation();
                   }}
@@ -65,41 +97,32 @@ export function SidebarFooter({
               </>
             )}
           </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align="start" className="w-60">
-          <Link href={CHAT_ROUTES.PRICING} passHref legacyBehavior>
-            <DropdownMenuItem>
-              <Sparkles className="mr-2 h-4 w-4" />
-              <span>Upgrade Plan</span>
-            </DropdownMenuItem>
-          </Link>
-          <Link href={CHAT_ROUTES.SETTINGS} passHref legacyBehavior>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>{t.nav.settings}</span>
-            </DropdownMenuItem>
-          </Link>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <div className="flex items-center justify-between w-full">
-              <span>Change Theme</span>
-              <ThemeToggle />
-            </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <div className="flex items-center justify-between w-full">
-              <span>Language</span>
-              <LanguageSelector />
-            </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={handleLogout}
-            className="text-red-500 focus:text-red-500"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Logout</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        }
+        userName={userName}
+        userEmail={userEmail}
+        onUserInfoClick={handleUserInfoClick}
+        onUpgradePlanClick={handleUpgradePlan}
+        onPersonalizationClick={handlePersonalizationClick}
+        onSettingsClick={handleSettingsClick}
+        onHelpClick={handleHelpClick}
+        onLogoutClick={handleLogout}
+      />
+
+      {/* User Info Dialog */}
+      <UserInfoDialog
+        open={userInfoDialogOpen}
+        onOpenChange={setUserInfoDialogOpen}
+        userName={userName}
+        userEmail={userEmail}
+        onSave={handleUserInfoSave}
+      />
+
+      {/* Settings Dialog */}
+      <SettingsDialog
+        open={settingsDialogOpen}
+        onOpenChange={setSettingsDialogOpen}
+        initialTab={settingsInitialTab}
+      />
     </div>
   );
 }

@@ -124,7 +124,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
       setConversationIdToDelete(null);
     }
     setShowDeleteDialog(false); // Close the dialog
-    dispatch(clearChatState());
+    dispatch(resetAllStates());
     router.push(CHAT_ROUTES.CHAT);
   };
 
