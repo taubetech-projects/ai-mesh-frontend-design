@@ -14,6 +14,7 @@ interface ProfileMenuProps {
   onUserInfoClick: () => void;
   onUpgradePlanClick: () => void;
   onPersonalizationClick: () => void;
+  onModelPreferencesClick: () => void;
   onSettingsClick: () => void;
   onHelpClick: () => void;
   onLogoutClick: () => void;
@@ -26,6 +27,7 @@ export function ProfileMenu({
   onUserInfoClick,
   onUpgradePlanClick,
   onPersonalizationClick,
+  onModelPreferencesClick,
   onSettingsClick,
   onHelpClick,
   onLogoutClick,
@@ -78,7 +80,7 @@ export function ProfileMenu({
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={onPersonalizationClick}
+          onClick={onModelPreferencesClick}
           className="cursor-pointer focus:bg-sidebar-accent focus:text-sidebar-foreground"
         >
           <Star className="mr-3 h-4 w-4" />

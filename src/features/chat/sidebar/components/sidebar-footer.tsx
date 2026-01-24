@@ -41,6 +41,10 @@ export function SidebarFooter({
     setSettingsInitialTab("personalization");
     setSettingsDialogOpen(true);
   };
+  const handleModelPreferencesClick = () => {
+    setSettingsInitialTab("model-preferences");
+    setSettingsDialogOpen(true);
+  };
 
   const handleSettingsClick = () => {
     setSettingsInitialTab("general");
@@ -103,6 +107,7 @@ export function SidebarFooter({
         onUserInfoClick={handleUserInfoClick}
         onUpgradePlanClick={handleUpgradePlan}
         onPersonalizationClick={handlePersonalizationClick}
+        onModelPreferencesClick={handleModelPreferencesClick}
         onSettingsClick={handleSettingsClick}
         onHelpClick={handleHelpClick}
         onLogoutClick={handleLogout}
