@@ -1,4 +1,4 @@
-import { User, Sparkles, Settings, HelpCircle, LogOut, ChevronRight, Star } from "lucide-react";
+import { User, Sparkles, Settings, HelpCircle, LogOut, ChevronRight, Star, UsersRound } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,6 +6,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { useTeamPermissions } from "@/features/chat/teams/hooks/use-team-permissions";
 
 interface ProfileMenuProps {
   trigger: React.ReactNode;
@@ -15,6 +16,7 @@ interface ProfileMenuProps {
   onUpgradePlanClick: () => void;
   onPersonalizationClick: () => void;
   onModelPreferencesClick: () => void;
+  onTeamsClick?: () => void;
   onSettingsClick: () => void;
   onHelpClick: () => void;
   onLogoutClick: () => void;
@@ -28,10 +30,12 @@ export function ProfileMenu({
   onUpgradePlanClick,
   onPersonalizationClick,
   onModelPreferencesClick,
+  onTeamsClick,
   onSettingsClick,
   onHelpClick,
   onLogoutClick,
 }: ProfileMenuProps) {
+  const { canViewTeams } = useTeamPermissions();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
@@ -86,6 +90,16 @@ export function ProfileMenu({
           <Star className="mr-3 h-4 w-4" />
           <span>Model Preferences</span>
         </DropdownMenuItem>
+
+        {canViewTeams && onTeamsClick && (
+          <DropdownMenuItem
+            onClick={onTeamsClick}
+            className="cursor-pointer focus:bg-sidebar-accent focus:text-sidebar-foreground"
+          >
+            <UsersRound className="mr-3 h-4 w-4" />
+            <span>Teams</span>
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           onClick={onSettingsClick}

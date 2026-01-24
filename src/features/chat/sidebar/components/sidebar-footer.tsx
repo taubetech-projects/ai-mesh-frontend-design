@@ -46,6 +46,11 @@ export function SidebarFooter({
     setSettingsDialogOpen(true);
   };
 
+  const handleTeamsClick = () => {
+    setSettingsInitialTab("teams");
+    setSettingsDialogOpen(true);
+  };
+
   const handleSettingsClick = () => {
     setSettingsInitialTab("general");
     setSettingsDialogOpen(true);
@@ -108,6 +113,7 @@ export function SidebarFooter({
         onUpgradePlanClick={handleUpgradePlan}
         onPersonalizationClick={handlePersonalizationClick}
         onModelPreferencesClick={handleModelPreferencesClick}
+        onTeamsClick={handleTeamsClick}
         onSettingsClick={handleSettingsClick}
         onHelpClick={handleHelpClick}
         onLogoutClick={handleLogout}

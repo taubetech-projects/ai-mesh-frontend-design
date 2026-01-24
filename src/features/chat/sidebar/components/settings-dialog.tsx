@@ -17,9 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { X, Settings, Bell, User, Grid3x3, Database, Shield, Users, UserCircle, Star } from "lucide-react";
+import { X, Settings, Bell, User, Grid3x3, Database, Shield, Users, UserCircle, Star, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { ModelPreferences } from "../../settings/model-preferences/components/ModelPreferences";
+import { TeamManagement } from "../../teams/components/TeamManagement";
+import { useTeamPermissions } from "../../teams/hooks/use-team-permissions";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -32,22 +34,24 @@ export type SettingsTab =
   | "notifications"
   | "personalization"
   | "model-preferences"
+  | "teams"
   | "apps"
   | "data-controls"
   | "security"
   | "parental-controls"
   | "account";
 
-const tabs = [
-  { id: "general" as const, label: "General", icon: Settings },
-  { id: "notifications" as const, label: "Notifications", icon: Bell },
-  { id: "personalization" as const, label: "Personalization", icon: User },
-  { id: "model-preferences" as const, label: "Model Preferences", icon: Star },
-  { id: "apps" as const, label: "Apps", icon: Grid3x3 },
-  { id: "data-controls" as const, label: "Data controls", icon: Database },
-  { id: "security" as const, label: "Security", icon: Shield },
-  { id: "parental-controls" as const, label: "Parental controls", icon: Users },
-  { id: "account" as const, label: "Account", icon: UserCircle },
+const allTabs = [
+  { id: "general" as const, label: "General", icon: Settings, requiresPermission: false },
+  { id: "notifications" as const, label: "Notifications", icon: Bell, requiresPermission: false },
+  { id: "personalization" as const, label: "Personalization", icon: User, requiresPermission: false },
+  { id: "model-preferences" as const, label: "Model Preferences", icon: Star, requiresPermission: false },
+  { id: "teams" as const, label: "Teams", icon: UsersRound, requiresPermission: true },
+  { id: "apps" as const, label: "Apps", icon: Grid3x3, requiresPermission: false },
+  { id: "data-controls" as const, label: "Data controls", icon: Database, requiresPermission: false },
+  { id: "security" as const, label: "Security", icon: Shield, requiresPermission: false },
+  { id: "parental-controls" as const, label: "Parental controls", icon: Users, requiresPermission: false },
+  { id: "account" as const, label: "Account", icon: UserCircle, requiresPermission: false },
 ];
 
 export function SettingsDialog({
@@ -55,6 +59,7 @@ export function SettingsDialog({
   onOpenChange,
   initialTab = "general",
 }: SettingsDialogProps) {
+  const { canViewTeams } = useTeamPermissions();
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [appearance, setAppearance] = useState("system");
   const [accentColor, setAccentColor] = useState("default");
@@ -62,6 +67,12 @@ export function SettingsDialog({
   const [spokenLanguage, setSpokenLanguage] = useState("auto-detect");
   const [voice, setVoice] = useState("cove");
   const [separateVoice, setSeparateVoice] = useState(false);
+
+  // Filter tabs based on permissions
+  const tabs = allTabs.filter(tab => {
+    if (tab.id === "teams") return canViewTeams;
+    return true;
+  });
 
   // Update active tab when initialTab or open changes
   useEffect(() => {
@@ -115,6 +126,7 @@ export function SettingsDialog({
 
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-6 min-h-0">
+            {activeTab === "teams" && <TeamManagement />}
             {activeTab === "general" && <GeneralSettings 
               appearance={appearance}
               setAppearance={setAppearance}
