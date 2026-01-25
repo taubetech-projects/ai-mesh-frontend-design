@@ -151,9 +151,9 @@ export const ChatAuthForm = ({ view }: { view: "login" | "signup" }) => {
       console.log("Login response:", response);
       if (response && response.accessToken) {
         // toast.success("Login successful! Welcome to our platform...");
-        setTimeout(() => {
-          router.push(CHAT_ROUTES.CHAT);
-        }, 1000);
+        // setTimeout(() => {
+        router.push(CHAT_ROUTES.CHAT);
+        // }, 1);
       } else {
         setError("Login failed: No token received.");
       }

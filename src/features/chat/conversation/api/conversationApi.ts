@@ -3,15 +3,25 @@ import { CHAT_API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
 import { CreateConversationDto } from "@/features/chat/conversation/types/conversationTypes";
 import { ConversationResponse } from "../types/conversationTypes";
 
+export class ApiError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status;
+    this.name = "ApiError";
+  }
+}
+
 export const handleApiError = (error: any): never => {
   if (error.message === "Network Error") {
-    throw new Error("Network Error. Please try again later.");
+    throw new ApiError("Network Error. Please try again later.");
   } else if (error.response?.data?.error) {
-    throw new Error(error.response.data.error);
+    throw new ApiError(error.response.data.error, error.response.status);
   } else if (error.response) {
-    throw new Error("A server error occurred.");
+    throw new ApiError("A server error occurred.", error.response.status);
   } else {
-    throw new Error(error.message || "An unknown error occurred.");
+    throw new ApiError(error.message || "An unknown error occurred.");
   }
 };
 
