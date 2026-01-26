@@ -73,6 +73,8 @@ export function SettingsDialog({
   const [voice, setVoice] = useState("cove");
   const [separateVoice, setSeparateVoice] = useState(false);
 
+  console.log("Token Sharing Permission", canViewTokenSharing);
+
   // Filter tabs based on permissions
   const tabs = allTabs.filter(tab => {
     if (tab.id === "teams") return canViewTeams;
