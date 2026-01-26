@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TokenSharingApi } from "../token-sharing.api";
 import { tokenSharingKeys } from "../token-sharing.query-keys";
 import { CreateSharingInviteRequest } from "../token-sharing.types";
+import { UUID } from "@/features/platform/team/team.types";
 
 // --------------------
 // Queries
@@ -10,19 +11,13 @@ import { CreateSharingInviteRequest } from "../token-sharing.types";
 export const useOutgoingShares = () =>
   useQuery({
     queryKey: tokenSharingKeys.outgoing(),
-    queryFn: async () => {
-      const res = await TokenSharingApi.getOutgoing();
-      return res.data;
-    },
+    queryFn: () => TokenSharingApi.getOutgoing(),
   });
 
 export const useIncomingShares = () =>
   useQuery({
     queryKey: tokenSharingKeys.incoming(),
-    queryFn: async () => {
-      const res = await TokenSharingApi.getIncoming();
-      return res.data;
-    },
+    queryFn: () => TokenSharingApi.getIncoming(),
   });
 
 // --------------------
@@ -80,7 +75,7 @@ export const useAcceptShare = () => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => TokenSharingApi.acceptShare(id),
+    mutationFn: (id: UUID) => TokenSharingApi.acceptShare(id),
 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: tokenSharingKeys.incoming() });
@@ -93,7 +88,7 @@ export const useRejectShare = () => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => TokenSharingApi.rejectShare(id),
+    mutationFn: (id: UUID) => TokenSharingApi.rejectShare(id),
 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: tokenSharingKeys.incoming() });

@@ -78,7 +78,7 @@ export function SettingsDialog({
   // Filter tabs based on permissions
   const tabs = allTabs.filter(tab => {
     if (tab.id === "teams") return canViewTeams;
-    if (tab.id === "token-sharing") return canViewTokenSharing;
+    // if (tab.id === "token-sharing") return canViewTokenSharing;
     return true;
   });
 
@@ -92,7 +92,7 @@ export function SettingsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="w-[55vw] min-w-[500px] max-w-6xl min-h-[600px] max-h-[85vh] p-0 gap-0 bg-background border-border overflow-hidden flex flex-col"
+        className="w-[55vw] min-w-[500px] max-w-6xl min-h-[600px] max-h-[85vh] p-0 gap-0 bg-background border-border overflow-hidden gpt-scrollbar flex flex-col"
         aria-describedby="settings-description"
       >
         {/* Header */}

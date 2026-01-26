@@ -7,6 +7,7 @@ import { Plus, Send, Download, Info } from "lucide-react";
 import { OutgoingSharesList } from "./OutgoingSharesList";
 import { IncomingSharesList } from "./IncomingSharesList";
 import { InviteFriendDialog } from "./InviteFriendDialog";
+import { UpgradePlanPrompt } from "./UpgradePlanPrompt";
 import { useTokenSharingPermission } from "../hooks/use-token-sharing-permission";
 
 export function TokenSharingDashboard() {
@@ -16,17 +17,17 @@ export function TokenSharingDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+        <div className="flex flex-col gap-1 ">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Token Sharing</h2>
           <p className="text-muted-foreground mt-1">
             Manage tokens shared with friends or tokens you've received.
           </p>
         </div>
         
-        {(canEdit || canInviteMembers) && (
+        {canInviteMembers && (
           <Button 
             onClick={() => setIsInviteOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95 "
           >
             <Plus className="h-4 w-4 mr-2" />
             Share Tokens
@@ -59,7 +60,11 @@ export function TokenSharingDashboard() {
                 <Info className="h-4 w-4 text-primary" />
                 <span>Specify how many tokens others can use from your balance.</span>
               </div>
-              <OutgoingSharesList />
+              {canInviteMembers ? (
+                <OutgoingSharesList />
+              ) : (
+                <UpgradePlanPrompt />
+              )}
             </div>
           </TabsContent>
 

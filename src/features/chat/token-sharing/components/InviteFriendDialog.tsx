@@ -38,7 +38,7 @@ export function InviteFriendDialog({
   const [amount, setAmount] = useState<string>("1000");
   const [percentage, setPercentage] = useState<string>("10");
   const [durationType, setDurationType] = useState<ShareDurationType>(
-    ShareDurationType.UNLIMITED
+    ShareDurationType.MONTHLY
   );
   const [totalPeriods, setTotalPeriods] = useState<string>("12");
 
@@ -59,7 +59,7 @@ export function InviteFriendDialog({
         percent: shareType === "percent" ? parseInt(percentage) : undefined,
         durationType,
         totalPeriods:
-          durationType === ShareDurationType.FIXED_PERIOD
+          durationType === ShareDurationType.MONTHLY
             ? parseInt(totalPeriods)
             : undefined,
       });
@@ -77,7 +77,7 @@ export function InviteFriendDialog({
     setEmail("");
     setAmount("1000");
     setPercentage("10");
-    setDurationType(ShareDurationType.UNLIMITED);
+    setDurationType(ShareDurationType.MONTHLY);
     setTotalPeriods("12");
     onOpenChange(false);
   };
@@ -175,7 +175,7 @@ export function InviteFriendDialog({
             {/* Duration */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Duration</Label>
+                <Label className="text-sm font-medium">Renew Types</Label>
                 <Select
                   value={durationType}
                   onValueChange={(v: ShareDurationType) => setDurationType(v)}
@@ -184,17 +184,20 @@ export function InviteFriendDialog({
                     <SelectValue placeholder="Duration" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={ShareDurationType.MONTHLY}>
+                      Monthly
+                    </SelectItem>
+                    <SelectItem value={ShareDurationType.YEARLY}>
+                      Yearly
+                    </SelectItem>
                     <SelectItem value={ShareDurationType.UNLIMITED}>
                       Unlimited
-                    </SelectItem>
-                    <SelectItem value={ShareDurationType.FIXED_PERIOD}>
-                      Fixed Periods
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {durationType === ShareDurationType.FIXED_PERIOD && (
+              {durationType === ShareDurationType.MONTHLY && (
                 <div className="space-y-2">
                   <Label htmlFor="periods" className="text-sm font-medium">
                     Total Periods (Months)

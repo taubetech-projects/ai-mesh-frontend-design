@@ -8,7 +8,7 @@ const CHAT_ROLE_ROUTES = [
   { prefix: "/chat/moderator", roles: ["ROLE_ADMIN", "ROLE_MODERATOR"] },
   {
     prefix: "/chat",
-    roles: ["ROLE_ADMIN", "ROLE_MODERATOR", "ROLE_FREE_USER", "ROLE_USER"],
+    roles: ["ROLE_ADMIN", "ROLE_MODERATOR", "ROLE_FREE_USER", "ROLE_USER", "ROLE_ENTERPRISE_USER"],
   },
 ];
 

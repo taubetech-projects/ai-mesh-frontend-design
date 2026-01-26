@@ -7,13 +7,15 @@ import { Badge } from "@/shared/components/ui/badge";
 import { toast } from "sonner";
 import { Check, X, Download, User, Clock } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import { UUID } from "@/features/platform/team/team.types";
 
 export function IncomingSharesList() {
   const { data: shares, isLoading } = useIncomingShares();
+  console.log("shares", shares)
   const acceptMutation = useAcceptShare();
   const rejectMutation = useRejectShare();
 
-  const handleAccept = async (id: string) => {
+  const handleAccept = async (id: UUID) => {
     try {
       await acceptMutation.mutateAsync(id);
       toast.success("Share accepted successfully");
@@ -22,7 +24,7 @@ export function IncomingSharesList() {
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (id: UUID) => {
     try {
       await rejectMutation.mutateAsync(id);
       toast.success("Share rejected successfully");

@@ -8,8 +8,9 @@ export enum ShareStatus {
 }
 
 export enum ShareDurationType {
+  MONTHLY = "MONTHLY",
+  YEARLY = "YEARLY",
   UNLIMITED = "UNLIMITED",
-  FIXED_PERIOD = "FIXED_PERIOD",
 }
 
 // requests
