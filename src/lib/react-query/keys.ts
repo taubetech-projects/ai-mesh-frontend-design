@@ -5,5 +5,5 @@ export const queryKey = {
 };
 
 export const qk = {
-  me: () => ["auth", "me"] as const,
+  me: (userId: string | null = null) => ["auth", "me", userId] as const,
 };

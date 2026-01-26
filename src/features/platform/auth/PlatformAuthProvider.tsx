@@ -29,7 +29,7 @@ export function PlatformAuthProvider({
   const isAuthRoute = pathname?.startsWith("/platform/auth");
   const shouldFetch = enabled && !isAuthRoute;
 
-  const { data } = useMeQuery({ enabled: shouldFetch });
+  const { data } = useMeQuery({ enabled: shouldFetch, userId: initialMe?.id });
   const me = (shouldFetch ? data : null) ?? initialMe ?? null;
 
   const value = useMemo<AuthValue>(() => {
