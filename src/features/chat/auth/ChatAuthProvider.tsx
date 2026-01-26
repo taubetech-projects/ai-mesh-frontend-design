@@ -33,6 +33,7 @@ export function ChatAuthProvider({
   const me = (shouldFetch ? data : null) ?? initialMe ?? null;
 
   const value = useMemo<AuthValue>(() => {
+    // console.log("ChatAuthProvider: me", me, "isLoading", !data && shouldFetch);
     const roles = me?.roles ?? [];
     const auths = me?.authorities ?? [];
     return {
@@ -43,7 +44,7 @@ export function ChatAuthProvider({
       hasAuthority: (a) => auths.includes(a),
       hasAnyAuthority: (arr) => arr.some((x) => auths.includes(x)),
     };
-  }, [me]);
+  }, [me, data, shouldFetch]);
 
   return (
     <ChatAuthContext.Provider value={value}>

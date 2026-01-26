@@ -22,6 +22,10 @@ export function useMeQuery(opts?: { enabled?: boolean }) {
     retry: false,
     staleTime: 30_000,
     enabled: opts?.enabled ?? true,
+    select: (data) => {
+        // console.log("useMeQuery data:", data);
+        return data;
+    }
   });
 }
 

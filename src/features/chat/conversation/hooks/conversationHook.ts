@@ -40,6 +40,12 @@ export const useGetConversationById = (id: string) =>
   useQuery({
     queryKey: [...queryKey.conversations(), id],
     queryFn: () => getConversationByIdApi(id),
+    retry: (failureCount, error: any) => {
+      // Don't retry if the conversation is not found
+      if (error?.status === 404) return false;
+      return failureCount < 3;
+    },
+    refetchOnWindowFocus: false,
   });
 
 export const useGetConversationsForChat = () => {
