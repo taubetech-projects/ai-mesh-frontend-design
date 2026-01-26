@@ -163,7 +163,7 @@ export const ModelPreferences = () => {
     );
 
   return (
-    <div className="w-full max-w-3xl mx-auto  rounded-lg min-h-screen text-white">
+    <div className="w-full max-w-3xl mx-auto rounded-lg text-white">
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-1">
           Customize your chat AI model preferences
@@ -182,7 +182,7 @@ export const ModelPreferences = () => {
           items={items.map((i) => i.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="flex flex-col gap-1 ">
+          <div className="flex flex-col gap-1">
             {items.map((item) => (
               <ModelRow
                 key={item.id}

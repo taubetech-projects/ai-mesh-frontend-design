@@ -18,6 +18,7 @@ import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
 import { queryKey } from "@/lib/react-query/keys";
 import { endStreaming } from "@/features/chat/store/chat-interface-slice";
 import { toast } from "sonner";
+import { handleApiError } from "../api/messageApi";
 
 const cacheKey = (conversationId: number | null) =>
   queryKey.messages(conversationId ?? 0);
@@ -38,11 +39,11 @@ export const useCreateMessages = (conversationId: number | null) => {
 
       const { includeConsensus } = validateChatRequest(
         conversationId,
-        chatRequestBody
+        chatRequestBody,
       );
 
       cacheOps.pushMessage(
-        createOptimisticUserMessage({ conversationId, chatRequestBody })
+        createOptimisticUserMessage({ conversationId, chatRequestBody }),
       );
 
       const modelIds = getModelIds(includeConsensus, chatRequestBody);
@@ -54,7 +55,7 @@ export const useCreateMessages = (conversationId: number | null) => {
 
       const expectedStreams = getExpectedStreams(
         includeConsensus,
-        chatRequestBody
+        chatRequestBody,
       );
 
       const onEvent = createStreamEventHandler({
@@ -82,9 +83,8 @@ export const useCreateMessages = (conversationId: number | null) => {
       dispatch(endStreaming());
     },
     onError: (error: unknown) => {
-      // toast.error("Something went wrong. Please try again.");
-      toast.error(error instanceof Error ? error.message : "Unknown error");
       dispatch(endStreaming());
+      handleApiError(error);
     },
   });
 };

@@ -18,6 +18,7 @@ import {
   clearChatState,
   setSelectedModels,
   setInitialSelectedModels,
+  resetAllStates,
 } from "@/features/chat/store/chat-interface-slice";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import { useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ import { SidebarHeader } from "./sidebar-header";
 import { SidebarHistorySection } from "./sidebar-history-section";
 import { SidebarFooter } from "./sidebar-footer";
 import { UserModelPreference } from "@/features/chat/settings/model-preferences/types/modelPreferencesTypes";
+import { ConvUpdateRequest } from "../../conversation/types/conversationTypes";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
@@ -112,7 +114,7 @@ export function Sidebar({ activeInterface }: SidebarProps) {
 
   const handleNewChat = () => {
     dispatch(setSelectedConvId(null));
-    dispatch(clearChatState());
+    dispatch(resetAllStates());
     dispatch(setGlobalActiveInterface(CONVERSATION_TYPES.CHAT)); // Ensure chat interface is active
     router.push(CHAT_ROUTES.CHAT);
   };
@@ -120,20 +122,27 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   const handleDeleteConversation = () => {
     if (conversationIdToDelete) {
       deleteConversation(conversationIdToDelete);
+
+      // Immediately clear the selected ID to stop fetches
+      if (String(conversationIdToDelete) === String(selectedConvId)) {
+        dispatch(setSelectedConvId(null));
+        dispatch(resetAllStates());
+        router.push(CHAT_ROUTES.CHAT);
+      }
+      
       setConversationIdToDelete(null);
     }
     setShowDeleteDialog(false); // Close the dialog
-    dispatch(clearChatState());
-    router.push(CHAT_ROUTES.CHAT);
   };
 
   const handleRenameConversation = (
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Enter" && renamingConvId && newTitle.trim() !== "") {
+      const convUpdateRequest: ConvUpdateRequest = { title: newTitle };
       updateConversation({
         id: renamingConvId,
-        conversation: { title: newTitle },
+        conversation: convUpdateRequest,
       });
       setRenamingConvId(null);
       setNewTitle("");

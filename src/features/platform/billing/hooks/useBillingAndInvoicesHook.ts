@@ -3,6 +3,7 @@ import { InvoiceAndBillingService } from "../api/invoiceAndBillingService";
 import { invoiceKeys } from "./queryKeys";
 import { toast } from "sonner";
 import { CreateInvoiceRequest } from "../types/invoiceTypes";
+import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.helper";
 
 /* =======================
    Queries
@@ -48,10 +49,8 @@ export const useCreateInvoiceMutation = () => {
       queryClient.invalidateQueries({
         queryKey: invoiceKeys.lists(),
       });
-      toast("Your new invoice has been created successfully.");
+      showSuccessToast("Your new invoice has been created successfully.");
     },
-    onError: () => {
-      toast("Failed to create invoice. Please try again.");
-    },
+    onError: handleApiErrorToast
   });
 };

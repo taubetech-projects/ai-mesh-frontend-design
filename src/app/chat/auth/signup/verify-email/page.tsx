@@ -3,6 +3,7 @@
 import { ChatAuthService } from "@/features/chat/auth/api/authApi";
 import ChatPublicRoute from "@/features/chat/auth/components/ChatPublicRoute";
 import { ErrorResponse } from "@/features/chat/auth/types/authModels";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { MailIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
@@ -66,7 +67,7 @@ export default function VerifyEmail() {
 
           <p className="text-center text-gray-400 mt-8">
             <button
-              onClick={() => router.push("/auth/login")}
+              onClick={() => router.push(CHAT_ROUTES.SIGNIN)}
               className="font-medium text-purple-400 hover:underline"
             >
               &larr; Back to Log In

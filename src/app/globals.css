@@ -258,6 +258,7 @@
 
 /* 🧠 GPT-like subtle scrollbar */
 .gpt-scrollbar::-webkit-scrollbar {
+  width: 6px;
   height: 6px;
 }
 

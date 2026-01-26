@@ -1,16 +1,12 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { endpointCatalogService } from "./endpointCatalog.service";
 import { endpointCatalogKeys } from "./endpointCatalog.queryKeys";
+import { EndpointCreateRequest, EndpointUpdateRequest } from "./endpoint.types";
 import {
-  EndpointCreateRequest,
-  EndpointUpdateRequest,
-} from "./endpoint.types";
-
+  handleApiErrorToast,
+  showSuccessToast,
+} from "@/shared/utils/toast.helper";
 
 export function useEndpoints() {
   return useQuery({
@@ -19,7 +15,6 @@ export function useEndpoints() {
   });
 }
 
-
 export function useEndpoint(id: string, enabled = true) {
   return useQuery({
     queryKey: endpointCatalogKeys.detail(id),
@@ -27,7 +22,6 @@ export function useEndpoint(id: string, enabled = true) {
     enabled: !!id && enabled,
   });
 }
-
 
 export function useCreateEndpoint() {
   const queryClient = useQueryClient();
@@ -40,22 +34,17 @@ export function useCreateEndpoint() {
       queryClient.invalidateQueries({
         queryKey: endpointCatalogKeys.all,
       });
+      showSuccessToast("Your new endpoint has been created successfully.");
     },
+    onError: handleApiErrorToast,
   });
 }
-
 
 export function useUpdateEndpoint() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: EndpointUpdateRequest;
-    }) =>
+    mutationFn: ({ id, data }: { id: string; data: EndpointUpdateRequest }) =>
       endpointCatalogService.update(id, data),
 
     onSuccess: (_, { id }) => {
@@ -66,21 +55,21 @@ export function useUpdateEndpoint() {
         queryKey: endpointCatalogKeys.list(),
       });
     },
+    onError: handleApiErrorToast,
   });
 }
-
 
 export function useDeleteEndpoint() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      endpointCatalogService.delete(id),
+    mutationFn: (id: string) => endpointCatalogService.delete(id),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: endpointCatalogKeys.all,
       });
     },
+    onError: handleApiErrorToast,
   });
 }

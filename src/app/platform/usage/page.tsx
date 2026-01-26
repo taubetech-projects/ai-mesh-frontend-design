@@ -29,6 +29,15 @@ import {
 } from "@/shared/components/ui/popover";
 import { Calendar } from "@/shared/components/ui/calendar";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/components/ui/dialog";
+import {
   Calendar as CalendarIcon,
   Download,
   ChevronRight,
@@ -48,7 +57,10 @@ import {
 } from "recharts";
 import { DashboardLayout } from "@/features/platform/components/layouts";
 import { PageHeader } from "@/features/platform/components/platform";
-import { useTokenUsage } from "@/features/platform/usage/usage.queries";
+import {
+  useExportUsagePdf,
+  useTokenUsage,
+} from "@/features/platform/usage/usage.queries";
 import { TokenUsageEvent } from "@/features/platform/usage/usage.types";
 import {
   useMemberOfProjectsQuery,
@@ -59,10 +71,13 @@ import {
   useProjectApiKeys,
 } from "@/features/platform/api-keys/hooks/useProjectApiKeys";
 import { useEndpoints } from "@/features/platform/endpoints/endpointCatalog.queries";
+import { useTeamMembers } from "@/features/platform/team/team.queries";
+import { useSelector } from "react-redux";
 
 const groupByOptions = ["1d", "7d", "30d"];
 
 export default function Usage() {
+  const selectedTeam = useSelector((state: any) => state.team?.selectedTeam);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 15),
     to: new Date(),
@@ -73,6 +88,15 @@ export default function Usage() {
   const [groupBy, setGroupBy] = useState("1d");
   const [rightTabValue, setRightTabValue] = useState("users");
   const [page, setPage] = useState(0);
+
+  // Export Dialog State
+  const [exportProject, setExportProject] = useState("all");
+  const [exportApiKey, setExportApiKey] = useState("all");
+  const [exportUser, setExportUser] = useState("all");
+  const [exportDateRange, setExportDateRange] = useState<
+    DateRange | undefined
+  >();
+
   const pageSize = 20;
 
   // Reset page when filters change
@@ -96,21 +120,31 @@ export default function Usage() {
   const { data: memberProjects } = useMemberOfProjectsQuery();
   const { data: allKeys } = useAllApiKeys();
   const { data: projectApiKeys } = useProjectApiKeys(selectedProject || "");
+  const { data: exportProjectApiKeys } = useProjectApiKeys(exportProject || "");
   const { data: endpoints } = useEndpoints();
+  const { data: teamMembers } = useTeamMembers(selectedTeam?.id);
+  const exportPdf = useExportUsagePdf();
 
   const usageData = usagePage?.data || [];
 
   const allProjects = [...(ownedProjects || []), ...(memberProjects || [])];
   const projects = Array.from(
-    new Map(allProjects.map((p) => [p.id, p])).values()
+    new Map(allProjects.map((p) => [p.id, p])).values(),
   );
 
   const apiKeysList =
     selectedProject === "all" ? allKeys || [] : projectApiKeys || [];
 
+  const exportApiKeysList =
+    exportProject === "all" ? allKeys || [] : exportProjectApiKeys || [];
+
   useEffect(() => {
     setSelectedApiKey("all");
   }, [selectedProject]);
+
+  useEffect(() => {
+    setExportApiKey("all");
+  }, [exportProject]);
 
   // --- Aggregations for Charts (Client-side based on current page) ---
 
@@ -240,9 +274,21 @@ export default function Usage() {
     usageData.reduce((sum, item) => sum + (item.costNanoUsd || 0), 0) / 1e9;
   const totalTokens = usageData.reduce(
     (sum, item) => sum + (item.totalTokens || 0),
-    0
+    0,
   );
   const totalRequests = usageData.length;
+
+  const handleExportPdf = () => {
+    const queryParams = {
+      from: exportDateRange?.from?.toISOString(),
+      to: exportDateRange?.to?.toISOString(),
+      projectId: exportProject === "all" ? undefined : exportProject,
+      apiKeyId: exportApiKey === "all" ? undefined : exportApiKey,
+      billedUserId: exportUser === "all" ? undefined : exportUser,
+      sortDir: "DESC" as const,
+    };
+    exportPdf.mutateAsync(queryParams);
+  };
 
   // Budget is static for now as it's not in the hook
   const budgetUsed = totalSpend;
@@ -308,8 +354,11 @@ export default function Usage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="user-1">John Doe</SelectItem>
-                <SelectItem value="user-2">Jane Smith</SelectItem>
+                {teamMembers?.map((member: any) => (
+                  <SelectItem key={member.id} value={member.userId}>
+                    {member.userName}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -348,10 +397,127 @@ export default function Usage() {
             </Popover>
 
             {/* Export Button */}
-            <Button variant="outline" className="bg-secondary border-border">
-              <Download className="mr-2 h-4 w-4" />
-              Export Page
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="bg-secondary border-border"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export Page
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Export Usage Data</DialogTitle>
+                  <DialogDescription>
+                    Select filters to export specific usage data.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium w-full">
+                      Project
+                    </label>
+                    <Select
+                      value={exportProject}
+                      onValueChange={setExportProject}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="All projects" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All projects</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">API Key</label>
+                    <Select
+                      value={exportApiKey}
+                      onValueChange={setExportApiKey}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="All API Keys" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All API Keys</SelectItem>
+                        {exportApiKeysList.map((apiKey: any) => (
+                          <SelectItem key={apiKey.id} value={apiKey.id}>
+                            {apiKey.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">User</label>
+                    <Select value={exportUser} onValueChange={setExportUser}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="All Users" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Users</SelectItem>
+                        {teamMembers?.map((member: any) => (
+                          <SelectItem key={member.id} value={member.userId}>
+                            {member.userName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">Date Range</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal ${!exportDateRange && "text-muted-foreground"}`}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {exportDateRange?.from ? (
+                            exportDateRange.to ? (
+                              <>
+                                {format(exportDateRange.from, "MM/dd/yy")} -{" "}
+                                {format(exportDateRange.to, "MM/dd/yy")}
+                              </>
+                            ) : (
+                              format(exportDateRange.from, "MM/dd/yy")
+                            )
+                          ) : (
+                            <span>All time</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={exportDateRange?.from}
+                          selected={exportDateRange}
+                          onSelect={setExportDateRange}
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    onClick={() => {
+                      handleExportPdf();
+                    }}
+                  >
+                    Export
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -678,7 +844,7 @@ export default function Usage() {
                             <td className="p-3">
                               {format(
                                 new Date(event.createdAt),
-                                "MMM dd, HH:mm:ss"
+                                "MMM dd, HH:mm:ss",
                               )}
                             </td>
                             <td className="p-3">{event.modelName}</td>

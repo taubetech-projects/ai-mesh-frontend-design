@@ -2,20 +2,30 @@ import { platformProxyApi } from "@/lib/api/axiosApi";
 import {
   DepositRequest,
   DeveloperWalletTransaction,
+  TopUpRequest,
+  TopUpResponse,
   WalletView,
 } from "../types/walletTypes";
 
-const basePath = "/v1/api/platform/wallet";
+const basePath = "/v1/api/platform";
 
 export const WalletService = {
-  getMyWallet: async (): Promise<WalletView[]> => {
-    const res = await platformProxyApi.get(`${basePath}/me`);
+  getMyTeamWallet: async (teamId: string): Promise<WalletView> => {
+    const res = await platformProxyApi.get(`${basePath}/teams/${teamId}/wallet/balance`);
+    return res.data;
+  },
+
+  topUp: async (data: TopUpRequest, teamId: string): Promise<TopUpResponse> => {
+    const res = await platformProxyApi.post<TopUpResponse>(
+      `${basePath}/teams/${teamId}/wallet/topup`,
+      data,
+    );
     return res.data;
   },
 
   list: async (): Promise<DeveloperWalletTransaction[]> => {
     const res = await platformProxyApi.get<DeveloperWalletTransaction[]>(
-      `${basePath}/me/transactions`
+      `${basePath}/me/transactions`,
     );
     return res.data;
   },
@@ -23,7 +33,7 @@ export const WalletService = {
   create: async (data: DepositRequest): Promise<WalletView> => {
     const res = await platformProxyApi.post<WalletView>(
       `${basePath}/deposit`,
-      data
+      data,
     );
     return res.data;
   },

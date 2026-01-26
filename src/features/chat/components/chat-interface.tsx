@@ -26,18 +26,9 @@ import { API_BASE } from "@/lib/api/http";
 import { AudioRecorderModal } from "@/features/chat/components/audio-recorder-model";
 import { authHeader } from "@/features/chat/auth/utils/auth";
 import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
-import { setSelectedConvId } from "@/features/chat/conversation/store/conversation-slice";
 import { RootState } from "@/lib/store/store";
 import { CONTENT_INPUT_TYPES, ROLES } from "@/shared/constants/constants";
 import { ChatInputArea } from "./chat-input-area";
-import { chatProxyApi } from "@/lib/api/axiosApi";
-
-export async function listConversations() {
-  const res = await chatProxyApi.get("v1/api/chat/conversations");
-  return res.data;
-}
-
-console.log("Conversation list:", listConversations());
 
 export function ChatInterface() {
   const {

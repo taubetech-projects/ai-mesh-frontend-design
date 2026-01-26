@@ -68,6 +68,7 @@ export interface ErrorResponse {
 
 export type Me = {
   username: string;
+  id: string;
   email: string;
   roles: string[];
   authorities: string[];

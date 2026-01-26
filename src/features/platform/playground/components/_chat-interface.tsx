@@ -5,7 +5,7 @@ import { Input } from "@/shared/components/ui/input";
 import type { RouteSel } from "@/features/chat/types/models";
 import { Send, Mic, Paperclip, Settings, Beaker } from "lucide-react";
 import { useLanguage } from "@/shared/contexts/language-context";
-import { streamChat } from "@/features/chat/api/chatApi";
+import { streamChat } from "@/features/platform/playground/api/platformApi";
 import { ModelColumns } from "./_model-columns";
 import { PlaygroundSettings } from "./playground-setting";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,6 +24,7 @@ import {
   togglePlaygroundSettings,
   updateInputMessage,
 } from "@/features/platform/playground/store/playground-interface-slice";
+import { RootState } from "@/lib/store/store";
 
 var count = 0;
 
@@ -54,12 +55,11 @@ export function ChatInterface() {
     outputFormat,
     playgroundIsStreaming,
     providerSpecific,
-  } = useSelector((store: any) => store.playgroundInterface);
+  } = useSelector((store: RootState) => store.playgroundSlice);
 
   const dispatch = useDispatch();
 
   const { t } = useLanguage();
-
   function modeSelection() {
     const model = selectedModels.find(
       (model: RouteSel) => model.model === "consensus"
@@ -107,7 +107,7 @@ export function ChatInterface() {
 
     console.log("Request Body: ", body);
     console.log("Output Format :", outputFormat);
-
+    
     await streamChat(
       body,
       (evt) => {

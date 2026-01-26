@@ -97,6 +97,21 @@ export const BILLING_API_PATHS = {
   SUBSCRIPTION_CURRENT: `${API_VERSION_V1}/${CHAT_API_STEM}/subscription/current`,
 } as const;
 
+export const TEAMS_API_PATHS = {
+  BASE: `${API_VERSION_V1}/${CHAT_API_STEM}/teams`,
+  BY_ID: (id: string | number) =>
+    `${API_VERSION_V1}/${CHAT_API_STEM}/teams/${id}`,
+  MY: `${API_VERSION_V1}/${CHAT_API_STEM}/teams/my`,
+  MY_MEMBERSHIPS: `${API_VERSION_V1}/${CHAT_API_STEM}/teams/my-memberships`,
+} as const;
+
+export const TOKEN_SHARING_API_PATHS = {
+  BASE: `${API_VERSION_V1}/${CHAT_API_STEM}/tokens/sharing`,
+  INVITES: `${API_VERSION_V1}/${CHAT_API_STEM}/tokens/sharing/invites`,
+  OUTGOING: `${API_VERSION_V1}/${CHAT_API_STEM}/tokens/sharing/outgoing`,
+  INCOMING: `${API_VERSION_V1}/${CHAT_API_STEM}/tokens/sharing/incoming`,
+} as const;
+
 export const IMAGE_API_PATHS = {
   GENERATE: (modelId: number | string) =>
     `${API_VERSION_V1}/${CHAT_API_STEM}/images/generations/${modelId}`,

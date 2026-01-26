@@ -54,6 +54,7 @@ import {
 } from "@/features/platform/api-keys/hooks/useProjectApiKeys";
 import {
   ApiKeyCreateRequest,
+  ApiKeyCreateResponse,
   ApiKeyUpdateRequest,
   ApiKeyView,
 } from "@/features/platform/api-keys/types/apiKeyTypes";
@@ -69,6 +70,7 @@ import {
 import { useModels } from "@/features/platform/models/hooks/useModelQueries";
 import { useEndpoints } from "@/features/platform/endpoints/endpointCatalog.queries";
 import { set } from "date-fns";
+import { ApiKeySuccess } from "@/features/platform/api-keys/components/ApiKeySuccess";
 
 export default function ApiKeys() {
   // TODO: Get projectId from context or route param
@@ -104,6 +106,8 @@ export default function ApiKeys() {
   const [filterStatus, setFilterStatus] = useState<string | undefined>(
     undefined
   );
+  const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
+
 
   //Here all the hooks
   const createApiKeyMutation = useCreateApiKey(selectedProject || "");
@@ -133,6 +137,7 @@ export default function ApiKeys() {
   };
 
   const resetForm = () => {
+    setCreatedApiKey(null);
     setNewKeyName("");
     setRateLimits({ tpm: "", rpm: "" });
     setPermissionType("all");
@@ -143,7 +148,12 @@ export default function ApiKeys() {
     setSelectedProject(undefined);
   };
 
-  const handleSaveKey = () => {
+  const handleApiKeySuccessOnClose = () => {
+    resetForm();
+    setIsCreateOpen(false);
+  };
+
+  const handleSaveKey = async () => {
     const newErrors: typeof errors = {};
     let isValid = true;
     console.log("selectedProject", selectedProject);
@@ -213,12 +223,9 @@ export default function ApiKeys() {
       );
     } else {
       // @ts-ignore - Assuming the mutation accepts this shape based on local types
-      createApiKeyMutation.mutate(newKeyData, {
-        onSuccess: () => {
-          resetForm();
-          setIsCreateOpen(false);
-        },
-      });
+      const apiKey = await createApiKeyMutation.mutateAsync(newKeyData);
+      resetForm();
+      setCreatedApiKey(apiKey.apiKey);
     }
   };
 
@@ -537,7 +544,11 @@ export default function ApiKeys() {
             if (!open) resetForm();
           }}
         >
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[700px]">
+            {createdApiKey ? (
+              <ApiKeySuccess apiKey={createdApiKey} onClose={handleApiKeySuccessOnClose} />
+            ) : (
+              <>
             <DialogHeader>
               <DialogTitle>
                 {editingKeyId ? "Edit API Key" : "Create API Key"}
@@ -633,6 +644,8 @@ export default function ApiKeys() {
                   : "Create Key"}
               </Button>
             </DialogFooter>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 

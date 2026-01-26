@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { setTokens } from "@/features/chat/auth/utils/auth";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
+import { Loader2 } from "lucide-react";
 
-export default function OAuthSuccess() {
+export default function ChatOAuthSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -14,14 +14,23 @@ export default function OAuthSuccess() {
     const refreshToken = searchParams.get("refreshToken");
 
     if (accessToken) {
-      setTokens(accessToken, refreshToken?.trim() ?? "");
-      // Redirect to a protected route, e.g., /home or /dashboard
-      router.push(CHAT_ROUTES.CHAT);
+      // Call the API route to set cookies securely
+      fetch("/api/chat/auth/oauth2-success", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken, refreshToken: refreshToken ?? "" }),
+      })
+        .then(() => {
+          router.replace(CHAT_ROUTES.CHAT);
+        })
+        .catch(() => {
+          router.replace(CHAT_ROUTES.SIGNIN);
+        });
     } else {
       // Handle error or redirect to login if no token is present
-      router.push(CHAT_ROUTES.SIGNIN);
+      router.replace(CHAT_ROUTES.SIGNIN);
     }
   }, [router, searchParams]);
 
-  return <div>Logging you in...</div>;
+  return <Loader2 className="animate-spin" size={20} />;;
 }

@@ -2,16 +2,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { WalletService } from "../api/walletService";
 import { walletKeys } from "./queryKeys";
 import { toast } from "sonner";
-import { DepositRequest } from "../types/walletTypes";
+import { DepositRequest, TopUpRequest, TopUpResponse } from "../types/walletTypes";
+import {
+  handleApiErrorToast,
+  showSuccessToast,
+} from "@/shared/utils/toast.helper";
 
 /* =======================
    Queries
 ======================= */
 // GET /v1/api/platform/wallet/me
-export const useWalletQuery = () => {
+export const useMyTeamWalletQuery = (teamId: string) => {
   return useQuery({
     queryKey: walletKeys.me(),
-    queryFn: WalletService.getMyWallet,
+    queryFn: () => WalletService.getMyTeamWallet(teamId),
   });
 };
 
@@ -28,20 +32,20 @@ export const useTransactionsQuery = () => {
 ======================= */
 
 // POST /v1/api/platform/wallet/deposit
-export const useCreateWalletMutation = () => {
+export const useCreateTopUpMutation = (teamId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (body: DepositRequest) => WalletService.create(body),
+    mutationFn: (body: TopUpRequest) => WalletService.topUp(body, teamId),
 
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: walletKeys.me(),
       });
-      toast("Your new wallet has been created successfully.");
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
     },
-    onError: () => {
-      toast("Failed to create wallet. Please try again.");
-    },
+    onError: handleApiErrorToast,
   });
 };

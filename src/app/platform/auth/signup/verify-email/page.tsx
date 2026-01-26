@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import PlatformPublicRoute from "@/features/platform/auth/components/PlatformPublicRoute";
+import { PLATFORM_ROUTES } from "@/shared/constants/routingConstants";
 
 export default function PlatformVerifyEmail() {
   const [emailSent, setEmailSent] = useState(false);
@@ -69,7 +70,7 @@ export default function PlatformVerifyEmail() {
 
           <p className="text-center text-gray-400 mt-8">
             <button
-              onClick={() => router.push("/auth/login")}
+              onClick={() => router.push(PLATFORM_ROUTES.SIGNIN)}
               className="font-medium text-purple-400 hover:underline"
             >
               &larr; Back to Log In

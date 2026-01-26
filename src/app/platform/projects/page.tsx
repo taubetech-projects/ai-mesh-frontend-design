@@ -60,7 +60,7 @@ export default function Projects() {
   );
 
   const handleCreateProject = async (data: CreateProjectRequest) => {
-    await createProject.mutateAsync({data : data, teamId: selectedTeam});
+    await createProject.mutateAsync({data : data, teamId: selectedTeam.id});
   };
 
   const handleUpdateProject = async (data: ProjectResponse) => {

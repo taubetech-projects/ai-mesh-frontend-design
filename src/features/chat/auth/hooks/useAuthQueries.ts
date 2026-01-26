@@ -10,6 +10,7 @@ import type {
   ResetPasswordRequest,
   RefreshRequest,
 } from "@/features/chat/auth/types/authModels";
+import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.helper";
 
 /* ---------------------------
  * Queries
@@ -21,6 +22,10 @@ export function useMeQuery(opts?: { enabled?: boolean }) {
     retry: false,
     staleTime: 30_000,
     enabled: opts?.enabled ?? true,
+    select: (data) => {
+        // console.log("useMeQuery data:", data);
+        return data;
+    }
   });
 }
 
@@ -34,6 +39,7 @@ export function useLoginMutation() {
     onSuccess: async () => {
       // Ensure cookies are set -> then refresh /me
       await qc.invalidateQueries({ queryKey: qk.me() });
+      showSuccessToast("Login successful! Welcome to our platform...");
     },
   });
 }
@@ -46,7 +52,9 @@ export function useLogoutMutation() {
       // Immediately drop auth state
       qc.setQueryData(qk.me(), null);
       await qc.invalidateQueries({ queryKey: qk.me() });
+      showSuccessToast("You have been logged out.");
     },
+    onError: handleApiErrorToast
   });
 }
 
@@ -59,6 +67,10 @@ export function useSignupMutation() {
 export function useResendEmailMutation() {
   return useMutation({
     mutationFn: (data: ResendEmailRequest) => ChatAuthService.resendEmail(data),
+    onError: handleApiErrorToast,
+    onSuccess: () => {
+      showSuccessToast("Verification email sent successfully!");
+    }
   });
 }
 
@@ -66,6 +78,7 @@ export function useForgotPasswordMutation() {
   return useMutation({
     mutationFn: (data: ForgotPasswordRequest) =>
       ChatAuthService.forgotPassword(data),
+    onError: handleApiErrorToast
   });
 }
 
@@ -73,6 +86,7 @@ export function useResetPasswordMutation() {
   return useMutation({
     mutationFn: (data: ResetPasswordRequest) =>
       ChatAuthService.resetPassword(data),
+    onError: handleApiErrorToast
   });
 }
 

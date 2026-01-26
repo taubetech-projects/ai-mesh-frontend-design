@@ -25,7 +25,7 @@ import {
   formatNanoCentsCurrency,
 } from "@/shared/utils/currency";
 import { formatBillingPeriod } from "@/shared/utils/dateFormat";
-import { useWalletQuery } from "@/features/platform/wallet/hooks/useWalletHook";
+import { useMyTeamWalletQuery } from "@/features/platform/wallet/hooks/useWalletHook";
 import {
   DeveloperWalletTransaction,
   WalletView,
@@ -66,7 +66,7 @@ const mockInvoices: Invoice[] = [
 export default function Billing() {
   const { data: invoicePreviewData } = useInvoicePreviewQuery();
   const invoicePreview = invoicePreviewData as InvoicePreview | undefined;
-  const { data: walletData } = useWalletQuery();
+  const { data: walletData } = useMyTeamWalletQuery();
   const wallet = walletData as WalletView | undefined;
 
   const invoiceColumns: Column<Invoice>[] = [
@@ -99,8 +99,8 @@ export default function Billing() {
             row.status === "paid"
               ? "success"
               : row.status === "pending"
-              ? "warning"
-              : "destructive"
+                ? "warning"
+                : "destructive"
           }
         />
       ),
@@ -170,7 +170,7 @@ export default function Billing() {
             icon={TrendingUp}
             description={formatBillingPeriod(
               invoicePreview?.periodStart,
-              invoicePreview?.periodEnd
+              invoicePreview?.periodEnd,
             )}
           />
           <StatCard
@@ -202,7 +202,7 @@ export default function Billing() {
                 <span className="text-sm text-muted-foreground">
                   {formatBillingPeriod(
                     invoicePreview?.periodStart,
-                    invoicePreview?.periodEnd
+                    invoicePreview?.periodEnd,
                   )}
                 </span>
               </div>
