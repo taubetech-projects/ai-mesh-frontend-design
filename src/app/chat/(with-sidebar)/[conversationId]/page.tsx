@@ -70,8 +70,8 @@ export default function ConversationPage() {
   useEffect(() => {
     if (error) {
       // Redirect to chat root if conversation not found
-      // router.push(CHAT_ROUTES.CHAT);
       handleApiErrorToast(error);
+      router.push(CHAT_ROUTES.CHAT);
     }
   }, [error, dispatch, router]);
 

@@ -72,13 +72,16 @@ export const useDeleteConversationApi = () => {
 
   return useMutation({
     mutationFn: (id: string) => ConversationService.deleteConversation(id),
-    onSuccess: (_, id) => {
-      // ✅ remove conversation query using exact key
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: [...queryKey.conversations(), id] });
+      await queryClient.cancelQueries({ queryKey: queryKey.messages(Number(id)) });
+
+      // Remove from cache immediately
       queryClient.removeQueries({ queryKey: [...queryKey.conversations(), id], exact: true });
-
-      // ✅ remove messages query using standardized helper (converts to number)
       queryClient.removeQueries({ queryKey: queryKey.messages(Number(id)), exact: true });
-
+    },
+    onSuccess: (_, id) => {
       // refresh conversations list
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() });
     },
