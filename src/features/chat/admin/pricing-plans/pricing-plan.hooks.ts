@@ -7,6 +7,7 @@ import {
   PlanCreateRequest,
   PlanUpdateRequest,
 } from "./pricing-plan.types";
+import { handleApiErrorToast } from "@/shared/utils/toast.helper";
 
 /* =======================
    Queries
@@ -38,6 +39,7 @@ export const useCreateAdminPricingPlan = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: pricingPlanKeys.list() });
     },
+    onError: handleApiErrorToast
   });
 };
 
@@ -58,6 +60,7 @@ export const useUpdateAdminPricingPlan = () => {
         queryKey: pricingPlanKeys.detail(variables.id),
       });
     },
+    onError: handleApiErrorToast
   });
 };
 
@@ -69,5 +72,6 @@ export const useDeleteAdminPricingPlan = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: pricingPlanKeys.list() });
     },
+    onError: handleApiErrorToast
   });
 };
