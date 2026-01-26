@@ -23,6 +23,7 @@ import { useChangePortion } from "../hooks/useTokenSharing";
 import { SharingInviteView } from "../token-sharing.types";
 import { toast } from "sonner";
 import { Edit3, Hash, Percent } from "lucide-react";
+import { showSuccessToast } from "@/shared/utils/toast.helper";
 
 interface UpdatePortionDialogProps {
   open: boolean;
@@ -57,23 +58,15 @@ export function UpdatePortionDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!invite) return;
 
-    try {
-      await changePortionMutation.mutateAsync({
-        id: invite.id,
-        fixedAmount: shareType === "fixed" ? parseInt(amount) : undefined,
-        percent: shareType === "percent" ? parseInt(percentage) : undefined,
-      });
-
-      toast.success("Sharing portion updated successfully");
-      onOpenChange(false);
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.detail || "Failed to update portion";
-      toast.error(errorMessage);
-    }
+    await changePortionMutation.mutateAsync({
+      id: invite.id,
+      fixedAmount: shareType === "fixed" ? parseInt(amount) : undefined,
+      percent: shareType === "percent" ? parseInt(percentage) : undefined,
+    });
+    showSuccessToast("Sharing portion updated successfully");
+    onOpenChange(false);
   };
 
   return (

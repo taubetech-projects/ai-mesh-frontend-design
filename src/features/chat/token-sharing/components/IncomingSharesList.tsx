@@ -7,28 +7,23 @@ import { Badge } from "@/shared/components/ui/badge";
 import { toast } from "sonner";
 import { Check, X, Download, User, Clock } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import { UUID } from "@/features/platform/team/team.types";
+import { showSuccessToast } from "@/shared/utils/toast.helper";
 
 export function IncomingSharesList() {
   const { data: shares, isLoading } = useIncomingShares();
+  console.log("shares", shares)
   const acceptMutation = useAcceptShare();
   const rejectMutation = useRejectShare();
 
-  const handleAccept = async (id: string) => {
-    try {
-      await acceptMutation.mutateAsync(id);
-      toast.success("Share accepted successfully");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail || "Failed to accept share");
-    }
+  const handleAccept = async (id: UUID) => {
+    await acceptMutation.mutateAsync(id);
+    showSuccessToast("Share accepted successfully");
   };
 
-  const handleReject = async (id: string) => {
-    try {
-      await rejectMutation.mutateAsync(id);
-      toast.success("Share rejected successfully");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail || "Failed to reject share");
-    }
+  const handleReject = async (id: UUID) => {
+    await rejectMutation.mutateAsync(id);
+    showSuccessToast("Share rejected successfully");
   };
 
   if (isLoading) {

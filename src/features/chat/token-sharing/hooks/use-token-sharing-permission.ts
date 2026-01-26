@@ -16,6 +16,6 @@ export function useTokenSharingPermission() {
     canEdit: hasAuthority("token.sharing.invitations:edit"),
 
     // Invite team members - requires team.member.invitations:send
-    canInviteMembers: hasAuthority("token.sharing.invitations:invite"),
+    canInviteMembers: hasAuthority("token.sharing.invitations:send"),
   };
 }

@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils/utils";
+import { showSuccessToast } from "@/shared/utils/toast.helper";
 
 export function OutgoingSharesList() {
   const { data: shares, isLoading } = useOutgoingShares();
@@ -35,12 +36,8 @@ export function OutgoingSharesList() {
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
 
   const handleRenew = async (id: string) => {
-    try {
-      await renewMutation.mutateAsync(id);
-      toast.success("Share renewed successfully");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail || "Failed to renew share");
-    }
+    await renewMutation.mutateAsync(id);
+    showSuccessToast("Share renewed successfully");
   };
 
   const handleUpdatePortion = (invite: SharingInviteView) => {

@@ -4,48 +4,58 @@ import {
   SharingInviteView,
   IncomingShareView,
 } from "./token-sharing.types";
+import { TOKEN_SHARING_API_PATHS } from "@/shared/constants/constants";
+import { UUID } from "@/features/platform/team/team.types";
 
-const BASE_URL = "/v1/api/tokens/sharing";
-
-export class TokenSharingApi {
+export const TokenSharingApi = {
   // Invite friend
-  static inviteFriend(payload: CreateSharingInviteRequest) {
-    return chatProxyApi.post<SharingInviteView>(`${BASE_URL}/invites`, payload);
-  }
+    inviteFriend: async(payload: CreateSharingInviteRequest): Promise<SharingInviteView> => {
+      console.log("Invite Request : ", payload);
+      const res = await chatProxyApi.post<SharingInviteView>(TOKEN_SHARING_API_PATHS.INVITES, payload);
+      return res.data;
+    },
 
   // Outgoing invites
-  static getOutgoing() {
-    return chatProxyApi.get<SharingInviteView[]>(`${BASE_URL}/outgoing`);
-  }
+  getOutgoing: async() => {
+    const res = await chatProxyApi.get<SharingInviteView[]>(TOKEN_SHARING_API_PATHS.OUTGOING);
+    return res.data;
+  },
 
   // Renew share
-  static renewShare(id: string) {
-    return chatProxyApi.post<void>(`${BASE_URL}/${id}/renew`);
-  }
+  renewShare: async(id: string) => {
+    const res = await chatProxyApi.post<void>(TOKEN_SHARING_API_PATHS.BASE + `/${id}/renew`);
+    return res.data;
+  },
 
   // Change portion
-  static changePortion(
+  changePortion: async(
     id: string,
     payload: Pick<CreateSharingInviteRequest, "fixedAmount" | "percent">
-  ) {
-    return chatProxyApi.patch<SharingInviteView>(
-      `${BASE_URL}/${id}/portion`,
+  ) => {
+    const res = await chatProxyApi.patch<SharingInviteView>(
+      TOKEN_SHARING_API_PATHS.BASE + `/${id}/portion`,
       payload
     );
-  }
+    return res.data;
+  },
 
   // Incoming shares
-  static getIncoming() {
-    return chatProxyApi.get<IncomingShareView[]>(`${BASE_URL}/incoming`);
-  }
+  getIncoming: async() => {
+    const res = await chatProxyApi.get<IncomingShareView[]>(TOKEN_SHARING_API_PATHS.INCOMING);
+    console.log("incoming", res.data);
+    return res.data;
+  },
 
   // Accept share
-  static acceptShare(id: string) {
-    return chatProxyApi.post<void>(`${BASE_URL}/${id}/accept`);
-  }
+  acceptShare: async(id: UUID) => {
+    console.log("accept", TOKEN_SHARING_API_PATHS +`/${id}/accept`);
+    const res = await chatProxyApi.post<void>(TOKEN_SHARING_API_PATHS.BASE+`/${id}/accept`);
+    return res.data;
+  },
 
   // Reject share
-  static rejectShare(id: string) {
-    return chatProxyApi.post<void>(`${BASE_URL}/${id}/reject`);
-  }
+  rejectShare: async(id: UUID) => {
+    const res = await chatProxyApi.post<void>(TOKEN_SHARING_API_PATHS.BASE+`/${id}/reject`);
+    return res.data;
+  },
 }
