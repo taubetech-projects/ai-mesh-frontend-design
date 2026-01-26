@@ -16,71 +16,83 @@ const BASE = "/v1/api/chat/admin/rbac";
 export class RbacAdminApi {
   // ---------- ROLES ----------
 
-  static listRoles(): Promise<RoleView[]> {
-    return chatProxyApi.get(`${BASE}/roles`);
+  static async listRoles(): Promise<RoleView[]> {
+    const res = await chatProxyApi.get<RoleView[]>(`${BASE}/roles`);
+    return res.data;
   }
 
-  static getRole(id: string): Promise<RoleView> {
-    return chatProxyApi.get(`${BASE}/roles/${id}`);
+  static async getRole(id: string): Promise<RoleView> {
+    const res = await chatProxyApi.get<RoleView>(`${BASE}/roles/${id}`);
+    return res.data;
   }
 
-  static createRole(req: CreateRoleRequest): Promise<RoleView> {
-    return chatProxyApi.post(`${BASE}/roles`, req);
+  static async createRole(req: CreateRoleRequest): Promise<RoleView> {
+    const res = await chatProxyApi.post<RoleView>(`${BASE}/roles`, req);
+    return res.data;
   }
 
-  static updateRole(id: string, req: UpdateRoleRequest): Promise<RoleView> {
-    return chatProxyApi.patch(`${BASE}/roles/${id}`, req);
+  static async updateRole(id: string, req: UpdateRoleRequest): Promise<RoleView> {
+    const res = await chatProxyApi.patch<RoleView>(`${BASE}/roles/${id}`, req);
+    return res.data;
   }
 
-  static deleteRole(id: string): Promise<void> {
-    return chatProxyApi.delete(`${BASE}/roles/${id}`);
+  static async deleteRole(id: string): Promise<void> {
+    await chatProxyApi.delete(`${BASE}/roles/${id}`);
   }
 
   // ---------- AUTHORITIES ----------
 
-  static listAuthorities(): Promise<AuthorityView[]> {
-    return chatProxyApi.get(`${BASE}/authorities`);
+  static async listAuthorities(): Promise<AuthorityView[]> {
+    const res = await chatProxyApi.get<AuthorityView[]>(`${BASE}/authorities`);
+    return res.data;
   }
 
-  static getAuthority(id: string): Promise<AuthorityView> {
-    return chatProxyApi.get(`${BASE}/authorities/${id}`);
+  static async getAuthority(id: string): Promise<AuthorityView> {
+    const res = await chatProxyApi.get<AuthorityView>(`${BASE}/authorities/${id}`);
+    return res.data;
   }
 
-  static createAuthority(req: CreateAuthorityRequest): Promise<AuthorityView> {
-    return chatProxyApi.post(`${BASE}/authorities`, req);
+  static async createAuthority(req: CreateAuthorityRequest): Promise<AuthorityView> {
+    const res = await chatProxyApi.post<AuthorityView>(`${BASE}/authorities`, req);
+    return res.data;
   }
 
-  static updateAuthority(id: string, req: UpdateAuthorityRequest): Promise<AuthorityView> {
-    return chatProxyApi.patch(`${BASE}/authorities/${id}`, req);
+  static async updateAuthority(id: string, req: UpdateAuthorityRequest): Promise<AuthorityView> {
+    const res = await chatProxyApi.patch<AuthorityView>(`${BASE}/authorities/${id}`, req);
+    return res.data;
   }
 
-  static deleteAuthority(id: string): Promise<void> {
-    return chatProxyApi.delete(`${BASE}/authorities/${id}`);
+  static async deleteAuthority(id: string): Promise<void> {
+    await chatProxyApi.delete(`${BASE}/authorities/${id}`);
   }
 
   // ---------- ROLE_AUTHORITIES ----------
 
-  static getRoleAuthorities(roleId: string): Promise<RoleView> {
-    return chatProxyApi.get(`${BASE}/roles/${roleId}/authorities`);
+  static async getRoleAuthorities(roleId: string): Promise<RoleView> {
+    const res = await chatProxyApi.get<RoleView>(`${BASE}/roles/${roleId}/authorities`);
+    return res.data;
   }
 
-  static setRoleAuthorities(
+  static async setRoleAuthorities(
     roleId: string,
     req: UpdateRoleAuthoritiesRequest
   ): Promise<RoleView> {
-    return chatProxyApi.put(`${BASE}/roles/${roleId}/authorities`, req);
+    const res = await chatProxyApi.put<RoleView>(`${BASE}/roles/${roleId}/authorities`, req);
+    return res.data;
   }
 
   // ---------- USER_ROLES ----------
 
-  static getUserRoles(userId: string): Promise<string[]> {
-    return chatProxyApi.get(`${BASE}/users/${userId}/roles`);
+  static async getUserRoles(userId: string): Promise<string[]> {
+    const res = await chatProxyApi.get<string[]>(`${BASE}/users/${userId}/roles`);
+    return res.data;
   }
 
-  static setUserRoles(
+  static async setUserRoles(
     userId: string,
     req: UpdateUserRolesRequest
   ): Promise<string[]> {
-    return chatProxyApi.put(`${BASE}/users/${userId}/roles`, req);
+    const res = await chatProxyApi.put<string[]>(`${BASE}/users/${userId}/roles`, req);
+    return res.data;
   }
 }

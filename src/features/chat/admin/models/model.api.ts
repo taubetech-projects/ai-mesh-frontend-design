@@ -5,26 +5,28 @@ import { chatProxyApi } from "@/lib/api/axiosApi";
 
 const BASE_URL = "/v1/api/chat/models";
 
-
 export const modelApi = {
-  getAll: (): Promise<Model[]> =>
-    chatProxyApi.get(BASE_URL),
+  getAll: async (): Promise<Model[]> => {
+    const res = await chatProxyApi.get<Model[]>(BASE_URL);
+    return res.data;
+  },
 
-  getById: (id: string): Promise<Model> =>
-    chatProxyApi.get(`${BASE_URL}/${id}`),
+  getById: async (id: string): Promise<Model> => {
+    const res = await chatProxyApi.get<Model>(`${BASE_URL}/${id}`);
+    return res.data;
+  },
 
-  create: (data: ModelRequestDto): Promise<Model> =>
-    chatProxyApi.post(BASE_URL, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+  create: async (data: ModelRequestDto): Promise<Model> => {
+    const res = await chatProxyApi.post<Model>(BASE_URL, data);
+    return res.data;
+  },
 
-  update: (id: string, data: Partial<Model>): Promise<Model> =>
-    chatProxyApi.put(`${BASE_URL}/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
+  update: async (id: string, data: Partial<Model>): Promise<Model> => {
+    const res = await chatProxyApi.put<Model>(`${BASE_URL}/${id}`, data);
+    return res.data;
+  },
 
-  delete: (id: string): Promise<void> =>
-    chatProxyApi.delete(`${BASE_URL}/${id}`),
+  delete: async (id: string): Promise<void> => {
+    await chatProxyApi.delete(`${BASE_URL}/${id}`);
+  },
 };
