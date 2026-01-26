@@ -15,7 +15,6 @@ export const showStatusToast = (
 
 export const handleApiErrorToast = (error: unknown) => {
   const err = (error as any)?.response?.data as ErrorResponse;
-//   console.log("error", err);
   if (!err) {
     showStatusToast(
       "error",

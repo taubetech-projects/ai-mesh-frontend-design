@@ -105,7 +105,7 @@ export function SettingsDialog({
 
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar Navigation */}
-          <div className="w-56 border-r border-border bg-sidebar p-3 overflow-y-auto">
+          <div className="w-56 border-r border-border bg-sidebar p-3 overflow-y-auto gpt-scrollbar">
             <nav className="space-y-1" aria-label="Settings navigation" role="navigation">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -131,7 +131,7 @@ export function SettingsDialog({
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-6 min-h-0">
+          <div className="flex-1 overflow-y-auto p-6 min-h-0 gpt-scrollbar">
             {activeTab === "teams" && <TeamManagement />}
             {activeTab === "token-sharing" && <TokenSharingDashboard />}
             {activeTab === "general" && <GeneralSettings 

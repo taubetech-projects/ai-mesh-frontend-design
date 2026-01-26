@@ -13,7 +13,6 @@ import {
 import Link from "next/link";
 import { usePlans } from "@/features/chat/pricing/hooks/usePlans";
 import { usePurchasePlan } from "@/features/chat/pricing/hooks/usePurchasePlans";
-import { Subscription } from "node_modules/react-hook-form/dist/utils/createSubject";
 import { SubscriptionPlan } from "@/features/chat/pricing/types/subscriptionPlans";
 import {
   BillingInterval,
@@ -22,6 +21,7 @@ import {
 } from "@/features/chat/pricing/types/billing";
 import { useCurrentSubscription } from "@/features/chat/pricing/hooks/useCurrentSubscription";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
+import { useRouter } from "next/navigation";
 
 // 1. The Toggle Switch
 const PlanTypeToggle = ({
@@ -167,6 +167,7 @@ const PricingCard = ({
 
 // --- Main Page Component ---
 export default function PricingPage() {
+  const router = useRouter();
   const { data: pricingPlans, isLoading } = usePlans();
   const purchasePlan = usePurchasePlan();
   const { data: currentSubscription, isLoading: isLoadingSubscription } =
@@ -207,12 +208,12 @@ export default function PricingPage() {
     <div className="min-h-screen bg-black text-zinc-100 py-20 px-4 sm:px-6 lg:px-8 font-sans">
       {/* Header Section */}
       <div className="max-w-3xl mx-auto text-center mb-10">
-        <Link
-          href={CHAT_ROUTES.CHAT}
+        <button
+          onClick={() => router.back()}
           className="font-medium text-gray-400 hover:underline mb-6 inline-block"
         >
-          &larr; Back to Home
-        </Link>
+          &larr; Back
+        </button>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6">
           Upgrade your plan
         </h1>

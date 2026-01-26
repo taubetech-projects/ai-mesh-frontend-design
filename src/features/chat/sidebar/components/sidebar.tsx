@@ -121,11 +121,17 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   const handleDeleteConversation = () => {
     if (conversationIdToDelete) {
       deleteConversation(conversationIdToDelete);
+
+      // Immediately clear the selected ID to stop fetches
+      if (String(conversationIdToDelete) === String(selectedConvId)) {
+        dispatch(setSelectedConvId(null));
+        dispatch(resetAllStates());
+        router.push(CHAT_ROUTES.CHAT);
+      }
+      
       setConversationIdToDelete(null);
     }
     setShowDeleteDialog(false); // Close the dialog
-    dispatch(resetAllStates());
-    router.push(CHAT_ROUTES.CHAT);
   };
 
   const handleRenameConversation = (

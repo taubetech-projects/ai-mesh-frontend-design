@@ -14,9 +14,11 @@ import {
   CONVERSATION_TYPES,
   INTERFACE_TYPES,
 } from "@/shared/constants/constants";
-import { toast } from "sonner";
+import { handleApiErrorToast } from "@/shared/utils/toast.helper";
 import { useModelPreferences } from "@/features/chat/settings/model-preferences/hooks/modelPreferencesHook";
 import ChatProtectedRoute from "@/features/chat/auth/components/ChatProtectedRoute";
+import { useRouter } from "next/navigation";
+import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 
 function HomeContent2() {
   const { activeInterface } = useSelector((state: RootState) => state.ui);
@@ -34,6 +36,7 @@ function HomeContent2() {
 
 export default function ConversationPage() {
   const params = useParams();
+  const router = useRouter();
   const dispatch = useDispatch();
   const { selectedModels } = useSelector((store: any) => store.chatInterface);
   const conversationId = params.conversationId as string;
@@ -66,9 +69,11 @@ export default function ConversationPage() {
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message);
+      // Redirect to chat root if conversation not found
+      // router.push(CHAT_ROUTES.CHAT);
+      handleApiErrorToast(error);
     }
-  }, [error, dispatch]);
+  }, [error, dispatch, router]);
 
   return (
     <ChatProtectedRoute>

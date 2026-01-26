@@ -6,6 +6,7 @@ import {
 import { chatProxyApi } from "@/lib/api/axiosApi";
 import type { AxiosError, AxiosRequestConfig } from "axios";
 import { CHAT_API_PATHS, HTTP_METHODS } from "@/shared/constants/constants";
+import { handleApiErrorToast } from "@/shared/utils/toast.helper";
 
 /* ---------------------------
  * Error handling
@@ -50,7 +51,7 @@ export async function apiCall<T>(
     const res = await chatProxyApi[method](url, data, config);
     return res.data as T;
   } catch (error) {
-    throw handleApiError(error);
+    throw handleApiErrorToast(error);
   }
 }
 
@@ -59,53 +60,46 @@ export async function apiCall<T>(
  * -------------------------- */
 export const messageApi = {
   create: (conversationId: number, body: SaveMessageRequest) =>
-    apiCall<MessageView>(
-      HTTP_METHODS.POST,
+    chatProxyApi.post<MessageView>(
       CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
       body
-    ),
+    ).then(r => r.data),  
 
   createBatch: (conversationId: number, body: SaveMessageRequest[]) =>
-    apiCall<MessageView[]>(
-      HTTP_METHODS.POST,
+    chatProxyApi.post<MessageView[]>(
       CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId),
       body
-    ),
+    ).then(r => r.data),
 
   listByConversation: (conversationId: number) =>
-    apiCall<MessagePage>(
-      HTTP_METHODS.GET,
+    chatProxyApi.get<MessagePage>(
       CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BASE(conversationId)
-    ),
+    ).then(r => r.data),
 
   update: (id: number, conversationId: number, body: SaveMessageRequest) =>
-    apiCall<MessageView>(
-      HTTP_METHODS.PUT,
+    chatProxyApi.put<MessageView>(
       CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id),
       body
-    ),
+    ).then(r => r.data),
 
   updateBatch: (
     conversationId: number,
     messageId: number,
     bodies: SaveMessageRequest[]
   ) =>
-    apiCall<MessageView[]>(
-      HTTP_METHODS.POST,
+    chatProxyApi.post<MessageView[]>(
       CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, messageId),
       bodies
-    ),
+    ).then(r => r.data),
 
   removeForAllModel: (id: number, conversationId: number) =>
-    apiCall<void>(
-      HTTP_METHODS.DELETE,
+    chatProxyApi.delete<void>(
       CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) + "/all"
-    ),
+    ).then(r => r.data),
 
   removeForSingleModel: (id: number, conversationId: number, model: string) =>
-    apiCall<void>(
-      HTTP_METHODS.DELETE,
+    chatProxyApi.delete<void>(
       CHAT_API_PATHS.CONVERSATIONS.MESSAGES.BY_ID(conversationId, id) +
         `?modelName=${model}`
-    ),
+    ).then(r => r.data),
 };

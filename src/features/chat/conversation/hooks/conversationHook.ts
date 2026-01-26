@@ -1,21 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  createConversationApi,
-  getConversationsApi,
-  updateConversationApi,
-  deleteConversationApi,
-  getConversationByConvoTypeApi,
-  getConversationByIdApi,
-} from "@/features/chat/conversation/api/conversationApi";
 import { queryKey } from "@/lib/react-query/keys";
 import { CONVERSATION_TYPES, STALE_TIME } from "@/shared/constants/constants";
 import { handleApiErrorToast } from "@/shared/utils/toast.helper";
+import { ConversationService } from "../api/conversationApi";
 
 // Custom hooks for CRUD operations
 export const useCreateConversationApi = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: createConversationApi,
+    mutationFn: ConversationService.createConversation,
     onSuccess: () => {
       console.log("Conversation created successfully");
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }); // Refetch conversations after a new conversation is created
@@ -32,26 +25,23 @@ export const useCreateConversationApi = () => {
 export const useGetConversationsApi = () =>
   useQuery({
     queryKey: queryKey.conversations(),
-    queryFn: getConversationsApi,
+    queryFn: ConversationService.getConversations,
     staleTime: STALE_TIME,
   });
 
 export const useGetConversationById = (id: string) =>
   useQuery({
     queryKey: [...queryKey.conversations(), id],
-    queryFn: () => getConversationByIdApi(id),
-    retry: (failureCount, error: any) => {
-      // Don't retry if the conversation is not found
-      if (error?.status === 404) return false;
-      return failureCount < 3;
-    },
+    queryFn: () => ConversationService.getConversationById(id),
+    enabled: !!id,   // ✅ don't run without id
+    retry: false,                // ✅ stops 1+3 retries = 4 calls
     refetchOnWindowFocus: false,
   });
 
 export const useGetConversationsForChat = () => {
   return useQuery({
     queryKey: [...queryKey.conversations(), "chat"],
-    queryFn: () => getConversationByConvoTypeApi(CONVERSATION_TYPES.CHAT),
+    queryFn: () => ConversationService.getConversationByConvoType(CONVERSATION_TYPES.CHAT),
     staleTime: STALE_TIME,
   });
 };
@@ -59,7 +49,7 @@ export const useGetConversationsForChat = () => {
 export const useGetConversationsForImage = () => {
   return useQuery({
     queryKey: [...queryKey.conversations(), "image"],
-    queryFn: () => getConversationByConvoTypeApi(CONVERSATION_TYPES.IMAGE),
+    queryFn: () => ConversationService.getConversationByConvoType(CONVERSATION_TYPES.IMAGE),
     staleTime: STALE_TIME,
   });
 };
@@ -68,7 +58,7 @@ export const useUpdateConversationApi = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, conversation }: { id: string; conversation: object }) =>
-      updateConversationApi(id, conversation),
+      ConversationService.updateConversation(id, conversation),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after an update
     onError: (error: unknown) => {
@@ -79,13 +69,19 @@ export const useUpdateConversationApi = () => {
 
 export const useDeleteConversationApi = () => {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => deleteConversationApi(id),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after deletion
 
-    onError: (error: unknown) => {
-      handleApiErrorToast(error);
-    }
+  return useMutation({
+    mutationFn: (id: string) => ConversationService.deleteConversation(id),
+    onSuccess: (_, id) => {
+      // ✅ remove conversation query using exact key
+      queryClient.removeQueries({ queryKey: [...queryKey.conversations(), id], exact: true });
+
+      // ✅ remove messages query using standardized helper (converts to number)
+      queryClient.removeQueries({ queryKey: queryKey.messages(Number(id)), exact: true });
+
+      // refresh conversations list
+      queryClient.invalidateQueries({ queryKey: queryKey.conversations() });
+    },
+    onError: (error: unknown) => handleApiErrorToast(error),
   });
 };
