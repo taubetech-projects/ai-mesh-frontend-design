@@ -16,15 +16,18 @@ import { createStreamEventHandler } from "@/features/chat/text-chat/utils/stream
 import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
 import { queryKey } from "@/lib/react-query/keys";
 import { useRouter } from "next/navigation";
+import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
 
-const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
+const cacheKey = (userId: string | null, conversationId: number) => queryKey.messages(userId, conversationId);
 
 export const useUpdateMessages = (conversationId: number) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const router = useRouter();
+  const { me } = useChatAuth();
+  const userId = me?.id ?? null;
 
-  const cacheOps = createMessageCacheOps(queryClient, conversationId);
+  const cacheOps = createMessageCacheOps(queryClient, userId, conversationId);
 
   return useMutation({
     mutationFn: async ({
@@ -36,7 +39,7 @@ export const useUpdateMessages = (conversationId: number) => {
     }) => {
       // ✅ Prevent in-flight fetch from overwriting optimistic cache
       await queryClient.cancelQueries({
-        queryKey: cacheKey(conversationId),
+        queryKey: cacheKey(userId, conversationId),
       });
 
       const { includeConsensus } = validateChatRequest(
@@ -86,7 +89,7 @@ export const useUpdateMessages = (conversationId: number) => {
     onSettled: () => {
       // ✅ Fallback: re-sync with backend if invalidate event is missed
       queryClient.invalidateQueries({
-        queryKey: cacheKey(conversationId),
+        queryKey: cacheKey(userId, conversationId),
       });
       // ❌ DO NOT endStreaming here
     },
