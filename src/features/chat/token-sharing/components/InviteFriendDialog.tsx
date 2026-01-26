@@ -23,6 +23,7 @@ import { useInviteFriend } from "../hooks/useTokenSharing";
 import { ShareDurationType } from "../token-sharing.types";
 import { toast } from "sonner";
 import { Coins, Mail, Calendar, Hash, Percent } from "lucide-react";
+import { showSuccessToast } from "@/shared/utils/toast.helper";
 
 interface InviteFriendDialogProps {
   open: boolean;
@@ -51,26 +52,18 @@ export function InviteFriendDialog({
       toast.error("Please enter an email address");
       return;
     }
-
-    try {
-      await inviteMutation.mutateAsync({
-        receiverEmail: email.trim(),
-        fixedAmount: shareType === "fixed" ? parseInt(amount) : undefined,
-        percent: shareType === "percent" ? parseInt(percentage) : undefined,
-        durationType,
-        totalPeriods:
-          durationType === ShareDurationType.MONTHLY
+    await inviteMutation.mutateAsync({
+      receiverEmail: email.trim(),
+      fixedAmount: shareType === "fixed" ? parseInt(amount) : undefined,
+      percent: shareType === "percent" ? parseInt(percentage) : undefined,
+      durationType,
+      totalPeriods:
+        durationType === ShareDurationType.MONTHLY
             ? parseInt(totalPeriods)
             : undefined,
-      });
-
-      toast.success(`Token sharing invite sent to ${email}`);
-      handleClose();
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.detail || "Failed to send invitation";
-      toast.error(errorMessage);
-    }
+    });
+    showSuccessToast(`Token sharing invite sent to ${email}`);
+    handleClose();
   };
 
   const handleClose = () => {

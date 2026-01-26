@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Check, X, Download, User, Clock } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { UUID } from "@/features/platform/team/team.types";
+import { showSuccessToast } from "@/shared/utils/toast.helper";
 
 export function IncomingSharesList() {
   const { data: shares, isLoading } = useIncomingShares();
@@ -16,21 +17,13 @@ export function IncomingSharesList() {
   const rejectMutation = useRejectShare();
 
   const handleAccept = async (id: UUID) => {
-    try {
-      await acceptMutation.mutateAsync(id);
-      toast.success("Share accepted successfully");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail || "Failed to accept share");
-    }
+    await acceptMutation.mutateAsync(id);
+    showSuccessToast("Share accepted successfully");
   };
 
   const handleReject = async (id: UUID) => {
-    try {
-      await rejectMutation.mutateAsync(id);
-      toast.success("Share rejected successfully");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail || "Failed to reject share");
-    }
+    await rejectMutation.mutateAsync(id);
+    showSuccessToast("Share rejected successfully");
   };
 
   if (isLoading) {

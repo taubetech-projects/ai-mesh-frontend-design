@@ -3,6 +3,7 @@ import { TokenSharingApi } from "../token-sharing.api";
 import { tokenSharingKeys } from "../token-sharing.query-keys";
 import { CreateSharingInviteRequest } from "../token-sharing.types";
 import { UUID } from "@/features/platform/team/team.types";
+import { handleApiErrorToast } from "@/shared/utils/toast.helper";
 
 // --------------------
 // Queries
@@ -34,6 +35,7 @@ export const useInviteFriend = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: tokenSharingKeys.outgoing() });
     },
+    onError: handleApiErrorToast
   });
 };
 
@@ -46,6 +48,7 @@ export const useRenewShare = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: tokenSharingKeys.outgoing() });
     },
+    onError: handleApiErrorToast
   });
 };
 
@@ -68,6 +71,7 @@ export const useChangePortion = () => {
       qc.invalidateQueries({ queryKey: tokenSharingKeys.outgoing() });
       qc.invalidateQueries({ queryKey: tokenSharingKeys.incoming() });
     },
+    onError: handleApiErrorToast
   });
 };
 
@@ -81,6 +85,7 @@ export const useAcceptShare = () => {
       qc.invalidateQueries({ queryKey: tokenSharingKeys.incoming() });
       qc.invalidateQueries({ queryKey: tokenSharingKeys.outgoing() });
     },
+    onError: handleApiErrorToast
   });
 };
 
@@ -93,5 +98,6 @@ export const useRejectShare = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: tokenSharingKeys.incoming() });
     },
+    onError: handleApiErrorToast
   });
 };
