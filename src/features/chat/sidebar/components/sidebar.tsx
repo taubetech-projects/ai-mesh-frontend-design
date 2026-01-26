@@ -34,6 +34,7 @@ import { SidebarHeader } from "./sidebar-header";
 import { SidebarHistorySection } from "./sidebar-history-section";
 import { SidebarFooter } from "./sidebar-footer";
 import { UserModelPreference } from "@/features/chat/settings/model-preferences/types/modelPreferencesTypes";
+import { ConvUpdateRequest } from "../../conversation/types/conversationTypes";
 
 interface SidebarProps {
   activeInterface: "CHAT" | "IMAGE";
@@ -138,9 +139,10 @@ export function Sidebar({ activeInterface }: SidebarProps) {
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
     if (e.key === "Enter" && renamingConvId && newTitle.trim() !== "") {
+      const convUpdateRequest: ConvUpdateRequest = { title: newTitle };
       updateConversation({
         id: renamingConvId,
-        conversation: { title: newTitle },
+        conversation: convUpdateRequest,
       });
       setRenamingConvId(null);
       setNewTitle("");

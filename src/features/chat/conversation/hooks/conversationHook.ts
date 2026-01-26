@@ -3,6 +3,7 @@ import { queryKey } from "@/lib/react-query/keys";
 import { CONVERSATION_TYPES, STALE_TIME } from "@/shared/constants/constants";
 import { handleApiErrorToast } from "@/shared/utils/toast.helper";
 import { ConversationService } from "../api/conversationApi";
+import { ConvUpdateRequest } from "../types/conversationTypes";
 
 // Custom hooks for CRUD operations
 export const useCreateConversationApi = () => {
@@ -10,7 +11,6 @@ export const useCreateConversationApi = () => {
   return useMutation({
     mutationFn: ConversationService.createConversation,
     onSuccess: () => {
-      console.log("Conversation created successfully");
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }); // Refetch conversations after a new conversation is created
     },
     onSettled: () => {
@@ -57,8 +57,9 @@ export const useGetConversationsForImage = () => {
 export const useUpdateConversationApi = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, conversation }: { id: string; conversation: object }) =>
-      ConversationService.updateConversation(id, conversation),
+    mutationFn: ({ id, conversation }: { id: string; conversation: ConvUpdateRequest }) => {
+      return ConversationService.updateConversation(id, conversation);
+    },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKey.conversations() }), // Refetch conversations after an update
     onError: (error: unknown) => {

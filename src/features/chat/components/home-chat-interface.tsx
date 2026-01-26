@@ -47,6 +47,7 @@ import { ChatInputArea } from "./chat-input-area";
 import { ChatActionChips } from "./chat-action-chips";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
+import { ConvCreateRequest } from "../conversation/types/conversationTypes";
 
 export function HomeChatInterface() {
   const {
@@ -359,10 +360,8 @@ export function HomeChatInterface() {
     console.log("Active Interface: ", activeInterface);
     if (!currentConvId) {
       try {
-        const newConversation = await createConversation.mutateAsync({
-          title: userMessage.substring(0, 50), // Use first 50 chars as title
-          convoType: activeInterface,
-        });
+        const convRequest = new ConvCreateRequest(userMessage.substring(0, 50), activeInterface);
+        const newConversation = await createConversation.mutateAsync(convRequest);
         currentConvId = newConversation.id;
         dispatch(setSelectedConvId(newConversation.id));
         console.log("New conversation created and selected: ", currentConvId);
