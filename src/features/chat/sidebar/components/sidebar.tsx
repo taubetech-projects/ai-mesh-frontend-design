@@ -23,7 +23,7 @@ import {
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import { useRouter } from "next/navigation";
 import { useGetMessagesByConversationId } from "@/features/chat/text-chat/hooks/messageHook";
-import { MessageView } from "@/features/chat/types/models";
+import { MessageView, RouteSel } from "@/features/chat/types/models";
 import { CHAT_ROUTES } from "@/shared/constants/routingConstants";
 import { CONVERSATION_TYPES } from "@/shared/constants/constants";
 import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
@@ -84,33 +84,45 @@ export function Sidebar({ activeInterface }: SidebarProps) {
 
   useEffect(() => {
     if (conversationMessages?.messages) {
-      const uniqueModels = Array.from(
-        new Set(
-          conversationMessages.messages
-            .map((message: MessageView) => message.model)
-            .filter((model: any) => model)
-        )
-      );
-      const conversationModels = uniqueModels.map((model) => ({ model }));
-      dispatch(setSelectedModels(conversationModels));
+      const uniqueModelsMap = new Map<string, RouteSel>();
+
+      conversationMessages.messages.forEach((message: MessageView) => {
+        if (message.model && message.provider) {
+          const key = `${message.provider}-${message.model}`;
+          if (!uniqueModelsMap.has(key)) {
+            uniqueModelsMap.set(key, {
+              provider: message.provider,
+              model: message.model,
+            });
+          }
+        }
+      });
+
+      const conversationModels = Array.from(uniqueModelsMap.values());
+      if (conversationModels.length > 0) {
+        dispatch(setSelectedModels(conversationModels));
+      }
     }
   }, [conversationMessages, dispatch]);
 
   // Initialize models from preferences on mount or update if no conversation is selected
   useEffect(() => {
     if (!selectedConvId && modelPreferences && modelPreferences.length > 0) {
-      const activePreferences = modelPreferences
+      console.log("Raw Model Preferences:", modelPreferences);
+      const activePreferences : RouteSel[] = modelPreferences
         .filter((p: UserModelPreference) => p.isActive)
-        .map((p: UserModelPreference) => ({
+        .map((p: any) => ({
           provider: p.provider,
           model: p.modelName,
         }));
 
       if (activePreferences.length > 0) {
+        console.log("Mapped Active Preferences: ", activePreferences);
         dispatch(setSelectedModels(activePreferences));
       }
     }
   }, [modelPreferences, selectedConvId, dispatch]);
+  // console.log("Selected Models: ", selectedModels);
 
   const handleNewChat = () => {
     dispatch(setSelectedConvId(null));

@@ -68,6 +68,12 @@ export interface FileUploadItem {
   output: string;
 }
 
+export interface UploadApiResponse {
+  providers: {
+    [provider: string]: FileUploadItem[];
+  };
+}
+
 export type UserMsg = { role: ROLES.USER; content: string };
 // export type Message = UserMsg | AssistantMsg;
 export type RouteSel = { provider: string; model: string };

@@ -6,7 +6,7 @@ import {
   RouteSel,
 } from "@/features/chat/types/models";
 
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const defaultProviders: ModelProvider[] = [
   {
@@ -223,7 +223,7 @@ const chatInterfaceSlice = createSlice({
       },
     },
 
-    setSelectedModels(state, action) {
+    setSelectedModels(state, action : PayloadAction<RouteSel[]>) {
       state.selectedModels = action.payload;
     },
 

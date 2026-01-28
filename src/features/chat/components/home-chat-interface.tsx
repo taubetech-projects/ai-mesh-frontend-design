@@ -9,7 +9,7 @@ import {
 import {
   ChatRequestBody,
   ContentItem,
-  FileUploadItem,
+  // FileUploadItem, // Removed as it's not directly used here anymore or imported from models
   ModelProvider,
   RouteSel,
 } from "@/features/chat/types/models";
@@ -23,7 +23,7 @@ import {
   addModel,
   removeModel,
   setSelectedModels,
-  triggerFileUploading,
+  // triggerFileUploading, // Removed as it's handled in the hook
   startRecorder,
   stopRecorder,
   clearChatState,
@@ -48,6 +48,7 @@ import { ChatActionChips } from "./chat-action-chips";
 import { setActiveInterface as setGlobalActiveInterface } from "@/features/chat/store/ui-slice"; // Renamed import
 import { useCreateConversationApi } from "@/features/chat/conversation/hooks/conversationHook";
 import { ConvCreateRequest } from "../conversation/types/conversationTypes";
+import { useFileHandler } from "@/features/chat/hooks/use-file-handler";
 
 export function HomeChatInterface() {
   const {
@@ -57,7 +58,7 @@ export function HomeChatInterface() {
     inputMessage,
     isStreaming,
     triggerSend,
-    uploadingFiles,
+    // uploadingFiles, // usage replaced by hook's state if we want, or keep it if we want to rely on redux
     showRecorder,
     providers,
   } = useSelector((store: any) => store.chatInterface);
@@ -78,7 +79,15 @@ export function HomeChatInterface() {
   const previousMode = useRef<ChatMode>("multi");
 
   // 🔹 File handling
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const { 
+    selectedFiles, 
+    handleFilesSelected, 
+    removeFile, 
+    clearFiles,
+    uploadAndProcessFiles, 
+    isUploading: isHandlingFile 
+  } = useFileHandler();
+
   const [isImageGenSelected, setIsImageGenSelected] = useState(false);
   const [isWebSearchSelected, setIsWebSearchSelected] = useState(false);
   const [chatMode, setChatMode] = useState<ChatMode>("multi");
@@ -166,172 +175,7 @@ export function HomeChatInterface() {
     setIsWebSearchSelected(!isWebSearchSelected);
   };
 
-  interface UploadApiResponse {
-    providers: {
-      [provider: string]: FileUploadItem[];
-    };
-  }
-
-  //Handling Files here
-
-  const handleFilesSelected = (files: File[]) => {
-    setSelectedFiles((prev) => [...prev, ...files]);
-    console.log("Selected files:", files);
-  };
-
-  // Remove a specific file
-  const removeFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Upload files function
-  const uploadFiles = async (
-    files: File[],
-    providers: string
-  ): Promise<UploadApiResponse | null> => {
-    if (files.length === 0) return null;
-
-    console.log("Uploading files to providers:", providers);
-    // setUploadingFiles(true);
-    dispatch(triggerFileUploading(true));
-
-    try {
-      const formData = new FormData();
-
-      files.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      formData.append("providers", providers);
-
-      console.log("Uploading files:", Array.from(formData.entries()));
-
-      const response = await fetch(`${API_BASE}/v1/upload`, {
-        method: "POST",
-        headers: authHeader(),
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Upload failed:", errorText);
-        throw new Error(
-          `File upload failed: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const uploadResponse: UploadApiResponse = await response.json();
-      console.log("Upload response:", uploadResponse);
-      return uploadResponse;
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      throw error;
-    } finally {
-      dispatch(triggerFileUploading(false));
-    }
-  };
-
-  const processUploadedFiles = (
-    uploadResponse: UploadApiResponse,
-    providers: string
-  ): ContentItem[] => {
-    // Extract providers array from comma-separated string
-    const providerArray = providers.split(",").map((p) => p.trim());
-
-    // Get the first provider (or use consensus if available)
-    const firstProvider = providerArray[0];
-    const baseFileItems = uploadResponse.providers[firstProvider];
-
-    if (!baseFileItems || baseFileItems.length === 0) {
-      return [];
-    }
-
-    const contentItems: ContentItem[] = baseFileItems.map((baseItem, index) => {
-      const isImage = baseItem.type.includes("image");
-
-      let imageAnalyzedText = "";
-      let fileAnalyzedText = "";
-      let fileId = "";
-      let fileBase64 = "";
-
-      if (
-        isImage &&
-        (providerArray.includes("deepseek") || providerArray.includes("ollama"))
-      ) {
-        // Prefer deepseek's output, fallback to ollama's if deepseek is not present.
-        const deepseekFiles = uploadResponse.providers["deepseek"];
-        const ollamaFiles = uploadResponse.providers["ollama"];
-
-        if (deepseekFiles && deepseekFiles[index]) {
-          imageAnalyzedText = deepseekFiles[index].output;
-        } else if (ollamaFiles && ollamaFiles[index]) {
-          imageAnalyzedText = ollamaFiles[index].output;
-        }
-      }
-      if (!isImage && providerArray.includes("openai")) {
-        const openaiFiles = uploadResponse.providers["openai"];
-        if (openaiFiles && openaiFiles[index]) {
-          fileId = openaiFiles[index].output;
-        }
-      }
-
-      if (
-        !isImage &&
-        (providerArray.includes("deepseek") ||
-          providerArray.includes("ollama") ||
-          providerArray.includes("grok"))
-      ) {
-        // Prefer deepseek, then grok,  then ollama.
-        const deepseekFiles = uploadResponse.providers["deepseek"];
-        const grokFiles = uploadResponse.providers["grok"];
-        const ollamaFiles = uploadResponse.providers["ollama"];
-
-        if (deepseekFiles && deepseekFiles[index]) {
-          fileAnalyzedText = deepseekFiles[index].output;
-        } else if (grokFiles && grokFiles[index]) {
-          fileAnalyzedText = grokFiles[index].output;
-        } else if (ollamaFiles && ollamaFiles[index]) {
-          fileAnalyzedText = ollamaFiles[index].output;
-        }
-      }
-
-      if (
-        !isImage &&
-        (providerArray.includes("anthropic") ||
-          providerArray.includes("gemini") ||
-          providerArray.includes("perplexity"))
-      ) {
-        const anthropicFiles = uploadResponse.providers["anthropic"];
-        const geminiFiles = uploadResponse.providers["gemini"];
-        const perplexityFiles = uploadResponse.providers["perplexity"];
-
-        if (anthropicFiles && anthropicFiles[index]) {
-          fileBase64 = anthropicFiles[index].output;
-        } else if (geminiFiles && geminiFiles[index]) {
-          fileBase64 = geminiFiles[index].output;
-        } else if (perplexityFiles && perplexityFiles[index]) {
-          fileBase64 = perplexityFiles[index].output;
-        }
-      }
-
-      if (isImage) {
-        return {
-          type: "input_image",
-          image_url: baseItem.output,
-          image_analyzed_text: imageAnalyzedText,
-        };
-      } else {
-        return {
-          type: "input_file",
-          file_id: fileId,
-          file_analyzed_text: fileAnalyzedText,
-          file_base64: fileBase64,
-        };
-      }
-    });
-
-    return contentItems;
-  };
+  // Removed local file handling functions (handleFilesSelected, removeFile, uploadFiles, processUploadedFiles) as they are now in the hook
 
   const { t } = useLanguage();
 
@@ -378,27 +222,24 @@ export function HomeChatInterface() {
         model: model.model,
       }));
     // console.log("Body Routes: ", bodyRoutes);
-    const providers = bodyRoutes.map((r: RouteSel) => r.provider).join(",");
-
-    let uploadResponse = null;
+    const providers = Array.from(new Set(bodyRoutes.map((r: RouteSel) => r.provider))).join(",");
 
     try {
       let contentItems: ContentItem[] = [];
       // Upload files first (if any)
       if (selectedFiles.length > 0) {
         console.log(`Uploading ${selectedFiles.length} file(s)...`);
-        uploadResponse = await uploadFiles(selectedFiles, providers);
-        console.log("Files uploaded successfully: ", uploadResponse);
+        const uploadedContent = await uploadAndProcessFiles(providers);
+        console.log("Files uploaded/processed: ", uploadedContent);
+        
+        if (uploadedContent === null) {
+            console.error("Upload failed, aborting message send.");
+            setIsAnimating(false);
+            return; // Abort if upload failed
+        }
 
-        if (uploadResponse) {
-          const uploadedContent = processUploadedFiles(
-            uploadResponse,
-            providers
-          );
-          contentItems.push(...uploadedContent);
-          console.log("Processed uploaded files: ", uploadedContent);
-        } else {
-          console.warn("Upload failed, continuing without files");
+        if (uploadedContent.length > 0) {
+           contentItems.push(...uploadedContent);
         }
       }
 
@@ -456,7 +297,8 @@ export function HomeChatInterface() {
       );
       dispatch(updateInputMessage(""));
       dispatch(toggleModelSelector(false));
-      setSelectedFiles([]); // clear files after sending
+      dispatch(toggleModelSelector(false));
+      clearFiles(); // clear files after sending
     }
   };
 
@@ -536,7 +378,7 @@ export function HomeChatInterface() {
             onChange={(val) => dispatch(updateInputMessage(val))}
             onSend={handleSendMessage}
             isStreaming={isStreaming}
-            isUploading={uploadingFiles}
+            isUploading={isHandlingFile}
             selectedFiles={selectedFiles}
             onFilesSelected={handleFilesSelected}
             onFileRemove={removeFile}
@@ -546,7 +388,7 @@ export function HomeChatInterface() {
             }
             onStartRecording={() => dispatch(startRecorder())}
             placeholder={t.chat.askAnything}
-            disabled={uploadingFiles || isStreaming}
+            disabled={isHandlingFile || isStreaming}
           />
 
           {/* Chip Buttons */}

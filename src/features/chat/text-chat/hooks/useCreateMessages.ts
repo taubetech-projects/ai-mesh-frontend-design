@@ -19,6 +19,8 @@ import { queryKey } from "@/lib/react-query/keys";
 import { endStreaming } from "@/features/chat/store/chat-interface-slice";
 import { handleApiError } from "../api/messageApi";
 import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
+import { handleApiErrorToast } from "@/shared/utils/toast.helper";
+import { ErrorResponse } from "../../auth/types/authModels";
 
 const cacheKey = (userId: string | null, conversationId: number | null) =>
   queryKey.messages(userId, conversationId ?? 0);
@@ -84,9 +86,9 @@ export const useCreateMessages = (conversationId: number | null) => {
       queryClient.invalidateQueries({ queryKey: cacheKey(userId, conversationId) });
       dispatch(endStreaming());
     },
-    onError: (error: unknown) => {
+    onError: (error: ErrorResponse) => {
       dispatch(endStreaming());
-      handleApiError(error);
+      handleApiErrorToast(error);
     },
   });
 };

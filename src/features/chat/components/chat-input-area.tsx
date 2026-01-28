@@ -103,7 +103,11 @@ export function ChatInputArea({
               key={index}
               className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md text-sm"
             >
-              {getFileIcon(file.type)}
+              {isUploading ? (
+                <div className="w-4 h-4 border-2 border-primary/50 border-t-primary rounded-full animate-spin flex-shrink-0" />
+              ) : (
+                getFileIcon(file.type)
+              )}
               <span className="text-foreground truncate max-w-[200px]">
                 {file.name}
               </span>
