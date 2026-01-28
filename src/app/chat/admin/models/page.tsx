@@ -10,13 +10,25 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { format } from "date-fns";
+import { useState } from "react";
+import { CreateModelDialog, EditModelDialog } from "./model-dialogs";
+import { Model } from "@/features/chat/admin/models/model.types";
 
 export default function AdminModelsPage() {
   const { data: models, isLoading } = useModels();
   const deleteModel = useDeleteModel();
+  
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+
+  const handleEdit = (model: Model) => {
+    setSelectedModel(model);
+    setIsEditOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -30,7 +42,7 @@ export default function AdminModelsPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Models</h1>
-        <Button>
+        <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Create Model
         </Button>
       </div>
@@ -71,6 +83,13 @@ export default function AdminModelsPage() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => handleEdit(model)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => {
                         if (confirm('Are you sure you want to delete this model?')) {
                             deleteModel.mutate(model.id);
@@ -92,6 +111,14 @@ export default function AdminModelsPage() {
           </TableBody>
         </Table>
       </div>
+      
+      <CreateModelDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+      <EditModelDialog 
+        key={selectedModel?.id} // Forces re-render when model changes
+        open={isEditOpen} 
+        onOpenChange={setIsEditOpen} 
+        model={selectedModel} 
+      />
     </div>
   );
 }

@@ -10,12 +10,24 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
+import { useState } from "react";
+import { CreateUserDialog, EditUserDialog } from "./user-dialogs";
+import { UserSummaryView } from "@/features/chat/admin/users/user.types";
 
 export default function AdminUsersPage() {
   const { data: users, isLoading } = useAdminUsers();
   const deleteUser = useDeleteAdminUser();
+  
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserSummaryView | null>(null);
+
+  const handleEdit = (user: UserSummaryView) => {
+    setSelectedUser(user);
+    setIsEditOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -29,7 +41,7 @@ export default function AdminUsersPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Users</h1>
-        <Button>
+        <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Create User
         </Button>
       </div>
@@ -74,6 +86,13 @@ export default function AdminUsersPage() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => handleEdit(user)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => {
                         if (confirm('Are you sure you want to delete this user?')) {
                             deleteUser.mutate(user.id);
@@ -95,6 +114,13 @@ export default function AdminUsersPage() {
           </TableBody>
         </Table>
       </div>
+      
+      <CreateUserDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+      <EditUserDialog 
+        open={isEditOpen} 
+        onOpenChange={setIsEditOpen} 
+        user={selectedUser}
+      />
     </div>
   );
 }

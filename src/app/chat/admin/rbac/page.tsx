@@ -10,9 +10,16 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import { AuthorityView } from "@/features/chat/admin/rbac/rbac.types";
+import { AuthorityView, RoleView } from "@/features/chat/admin/rbac/rbac.types";
+import { useState } from "react";
+import { 
+    CreateRoleDialog, 
+    EditRoleDialog, 
+    CreateAuthorityDialog, 
+    EditAuthorityDialog 
+} from "./rbac-dialogs";
 
 export default function AdminRbacPage() {
   const { data: roles, isLoading: isLoadingRoles } = useRoles();
@@ -20,6 +27,26 @@ export default function AdminRbacPage() {
 
   const deleteRole = useDeleteRole();
   const deleteAuthority = useDeleteAuthority();
+  
+  // ROLE STATE
+  const [isCreateRoleOpen, setIsCreateRoleOpen] = useState(false);
+  const [isEditRoleOpen, setIsEditRoleOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<RoleView | null>(null);
+
+  // AUTHORITY STATE
+  const [isCreateAuthOpen, setIsCreateAuthOpen] = useState(false);
+  const [isEditAuthOpen, setIsEditAuthOpen] = useState(false);
+  const [selectedAuth, setSelectedAuth] = useState<AuthorityView | null>(null);
+
+  const handleEditRole = (role: RoleView) => {
+    setSelectedRole(role);
+    setIsEditRoleOpen(true);
+  };
+
+  const handleEditAuth = (auth: AuthorityView) => {
+    setSelectedAuth(auth);
+    setIsEditAuthOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -35,7 +62,7 @@ export default function AdminRbacPage() {
 
         <TabsContent value="roles" className="space-y-4">
              <div className="flex justify-end">
-                <Button>
+                <Button onClick={() => setIsCreateRoleOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" /> Create Role
                 </Button>
             </div>
@@ -59,6 +86,13 @@ export default function AdminRbacPage() {
                             <TableCell className="font-medium">{role.name}</TableCell>
                             <TableCell>{role.description}</TableCell>
                             <TableCell className="text-right">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditRole(role)}
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -88,7 +122,7 @@ export default function AdminRbacPage() {
 
         <TabsContent value="authorities" className="space-y-4">
              <div className="flex justify-end">
-                <Button>
+                <Button onClick={() => setIsCreateAuthOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" /> Create Authority
                 </Button>
             </div>
@@ -112,6 +146,13 @@ export default function AdminRbacPage() {
                             <TableCell className="font-medium">{auth.name}</TableCell>
                             <TableCell>{auth.description}</TableCell>
                             <TableCell className="text-right">
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditAuth(auth)}
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -139,6 +180,12 @@ export default function AdminRbacPage() {
             </div>
         </TabsContent>
       </Tabs>
+      
+      <CreateRoleDialog open={isCreateRoleOpen} onOpenChange={setIsCreateRoleOpen} />
+      <EditRoleDialog open={isEditRoleOpen} onOpenChange={setIsEditRoleOpen} role={selectedRole} />
+      
+      <CreateAuthorityDialog open={isCreateAuthOpen} onOpenChange={setIsCreateAuthOpen} />
+      <EditAuthorityDialog open={isEditAuthOpen} onOpenChange={setIsEditAuthOpen} authority={selectedAuth} />
     </div>
   );
 }

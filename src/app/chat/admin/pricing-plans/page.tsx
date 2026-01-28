@@ -10,12 +10,24 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
-import { Loader2, Plus, Trash2, Check } from "lucide-react";
+import { Loader2, Plus, Trash2, Check, Edit } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
+import { useState } from "react";
+import { CreatePricingPlanDialog, EditPricingPlanDialog } from "./pricing-plan-dialogs";
+import { PlanView } from "@/features/chat/admin/pricing-plans/pricing-plan.types";
 
 export default function AdminPricingPlansPage() {
   const { data: plans, isLoading } = useAdminPricingPlans();
   const deletePlan = useDeleteAdminPricingPlan();
+  
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanView | null>(null);
+
+  const handleEdit = (plan: PlanView) => {
+    setSelectedPlan(plan);
+    setIsEditOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -29,7 +41,7 @@ export default function AdminPricingPlansPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Pricing Plans</h1>
-        <Button>
+        <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Create Plan
         </Button>
       </div>
@@ -72,6 +84,13 @@ export default function AdminPricingPlansPage() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => handleEdit(plan)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => {
                         if (confirm('Are you sure you want to delete this plan?')) {
                             deletePlan.mutate(plan.id);
@@ -93,6 +112,14 @@ export default function AdminPricingPlansPage() {
           </TableBody>
         </Table>
       </div>
+      
+      <CreatePricingPlanDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+      <EditPricingPlanDialog 
+        key={selectedPlan?.id} 
+        open={isEditOpen} 
+        onOpenChange={setIsEditOpen} 
+        plan={selectedPlan} 
+      />
     </div>
   );
 }
