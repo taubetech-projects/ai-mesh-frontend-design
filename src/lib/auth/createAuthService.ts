@@ -40,5 +40,9 @@ export function createAuthService(basePath: string) {
     resetPassword: async <TReq>(data: TReq): Promise<void> => {
       await api.post(`${basePath}/reset-password`, data);
     },
+
+    verifyEmail: async (token: string): Promise<void> => {
+      await api.post(`${basePath}/verify-email?token=${encodeURIComponent(token)}`);
+    }
   };
 }

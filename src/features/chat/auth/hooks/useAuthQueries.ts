@@ -114,3 +114,14 @@ export function useRefreshTokenMutation() {
     },
   });
 }
+
+export function useVerifyEmailMutation() {
+  return useMutation({
+    mutationFn: (token: string) => ChatAuthService.verifyEmail(token),
+    onError: handleApiErrorToast,
+    onSuccess: () => {
+      showSuccessToast("Email verified successfully!");
+    }
+  });
+}
+

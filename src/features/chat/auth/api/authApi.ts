@@ -34,4 +34,6 @@ export const ChatAuthService = {
 
   resetPassword: (data: ResetPasswordRequest) =>
     chatAuth.resetPassword<ResetPasswordRequest>(data),
+
+  verifyEmail: (token: string) => chatAuth.verifyEmail(token),
 };

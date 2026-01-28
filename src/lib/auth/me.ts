@@ -24,7 +24,15 @@ async function fetchMeInternal(scope: Scope) {
   });
 
   if (!res.ok) return null;
-  return res.json();
+
+  const text = await res.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 /* =========================
