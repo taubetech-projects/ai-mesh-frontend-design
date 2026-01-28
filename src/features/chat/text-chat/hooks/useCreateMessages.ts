@@ -17,24 +17,26 @@ import { createStreamEventHandler } from "@/features/chat/text-chat/utils/stream
 import type { ChatRequestBody } from "@/features/chat/types/models"; // adjust
 import { queryKey } from "@/lib/react-query/keys";
 import { endStreaming } from "@/features/chat/store/chat-interface-slice";
-import { toast } from "sonner";
 import { handleApiError } from "../api/messageApi";
+import { useChatAuth } from "@/features/chat/auth/ChatAuthProvider";
 
-const cacheKey = (conversationId: number | null) =>
-  queryKey.messages(conversationId ?? 0);
+const cacheKey = (userId: string | null, conversationId: number | null) =>
+  queryKey.messages(userId, conversationId ?? 0);
 
 export const useCreateMessages = (conversationId: number | null) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const router = useRouter();
+  const { me } = useChatAuth();
+  const userId = me?.id ?? null;
 
-  const cacheOps = createMessageCacheOps(queryClient, conversationId);
+  const cacheOps = createMessageCacheOps(queryClient, userId, conversationId);
 
   return useMutation({
     mutationFn: async (chatRequestBody: ChatRequestBody) => {
       // ✅ Prevent in-flight overwrite of optimistic cache
       await queryClient.cancelQueries({
-        queryKey: cacheKey(conversationId),
+        queryKey: cacheKey(userId, conversationId),
       });
 
       const { includeConsensus } = validateChatRequest(
@@ -75,11 +77,11 @@ export const useCreateMessages = (conversationId: number | null) => {
       return null;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
+      queryClient.invalidateQueries({ queryKey: cacheKey(userId, conversationId) });
     },
     onSettled: () => {
       // ✅ Fallback: ensure UI always re-syncs with backend even if event is missed
-      queryClient.invalidateQueries({ queryKey: cacheKey(conversationId) });
+      queryClient.invalidateQueries({ queryKey: cacheKey(userId, conversationId) });
       dispatch(endStreaming());
     },
     onError: (error: unknown) => {

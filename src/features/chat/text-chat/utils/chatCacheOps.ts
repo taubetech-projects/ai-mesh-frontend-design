@@ -4,13 +4,14 @@ import { queryKey } from "@/lib/react-query/keys"; // adjust
 import { normalizePartsWithText, ensurePage } from "./messageParts";
 import { streamChat } from "@/features/chat/api/chatApi"; // adjust
 
-const cacheKey = (conversationId: number) => queryKey.messages(conversationId);
+const cacheKey = (userId: string | null, conversationId: number) => queryKey.messages(userId, conversationId);
 
 export const createMessageCacheOps = (
   queryClient: QueryClient,
+  userId: string | null,
   conversationId: number | null
 ) => {
-  const key = queryKey.messages(conversationId);
+  const key = queryKey.messages(userId, conversationId);
 
   const getPage = (): MessagePage =>
     queryClient.getQueryData<MessagePage>(key) ?? {
@@ -43,7 +44,7 @@ export const createMessageCacheOps = (
   };
 
   const invalidateConversation = (cid: number) => {
-    queryClient.invalidateQueries({ queryKey: cacheKey(cid) });
+    queryClient.invalidateQueries({ queryKey: cacheKey(userId, cid) });
   };
 
   // Keep streamChat “behind” cacheOps so the hook stays tiny

@@ -15,9 +15,9 @@ import { handleApiErrorToast, showSuccessToast } from "@/shared/utils/toast.help
 /* ---------------------------
  * Queries
  * -------------------------- */
-export function useMeQuery(opts?: { enabled?: boolean }) {
+export function useMeQuery(opts?: { enabled?: boolean; userId?: string | null }) {
   return useQuery({
-    queryKey: qk.me(),
+    queryKey: qk.me(opts?.userId),
     queryFn: ChatAuthService.me,
     retry: false,
     staleTime: 30_000,
@@ -37,8 +37,14 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: (data: LoginRequest) => ChatAuthService.login(data),
     onSuccess: async () => {
-      // Ensure cookies are set -> then refresh /me
-      await qc.invalidateQueries({ queryKey: qk.me() });
+      /**
+       * React Query has a feature called Partial Matching. When you invalidate ["auth", "me"], it doesn't just look for an exact match; it looks for any key that starts with those two words.
+       * It will find and clear:
+       * ["auth", "me", "user123"]
+       * ["auth", "me", "user456"]
+       * ["auth", "me", null]
+       */
+      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
       showSuccessToast("Login successful! Welcome to our platform...");
     },
   });
@@ -50,8 +56,8 @@ export function useLogoutMutation() {
     mutationFn: () => ChatAuthService.logout(),
     onSuccess: async () => {
       // Immediately drop auth state
-      qc.setQueryData(qk.me(), null);
-      await qc.invalidateQueries({ queryKey: qk.me() });
+      qc.removeQueries({ queryKey: ["auth", "me"] });
+      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
       showSuccessToast("You have been logged out.");
     },
     onError: handleApiErrorToast
@@ -100,11 +106,11 @@ export function useRefreshTokenMutation() {
   return useMutation({
     mutationFn: (data: RefreshRequest) => ChatAuthService.refreshToken(data),
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: qk.me() });
+      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
     onError: () => {
       // If refresh fails, consider user logged out
-      qc.setQueryData(qk.me(), null);
+      qc.removeQueries({ queryKey: ["auth", "me"] });
     },
   });
 }

@@ -161,6 +161,8 @@ export function Sidebar({ activeInterface }: SidebarProps) {
   async function handleLogout() {
     try {
       await logoutMutation.mutateAsync();
+      dispatch(setSelectedConvId(null));
+    dispatch(resetAllStates());
       router.push(CHAT_ROUTES.SIGNIN);
       router.refresh();
     } catch {
